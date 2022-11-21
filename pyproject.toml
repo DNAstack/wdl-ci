@@ -1,0 +1,13 @@
+[project]
+name = "wdl-testing-cli"
+description = "DNAstack WDL testing CLI"
+version = "0.1.0a0"
+authors = [
+    { name = "DNAstack", email = "devs@dnastack.com" }
+]
+dependencies = [
+    "click"
+]
+
+[project.scripts]
+wdltest = "wdltest.cli.main:main"
