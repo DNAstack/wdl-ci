@@ -6,8 +6,9 @@ authors = [
     { name = "DNAstack", email = "devs@dnastack.com" }
 ]
 dependencies = [
-    "click"
+    "click",
+    "jsonpickle"
 ]
 
 [project.scripts]
-wdltest = "wdltest.cli.main:main"
+wdltest = "wdltest.cli.__main__:main"
