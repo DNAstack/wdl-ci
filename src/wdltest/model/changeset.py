@@ -1,5 +1,4 @@
 import jsonpickle
-from wdltest.model.workflow_change import WorkflowChange
 
 class Changeset(object):
 
