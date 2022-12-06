@@ -7,9 +7,10 @@ authors = [
 ]
 dependencies = [
     "click",
+    "dnastack-client-library",
     "jsonpickle",
     "requests"
 ]
 
 [project.scripts]
-wdltest = "wdltest.cli.__main__:main"
+wdl-ci = "wdlci.cli.__main__:main"
