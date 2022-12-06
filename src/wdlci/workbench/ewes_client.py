@@ -1,5 +1,5 @@
 import requests
-from wdltest.config import Config
+from wdlci.config import Config
 
 class EwesClient(object):
 

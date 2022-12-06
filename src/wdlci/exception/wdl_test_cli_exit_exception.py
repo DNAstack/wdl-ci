@@ -1,4 +1,4 @@
-from wdltest.exception.wdl_test_cli_exception import WdlTestCliException
+from wdlci.exception.wdl_test_cli_exception import WdlTestCliException
 
 class WdlTestCliExitException(WdlTestCliException):
     

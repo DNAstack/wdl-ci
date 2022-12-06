@@ -1,6 +1,6 @@
 import jsonpickle
-from wdltest.constants import CHANGES_JSON
-from wdltest.model.changeset import Changeset
+from wdlci.constants import CHANGES_JSON
+from wdlci.model.changeset import Changeset
 
 def detect_changes_handler():
     changeset = Changeset()

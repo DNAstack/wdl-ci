@@ -1,6 +1,6 @@
 import click
-from wdltest.cli.detect_changes import detect_changes_handler
-from wdltest.cli.submit import submit_handler
+from wdlci.cli.detect_changes import detect_changes_handler
+from wdlci.cli.submit import submit_handler
 
 @click.group
 def main():

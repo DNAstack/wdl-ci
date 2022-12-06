@@ -1,8 +1,8 @@
 import base64
 import datetime
 import requests
-from wdltest.config import Config
-from wdltest.exception.wdl_test_cli_exit_exception import WdlTestCliException
+from wdlci.config import Config
+from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliException
 
 class RefreshTokenAuth(object):
 
