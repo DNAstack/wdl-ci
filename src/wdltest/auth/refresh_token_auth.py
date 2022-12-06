@@ -2,6 +2,7 @@ import base64
 import datetime
 import requests
 from wdltest.config import Config
+from wdltest.exception.wdl_test_cli_exit_exception import WdlTestCliException
 
 class RefreshTokenAuth(object):
 
@@ -41,8 +42,7 @@ class RefreshTokenAuth(object):
 
         response = requests.post(url, params=params, headers=headers)
         if response.status_code != 200:
-            # TODO implement auth failure logic
-            pass
+            raise WdlTestCliException("could not obtain access token from refresh token", 1)
 
         response_json = response.json()
 
