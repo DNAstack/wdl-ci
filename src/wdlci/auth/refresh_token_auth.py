@@ -27,9 +27,9 @@ class RefreshTokenAuth(object):
         return self._access_token
     
     def __obtain_access_token(self):
-        config = Config.instance()
+        env = Config.instance().env
         
-        url = f"{config.wallet_url}/oauth/token"
+        url = f"{env.wallet_url}/oauth/token"
         params = {
             "grant_type": "refresh_token",
             "refresh_token": self.refresh_token,
@@ -37,7 +37,7 @@ class RefreshTokenAuth(object):
         }
 
         headers = {
-            "Authorization": "Basic " + self.__base64_encode_string(f"{config.wallet_client_id}:{config.wallet_client_secret}")
+            "Authorization": "Basic " + self.__base64_encode_string(f"{env.wallet_client_id}:{env.wallet_client_secret}")
         }
 
         response = requests.post(url, params=params, headers=headers)

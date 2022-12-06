@@ -25,6 +25,13 @@ class ConfigEnv(object):
             "arg": None,
             "default": None
         },
+        # WORKBENCH
+        {
+            "attr": "workbench_namespace",
+            "env": "WORKBENCH_NAMESPACE",
+            "arg": None,
+            "default": None
+        },
         # WORKBENCH EWES
         {
             "attr": "workbench_ewes_url",
@@ -38,7 +45,7 @@ class ConfigEnv(object):
             "arg": None,
             "default": None
         },
-        # WORBENCH WORKFLOW SERVICE
+        # WORKBENCH WORKFLOW SERVICE
         {
             "attr": "workbench_workflow_service_url",
             "env": "WORKBENCH_WORKFLOW_SERVICE_URL",
