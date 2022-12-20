@@ -15,12 +15,11 @@ class WorkflowServiceClient(object):
                 {
                     "path": workflow_key,
                     "file_type": "PRIMARY_DESCRIPTOR",
-                    "content": self.__escape_wdl(workflow_key)
+                    "content": json.dumps(self.__escape_wdl(workflow_key))
                 }
             ]
         }
-        print(payload)
-
+        
         env = Config.instance().env
         base_url, namespace = env.workbench_workflow_service_url, env.workbench_namespace
         url = f"{base_url}/{namespace}/workflows"
@@ -40,4 +39,6 @@ class WorkflowServiceClient(object):
     def __escape_wdl(self, filename):
         with open(filename, "r") as to_escape:
             file_data = to_escape.read()
-            return json.dumps(file_data)
+            output_data = json.dumps(file_data)[1:-1]
+            print(output_data)
+            return output_data
