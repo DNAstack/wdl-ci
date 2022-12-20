@@ -1,6 +1,7 @@
 import json
 import requests
 from wdlci.config import Config
+from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
 class WorkflowServiceClient(object):
     
@@ -15,7 +16,7 @@ class WorkflowServiceClient(object):
                 {
                     "path": workflow_key,
                     "file_type": "PRIMARY_DESCRIPTOR",
-                    "content": json.dumps(self.__escape_wdl(workflow_key))
+                    "content": open(workflow_key, "r").read()
                 }
             ]
         }
@@ -29,16 +30,10 @@ class WorkflowServiceClient(object):
         }
         
         response = requests.post(url, json=payload, headers=headers)
-        print(response)
-        print(response.status_code)
-        print(response.text)
+        if response.status_code != 200:
+            raise WdlTestCliExitException("Could not register workflow on Workbench", 1)
+
+        return response.json()["id"]
 
     def deregister_namespace_workflows(self):
         pass
-    
-    def __escape_wdl(self, filename):
-        with open(filename, "r") as to_escape:
-            file_data = to_escape.read()
-            output_data = json.dumps(file_data)[1:-1]
-            print(output_data)
-            return output_data

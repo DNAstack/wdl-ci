@@ -4,14 +4,19 @@ class SubmissionState(object):
     
     def __init__(self):
         self.workflows = {}
-        self.workflow_runs = {}
+        self.engines = {}
+        self.workflow_runs = []
     
     def add_workflow(self, workflow_key, workflow_id):
         self.workflows[workflow_key] = SubmissionStateWorkflow(workflow_key, workflow_id)
     
-    def add_workflow_run(self, workflow_key, task_key, test_i, engine_key, inputs, outputs):
-        submission_workflow_run = SubmissionStateWorkflowRun(workflow_key, task_key, test_i, engine_key, inputs, outputs)
-        self.submissions.append(submission_workflow_run)
+    def add_engine(self, engine_id, engine_json):
+        self.engines[engine_id] = engine_json
+
+    def add_workflow_run(self, workflow_key, workflow_id, task_key, test_i, engine_key, inputs, outputs):
+        workflow_run = SubmissionStateWorkflowRun(workflow_key, workflow_id, task_key, test_i, engine_key, inputs, outputs)
+        self.workflow_runs.append(workflow_run)
+        return workflow_run
     
     def submit_all(self):
         # TODO: implement dummy method
@@ -47,8 +52,9 @@ class SubmissionStateWorkflowRun(object):
     STATUS_FINISHED_SUCCESS = 2
     STATUS_FINISHED_FAIL = 3
 
-    def __init__(self, workflow_key, task_key, test_i, engine_key, inputs, outputs):
+    def __init__(self, workflow_key, workflow_id, task_key, test_i, engine_key, inputs, outputs):
         self._workflow_key = workflow_key
+        self._workflow_id = workflow_id
         self._task_key = task_key
         self._test_i = test_i
         self._engine_key = engine_key

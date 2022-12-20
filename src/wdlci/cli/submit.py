@@ -9,6 +9,7 @@ from wdlci.model.changeset import Changeset
 from wdlci.model.submission_state import SubmissionState
 from wdlci.workbench.ewes_client import EwesClient
 from wdlci.workbench.workflow_service_client import WorkflowServiceClient
+from wdlci.utils.hydrate_params import HydrateParams
 
 def validate_input(config):
     required_attrs = [
@@ -49,32 +50,37 @@ def submit_handler(kwargs):
         submission_state = SubmissionState()
 
         # register workflow(s)
-        print("register this...")
         for workflow_key in changeset.get_workflow_keys():
-            print(workflow_key)
-            workflow_service_client.register_workflow(workflow_key, config.file.workflows[workflow_key])
+            workflow_id = workflow_service_client.register_workflow(workflow_key, config.file.workflows[workflow_key])
+            submission_state.add_workflow(workflow_key, workflow_id)
 
-        # for engine_key in config.file.engines.keys():
-        #     if config.file.engines[engine_key].enabled:
-        #         for workflow_key in changeset.get_workflow_keys():
-        #             for task in changeset.get_tasks(workflow_key):
-        #                 for test_i in range(0, len(config.file.workflows[workflow_key].tasks[task].tests)):
-        #                     test_case = config.file.workflows[workflow_key].tasks[task].tests[test_i]
-        #                     print(test_case)
-        #                     # submission_set.add_submission(workflow_key, task, test_case)
-        # 
-        # workflow_service_client.register_workflow()
-        # 
-        # # submit all WDL jobs
-        # submission_set.submit_all()
-# 
+        for engine_id in config.file.engines.keys():
+            if config.file.engines[engine_id].enabled:
+                # get engines by id and add to state
+                engine_json = ewes_client.get_engine(engine_id)
+                submission_state.add_engine(engine_id, engine_json)
+
+                for workflow_key in changeset.get_workflow_keys():
+                    for task in changeset.get_tasks(workflow_key):
+                        for test_i in range(0, len(config.file.workflows[workflow_key].tasks[task].tests)):
+                            test_case = config.file.workflows[workflow_key].tasks[task].tests[test_i]
+
+                            source_params ={**config.file.test_params.global_params, **config.file.test_params.engine_params[engine_id]}
+                            inputs_hydrated = HydrateParams.hydrate(source_params, test_case.inputs)
+                            outputs_hydrated = HydrateParams.hydrate(source_params, test_case.outputs)
+
+                            workflow_id = submission_state.workflows[workflow_key]._workflow_id
+
+                            workflow_run = submission_state.add_workflow_run(workflow_key, workflow_id, task, test_i, engine_id, inputs_hydrated, outputs_hydrated)
+                            ewes_client.submit_workflow_run(workflow_run)
+
         # # validate all jobs were successfully submitted
         # for submission in submission_set.submissions:
         #     if submission.status != Submission.STATUS_SUBMITTED:
         #         raise WdlTestCliExitException(f"test case was not submitted successfully. workflow: {submission.workflow}, task: {submission.task}.", 1)
         # 
-        # # submission_set_encoded = jsonpickle.encode(submission_set)
-        # # open(SUBMISSION_JSON, "w").write(submission_set_encoded)
+        submission_state_encoded = jsonpickle.encode(submission_state)
+        open(SUBMISSION_JSON, "w").write(submission_state_encoded)
 
     except WdlTestCliExitException as e:
         print(f"exiting with code {e.exit_code}, message: {e.message}")
