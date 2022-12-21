@@ -53,6 +53,10 @@ class SubmissionStateWorkflowRun(object):
     STATUS_FINISH_SUCCESS = "FINISH_SUCCESS"
     STATUS_FINISH_FAIL = "FINISH_FAIL"
 
+    VALIDATION_UNSTARTED = "VALIDATION_UNSTARTED"
+    VALIDATION_FAIL = "VALIDATION_FAIL"
+    VALIDATION_SUCCESS = "VALIDATION_SUCCESS"
+
     def __init__(self, workflow_key, workflow_id, task_key, test_i, engine_key, inputs, outputs):
         self._workflow_key = workflow_key
         self._workflow_id = workflow_id
@@ -65,6 +69,8 @@ class SubmissionStateWorkflowRun(object):
         self._created_at = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         self._wes_run_id = None
         self._wes_state = None
+        self._validation_status = SubmissionStateWorkflowRun.VALIDATION_UNSTARTED
+        self._validation_message = ""
     
     @property
     def status(self):
@@ -75,10 +81,23 @@ class SubmissionStateWorkflowRun(object):
     
     def submit_success(self):
         self._status = SubmissionStateWorkflowRun.STATUS_SUBMIT_SUCCESS
-    
+
+    def finish_fail(self):
+        self._status = SubmissionStateWorkflowRun.STATUS_FINISH_FAIL
+
+    def finish_success(self):
+        self._status = SubmissionStateWorkflowRun.STATUS_FINISH_SUCCESS
+
+    def is_done(self):
+        return self._status in set([
+            self.__class__.STATUS_SUBMIT_FAIL,
+            self.__class__.STATUS_FINISH_SUCCESS,
+            self.__class__.STATUS_FINISH_FAIL
+        ])
+
     @property
     def wes_run_id(self):
-        return self._workflow_run_id
+        return self._wes_run_id
     
     @wes_run_id.setter
     def wes_run_id(self, wes_run_id):
@@ -91,3 +110,19 @@ class SubmissionStateWorkflowRun(object):
     @wes_state.setter
     def wes_state(self, wes_state):
         self._wes_state = wes_state
+
+    @property
+    def validation_status(self):
+        return self._validation_status
+
+    @validation_status.setter
+    def validation_status(self, validation_status):
+        self._validation_status = validation_status
+
+    @property
+    def validation_message(self):
+        return self._validation_message
+
+    @validation_message.setter
+    def validation_message(self, validation_message):
+        self._validation_message = validation_message

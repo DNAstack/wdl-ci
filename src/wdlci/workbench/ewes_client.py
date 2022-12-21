@@ -50,5 +50,30 @@ class EwesClient(object):
             workflow_run.wes_run_id = wes_json["run_id"]
             workflow_run.wes_state = wes_json["state"]
 
+    def poll_workflow_run_status_and_update(self, workflow_run):
+        env = Config.instance().env
+        base_url, namespace = env.workbench_ewes_url, env.workbench_namespace
+        url = f"{base_url}/{namespace}/ga4gh/wes/v1/runs/{workflow_run.wes_run_id}/status"
+
+        headers = {
+            "Authorization": "Bearer " + self.ewes_auth.access_token
+        }
+
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            wes_state = response.json()["state"]
+            workflow_run.wes_state = wes_state
+
+            if wes_state in set([
+                "EXECUTOR_ERROR",
+                "SYSTEM_ERROR",
+                "CANCELED"
+            ]):
+                workflow_run.finish_fail()
+            elif wes_state in set([
+                "COMPLETE"
+            ]):
+                workflow_run.finish_success()
+
     def __get_url(self):
         return Config.instance().workbench_ewes_url

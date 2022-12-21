@@ -1,6 +1,7 @@
 import click
 from wdlci.cli.detect_changes import detect_changes_handler
 from wdlci.cli.submit import submit_handler
+from wdlci.cli.monitor import monitor_handler
 
 @click.group
 def main():
@@ -19,10 +20,12 @@ def detect_changes():
 @main.command
 @click.option('--all', '-a', is_flag=True, default=False, show_default=True, help="run all tests")
 def submit(**kwargs):
-    """Submit task tests to WDL executor or delegator"""
+    """Submit workflow runs to Workbench using test inputs"""
 
     submit_handler(kwargs)
 
 @main.command
-def monitor():
-    """TODO: Monitor tests and assert outputs of finshed tasks"""
+def monitor(**kwargs):
+    """Monitor test workflow runs and assert outputs of finshed tasks"""
+
+    monitor_handler(kwargs)
