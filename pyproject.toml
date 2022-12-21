@@ -9,6 +9,7 @@ dependencies = [
     "click",
     "dnastack-client-library",
     "jsonpickle",
+    "miniwdl",
     "requests"
 ]
 

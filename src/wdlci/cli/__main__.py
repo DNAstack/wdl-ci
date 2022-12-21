@@ -1,5 +1,6 @@
 import click
 from wdlci.cli.detect_changes import detect_changes_handler
+from wdlci.cli.lint import lint_handler
 from wdlci.cli.submit import submit_handler
 from wdlci.cli.monitor import monitor_handler
 from wdlci.cli.cleanup import cleanup_handler
@@ -10,8 +11,10 @@ def main():
     """Validate and test WDL workflows"""
 
 @main.command
-def lint():
-    """TODO: lint a WDL workflow"""
+def lint(**kwargs):
+    """Lint a WDL workflow"""
+
+    lint_handler(kwargs)
 
 @main.command
 def detect_changes():
