@@ -47,10 +47,11 @@ class SubmissionStateWorkflow(object):
 
 class SubmissionStateWorkflowRun(object):
 
-    STATUS_UNSUBMITTED = 0
-    STATUS_SUBMITTED = 1
-    STATUS_FINISHED_SUCCESS = 2
-    STATUS_FINISHED_FAIL = 3
+    STATUS_UNSUBMITTED = "UNSUBMITTED"
+    STATUS_SUBMIT_SUCCESS = "SUBMIT_SUCCESS"
+    STATUS_SUBMIT_FAIL = "SUBMIT_FAIL"
+    STATUS_FINISH_SUCCESS = "FINISH_SUCCESS"
+    STATUS_FINISH_FAIL = "FINISH_FAIL"
 
     def __init__(self, workflow_key, workflow_id, task_key, test_i, engine_key, inputs, outputs):
         self._workflow_key = workflow_key
@@ -62,18 +63,31 @@ class SubmissionStateWorkflowRun(object):
         self._outputs = outputs
         self._status = SubmissionStateWorkflowRun.STATUS_UNSUBMITTED
         self._created_at = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-        self._workflow_run_id = None
-    
-    def set_status_unsubmitted(self):
-        self._status = SubmissionStateWorkflowRun.STATUS_UNSUBMITTED
-    
-    def set_status_submitted(self):
-        self._status = SubmissionStateWorkflowRun.STATUS_SUBMITTED
+        self._wes_run_id = None
+        self._wes_state = None
     
     @property
-    def workflow_run_id(self):
+    def status(self):
+        return self._status
+    
+    def submit_fail(self):
+        self._status = SubmissionStateWorkflowRun.STATUS_SUBMIT_FAIL
+    
+    def submit_success(self):
+        self._status = SubmissionStateWorkflowRun.STATUS_SUBMIT_SUCCESS
+    
+    @property
+    def wes_run_id(self):
         return self._workflow_run_id
     
+    @wes_run_id.setter
+    def wes_run_id(self, wes_run_id):
+        self._wes_run_id = wes_run_id
+    
     @property
-    def workflow_run_id(self, workflow_run_id):
-        self._workflow_run_id = workflow_run_id
+    def wes_state(self):
+        return self._wes_state
+    
+    @wes_state.setter
+    def wes_state(self, wes_state):
+        self._wes_state = wes_state

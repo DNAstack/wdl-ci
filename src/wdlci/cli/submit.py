@@ -6,7 +6,7 @@ from wdlci.config import Config
 from wdlci.constants import *
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 from wdlci.model.changeset import Changeset
-from wdlci.model.submission_state import SubmissionState
+from wdlci.model.submission_state import SubmissionState, SubmissionStateWorkflowRun
 from wdlci.workbench.ewes_client import EwesClient
 from wdlci.workbench.workflow_service_client import WorkflowServiceClient
 from wdlci.utils.hydrate_params import HydrateParams
@@ -73,14 +73,23 @@ def submit_handler(kwargs):
 
                             workflow_run = submission_state.add_workflow_run(workflow_key, workflow_id, task, test_i, engine_id, inputs_hydrated, outputs_hydrated)
                             ewes_client.submit_workflow_run(workflow_run)
-
-        # # validate all jobs were successfully submitted
-        # for submission in submission_set.submissions:
-        #     if submission.status != Submission.STATUS_SUBMITTED:
-        #         raise WdlTestCliExitException(f"test case was not submitted successfully. workflow: {submission.workflow}, task: {submission.task}.", 1)
-        # 
+        
+        # write state to JSON for monitoring job
         submission_state_encoded = jsonpickle.encode(submission_state)
         open(SUBMISSION_JSON, "w").write(submission_state_encoded)
+
+        # validate all jobs were successfully submitted
+        n_submit_failures = 0
+        for workflow_run in submission_state.workflow_runs:
+            if workflow_run.status != SubmissionStateWorkflowRun.STATUS_SUBMIT_SUCCESS:
+                # TODO add error log message
+                n_submit_failures += 1
+        
+        if n_submit_failures > 0:
+            raise WdlTestCliExitException(f"{n_submit_failures} workflow run(s) failed to submit to WES", 1)
+        
+        # TODO add successful finish message
+        print("Submission process complete. All workflow runs submitted successfully")
 
     except WdlTestCliExitException as e:
         print(f"exiting with code {e.exit_code}, message: {e.message}")

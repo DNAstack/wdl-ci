@@ -2,6 +2,7 @@ import json
 import requests
 from wdlci.config import Config
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
+from wdlci.model.submission_state import SubmissionStateWorkflowRun
 
 class EwesClient(object):
 
@@ -41,10 +42,13 @@ class EwesClient(object):
         }
 
         response = requests.post(url, headers=headers, json=form_data)
-        # TODO remove debug print statements
-        print(response.status_code)
-        print(response.text)
-        print(response.headers)
+        if response.status_code != 200:
+            workflow_run.submit_fail()
+        else:
+            workflow_run.submit_success()
+            wes_json = response.json()
+            workflow_run.wes_run_id = wes_json["run_id"]
+            workflow_run.wes_state = wes_json["state"]
 
     def __get_url(self):
         return Config.instance().workbench_ewes_url
