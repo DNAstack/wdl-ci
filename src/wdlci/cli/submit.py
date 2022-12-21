@@ -87,8 +87,7 @@ def submit_handler(kwargs):
         
         if n_submit_failures > 0:
             raise WdlTestCliExitException(f"{n_submit_failures} workflow run(s) failed to submit to WES", 1)
-        
-        # TODO add successful finish message
+
         print("Submission process complete. All workflow runs submitted successfully")
 
     except WdlTestCliExitException as e:

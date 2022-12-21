@@ -35,5 +35,15 @@ class WorkflowServiceClient(object):
 
         return response.json()["id"]
 
-    def deregister_namespace_workflows(self):
-        pass
+    def purge_custom_workflows(self):
+        env = Config.instance().env
+        base_url, namespace = env.workbench_workflow_service_url, env.workbench_namespace
+        url = f"{base_url}/{namespace}"
+
+        headers = {
+            "Authorization": "Bearer " + self.workflow_service_auth.access_token
+        }
+
+        response = requests.delete(url, headers=headers)
+        if response.status_code != 204:
+            raise WdlTestCliExitException("Error when purging custom workflows from namespace", 1)

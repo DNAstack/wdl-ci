@@ -2,8 +2,10 @@ import click
 from wdlci.cli.detect_changes import detect_changes_handler
 from wdlci.cli.submit import submit_handler
 from wdlci.cli.monitor import monitor_handler
+from wdlci.cli.cleanup import cleanup_handler
+from wdlci.utils.ordered_group import OrderedGroup
 
-@click.group
+@click.group(cls=OrderedGroup)
 def main():
     """Validate and test WDL workflows"""
 
@@ -26,6 +28,12 @@ def submit(**kwargs):
 
 @main.command
 def monitor(**kwargs):
-    """Monitor test workflow runs and assert outputs of finshed tasks"""
+    """Monitor test runs and validate output"""
 
     monitor_handler(kwargs)
+
+@main.command
+def cleanup(**kwargs):
+    """Clean Workbench namespace of transient artifacts"""
+
+    cleanup_handler(kwargs)
