@@ -4,7 +4,7 @@ Tools to validate and test WDL-based repositories. To be used as part of CI/CD p
 
 install: `python -m pip install .`
 
-run: `wdltest`
+run: `wdl-ci`
 
 build docker image: `docker build -t wdl-testing-cli:latest .`
 

@@ -10,4 +10,4 @@ RUN python -m pip install .
 
 WORKDIR /usr/test
 
-ENTRYPOINT [ "wdltest" ]
+ENTRYPOINT [ "wdl-ci" ]
