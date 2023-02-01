@@ -1,5 +1,4 @@
 class HydrateParams(object):
-
     @classmethod
     def hydrate(cls, source, target):
         result = {}
@@ -10,6 +9,6 @@ class HydrateParams(object):
             for sk in source.keys():
                 sv = source[sk]
                 tv = tv.replace("${" + sk + "}", sv)
-            
+
             result[tk] = tv
         return result

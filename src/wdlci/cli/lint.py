@@ -3,6 +3,7 @@ import WDL
 import WDL.Lint
 from wdlci.config import Config
 
+
 def lint_handler(kwargs):
 
     Config.load(kwargs)
@@ -16,14 +17,18 @@ def lint_handler(kwargs):
             assert isinstance(pos, WDL.SourcePosition)
             assert isinstance(lint_class, str) and isinstance(message, str)
             # if not suppressed:
-            print(json.dumps({
-                "uri"        : pos.uri,
-                "abspath"    : pos.abspath,
-                "line"       : pos.line,
-                "end_line"   : pos.end_line,
-                "column"     : pos.column,
-                "end_column" : pos.end_column,
-                "lint"       : lint_class,
-                "message"    : message,
-            }))
+            print(
+                json.dumps(
+                    {
+                        "uri": pos.uri,
+                        "abspath": pos.abspath,
+                        "line": pos.line,
+                        "end_line": pos.end_line,
+                        "column": pos.column,
+                        "end_column": pos.end_column,
+                        "lint": lint_class,
+                        "message": message,
+                    }
+                )
+            )
         print()
