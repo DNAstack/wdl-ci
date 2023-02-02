@@ -11,3 +11,10 @@ build docker image: `docker build -t wdl-testing-cli:latest .`
 run docker container: `docker run wdl-testing-cli:latest`
 
 run docker container (mount repo directory): `docker run -v ${PWD}:/usr/test wdl-testing-cli:latest`
+
+
+## Linting with black
+
+Install [black](https://github.com/psf/black), then run `git config core.hooksPath hooks/`.
+
+`black` will be run on all python files as a pre-commit hook.
