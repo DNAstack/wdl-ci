@@ -20,10 +20,10 @@ def lint(**kwargs):
 
 
 @main.command
-def detect_changes():
+def detect_changes(**kwargs):
     """detect updated tasks within a workflow"""
 
-    detect_changes_handler()
+    detect_changes_handler(kwargs)
 
 
 @main.command

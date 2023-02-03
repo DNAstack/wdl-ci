@@ -1,6 +1,13 @@
+import json
 from wdlci.config.config_file import ConfigFile
 from wdlci.config.config_env import ConfigEnv
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
+from wdlci.constants import CONFIG_JSON
+
+
+class ConfigEncoder(json.JSONEncoder):
+    def default(self, o):
+        return o.__dict__
 
 
 class Config(object):
@@ -29,6 +36,10 @@ class Config(object):
         if cls._instance is None:
             raise WdlTestCliExitException("Config not loaded, use load() first")
         return cls._instance
+
+    def write(self):
+        with open(CONFIG_JSON, "w") as f:
+            json.dump(self.file, f, cls=ConfigEncoder, indent=2)
 
     def __init__(self, file, env):
         self._file = file

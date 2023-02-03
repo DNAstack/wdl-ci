@@ -94,7 +94,7 @@ class TestParams(object):
     @classmethod
     def __new__(cls, json_dict):
         instance = super(TestParams, cls).__new__(cls)
-        instance.__init__(json_dict["global"], json_dict["engines"])
+        instance.__init__(json_dict["global_params"], json_dict["engine_params"])
         return instance
 
     def __init__(self, global_params, engine_params):
