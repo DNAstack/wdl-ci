@@ -1,7 +1,9 @@
 FROM python:3.11.0-slim-buster
 
-RUN apt-get -qq update && \
-	apt-get -qq install git
+RUN apt-get -qq update \
+	&& apt-get -qq install \
+		git \
+		shellcheck
 
 WORKDIR /usr/src
 

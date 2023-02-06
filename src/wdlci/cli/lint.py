@@ -3,6 +3,7 @@ import sys
 import WDL
 import WDL.Lint
 from WDL.Lint import a_linter, Linter
+from WDL.CLI import check
 from wdlci.config import Config
 from typing import Any
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
@@ -37,29 +38,34 @@ def lint_handler(kwargs):
         Config.load(kwargs)
         config = Config.instance()
 
+        lint_failed_workflows = []
+
         for workflow_key in config.file.workflows.keys():
-            print(f"Lint warnings for {workflow_key}:")
-            doc = WDL.load(workflow_key)
-            lint = WDL.Lint.collect(WDL.Lint.lint(doc, descend_imports=False))
-            for (pos, lint_class, message, suppressed) in lint:
-                assert isinstance(pos, WDL.SourcePosition)
-                assert isinstance(lint_class, str) and isinstance(message, str)
-                if not suppressed:
-                    print(
-                        json.dumps(
-                            {
-                                "uri": pos.uri,
-                                "abspath": pos.abspath,
-                                "line": pos.line,
-                                "end_line": pos.end_line,
-                                "column": pos.column,
-                                "end_column": pos.end_column,
-                                "lint": lint_class,
-                                "message": message,
-                            }
-                        )
-                    )
+            # Pretty-print lint messages
+            WDL.CLI.check([workflow_key])
+
+            lint = WDL.Lint.collect(WDL.Lint.lint(WDL.load(workflow_key)))
+            num_unsuppressed_lints = len(
+                [
+                    pos
+                    for (pos, lint_class, message, suppressed) in lint
+                    if not suppressed
+                ]
+            )
+            if num_unsuppressed_lints > 0:
+                lint_failed_workflows.append(
+                    {
+                        "workflow": workflow_key,
+                        "num_unsuppressed_lints": num_unsuppressed_lints,
+                    }
+                )
             print()
+
+        if len(lint_failed_workflows) > 0:
+            raise WdlTestCliExitException(
+                f"Unsuppressed warnings or errors in workflows {lint_failed_workflows}",
+                1,
+            )
 
     except WdlTestCliExitException as e:
         print(f"exiting with code {e.exit_code}, message: {e.message}")
