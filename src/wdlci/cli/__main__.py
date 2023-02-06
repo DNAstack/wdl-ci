@@ -1,7 +1,8 @@
 import click
+from wdlci.cli.generate_config import generate_config_handler
 from wdlci.cli.lint import lint_handler
 from wdlci.cli.detect_changes import detect_changes_handler
-from wdlci.cli.populate import populate_handler
+from wdlci.cli.update_task_digests import update_task_digests_handler
 from wdlci.cli.submit import submit_handler
 from wdlci.cli.monitor import monitor_handler
 from wdlci.cli.cleanup import cleanup_handler
@@ -11,6 +12,24 @@ from wdlci.utils.ordered_group import OrderedGroup
 @click.group(cls=OrderedGroup)
 def main():
     """Validate and test WDL workflows"""
+
+
+@main.command
+@click.option(
+    "--remove",
+    "-r",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Remove workflows and tasks that are no longer found",
+)
+def generate_config(**kwargs):
+    """Generate or update the WDL CI config file.
+
+    If the config file already exists, new workflows and tasks will be added. Existing workflows and tasks (including tests) will not be updated or removed.
+    """
+
+    generate_config_handler(kwargs)
 
 
 @main.command
@@ -27,11 +46,11 @@ def detect_changes(**kwargs):
     detect_changes_handler(kwargs)
 
 
-@main.command
-def populate(**kwargs):
-    """Initialize or update the config file"""
+@main.command(hidden=True)
+def update_task_digests(**kwargs):
+    """Update task digests in the config file. This should only be called by the github action"""
 
-    populate_handler(kwargs)
+    update_task_digests_handler(kwargs)
 
 
 @main.command
