@@ -31,7 +31,9 @@ def populate_handler(kwargs):
 
             for task in doc.tasks:
                 task_name = task.name
-                task_digest = task.digest
+                # Need to set the task_digest to "" when the config file is initialized
+                #   or new tasks won't be picked up for testing
+                task_digest = "" if initialize else task.digest
 
                 if task_name in config.file.workflows[workflow_path].tasks:
                     if (
