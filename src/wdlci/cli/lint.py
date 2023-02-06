@@ -2,34 +2,10 @@ import json
 import sys
 import WDL
 import WDL.Lint
-from WDL.Lint import a_linter, Linter
 from WDL.CLI import check
 from wdlci.config import Config
-from typing import Any
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
-
-
-@a_linter
-class MissingRuntimeKey(Linter):
-    required_keys = set(
-        [
-            "docker",
-            "cpu",
-            "memory",
-            "disk",
-            "disks",
-            "preemptible",
-            "maxRetries",
-            "awsBatchRetryAttempts",
-            "queueArn",
-            "zones",
-        ]
-    )
-
-    def task(self, obj: WDL.Tree.Task) -> Any:
-        for k in self.required_keys:
-            if k not in obj.runtime:
-                self.add(obj, "Missing required runtime parameter: " + k)
+import wdlci.linters.custom_linters
 
 
 def lint_handler(kwargs):
