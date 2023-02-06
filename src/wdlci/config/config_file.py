@@ -1,20 +1,33 @@
 import json
 from wdlci.constants import CONFIG_JSON
+from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
+import os.path
 
 
 class ConfigFile(object):
     @classmethod
-    def __new__(cls, *args, **kwargs):
-        json_dict = json.load(open(CONFIG_JSON, "r"))
-        workflows = {
-            key: WorkflowConfig.__new__(key, json_dict["workflows"][key])
-            for key in json_dict["workflows"].keys()
-        }
-        engines = {
-            key: EngineConfig.__new__(key, json_dict["engines"][key])
-            for key in json_dict["engines"].keys()
-        }
-        test_params = TestParams.__new__(json_dict["test_params"])
+    def __new__(cls, initialize, *args, **kwargs):
+        if initialize:
+            workflows = {}
+            engines = {}
+            test_params = {"global_params": {}, "engine_params": {}}
+        else:
+            if os.path.exists(CONFIG_JSON):
+                json_dict = json.load(open(CONFIG_JSON, "r"))
+                workflows = {
+                    key: WorkflowConfig.__new__(key, json_dict["workflows"][key])
+                    for key in json_dict["workflows"].keys()
+                }
+                engines = {
+                    key: EngineConfig.__new__(key, json_dict["engines"][key])
+                    for key in json_dict["engines"].keys()
+                }
+                test_params = TestParams.__new__(json_dict["test_params"])
+            else:
+                raise WdlTestCliExitException(
+                    f"Config file [{CONFIG_JSON}] not found; try running `wdl-cli populate` to initialize a config file",
+                    1,
+                )
 
         instance = super(ConfigFile, cls).__new__(cls)
         instance.__init__(workflows, engines, test_params)

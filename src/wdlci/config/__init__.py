@@ -15,8 +15,8 @@ class Config(object):
     _instance = None
 
     @classmethod
-    def __new__(cls, cli_kwargs):
-        file = ConfigFile.__new__()
+    def __new__(cls, cli_kwargs, initialize):
+        file = ConfigFile.__new__(initialize=initialize)
         env = ConfigEnv.__new__(cli_kwargs)
         instance = super(Config, cls).__new__(cls)
         instance.__init__(file, env)
@@ -24,12 +24,12 @@ class Config(object):
         return instance
 
     @classmethod
-    def load(cls, cli_kwargs):
+    def load(cls, cli_kwargs, initialize=False):
         if cls._instance is not None:
             raise WdlTestCliExitException("Cannot load Config, already loaded", 1)
 
         cls._cli_kwargs = cli_kwargs
-        cls._instance = cls.__new__(cli_kwargs)
+        cls._instance = cls.__new__(cli_kwargs, initialize=initialize)
 
     @classmethod
     def instance(cls):

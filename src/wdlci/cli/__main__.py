@@ -1,7 +1,7 @@
 import click
-from wdlci.cli.detect_changes import detect_changes_handler
-from wdlci.cli.update_digests import update_digests_handler
 from wdlci.cli.lint import lint_handler
+from wdlci.cli.detect_changes import detect_changes_handler
+from wdlci.cli.populate import populate_handler
 from wdlci.cli.submit import submit_handler
 from wdlci.cli.monitor import monitor_handler
 from wdlci.cli.cleanup import cleanup_handler
@@ -22,16 +22,16 @@ def lint(**kwargs):
 
 @main.command
 def detect_changes(**kwargs):
-    """detect updated tasks within a workflow"""
+    """Detect updated tasks within a workflow"""
 
     detect_changes_handler(kwargs)
 
 
 @main.command
-def update_digests(**kwargs):
-    """Update task digests in the config file"""
+def populate(**kwargs):
+    """Initialize or update the config file"""
 
-    update_digests_handler(kwargs)
+    populate_handler(kwargs)
 
 
 @main.command
