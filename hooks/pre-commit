@@ -46,7 +46,7 @@ EOF
 fi
 
 # Lint python files using black
-staged_python_files="$(git diff --name-only --cached | grep -E '.*\.pyi?$' | tr '\n' ' ')"
+staged_python_files="$(git diff --name-only --diff-filter=d --cached | grep -E '.*\.pyi?$' | tr '\n' ' ')"
 if [ -n "${staged_python_files}" ]; then
 	black $staged_python_files
 	git add $staged_python_files
