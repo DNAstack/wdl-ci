@@ -33,6 +33,9 @@ def detect_changes_handler(kwargs):
                     workflow_change = changeset.add_workflow_change(workflow)
                     workflow_change.add_task_change(task_name)
 
+        if len(changeset.workflow_changes) == 0:
+            print("No new or modified tasks detected")
+
         encoded = jsonpickle.encode(changeset)
         open(CHANGES_JSON, "w").write(encoded)
     except WdlTestCliExitException as e:
