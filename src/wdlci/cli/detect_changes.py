@@ -25,9 +25,13 @@ def detect_changes_handler(kwargs):
                 if task_name in workflow_config.tasks:
                     previous_digest = workflow_config.tasks[task_name].digest
                     if previous_digest != task_digest:
-                        print("Task change detected for " + workflow + ": " + task_name)
+                        print(f"Task change detected [{workflow} - {task_name}]")
                         workflow_change = changeset.add_workflow_change(workflow)
                         workflow_change.add_task_change(task_name)
+                else:
+                    print(f"New task detected [{workflow} - {task_name}]")
+                    workflow_change = changeset.add_workflow_change(workflow)
+                    workflow_change.add_task_change(task_name)
 
         encoded = jsonpickle.encode(changeset)
         open(CHANGES_JSON, "w").write(encoded)
