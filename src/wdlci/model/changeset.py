@@ -6,8 +6,11 @@ class Changeset(object):
         self.workflow_changes = {}
 
     def add_workflow_change(self, path):
-        workflow_change = WorkflowChange()
-        self.workflow_changes[path] = workflow_change
+        if path in self.get_workflow_keys():
+            workflow_change = self.workflow_changes[path]
+        else:
+            workflow_change = WorkflowChange()
+            self.workflow_changes[path] = workflow_change
         return workflow_change
 
     def get_workflow_keys(self):
