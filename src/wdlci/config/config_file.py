@@ -25,7 +25,7 @@ class ConfigFile(object):
                 test_params = TestParams.__new__(json_dict["test_params"])
             else:
                 raise WdlTestCliExitException(
-                    f"Config file [{CONFIG_JSON}] not found; try running `wdl-cli populate` to initialize a config file",
+                    f"Config file [{CONFIG_JSON}] not found; try running `wdl-cli generate-config` to initialize a config file",
                     1,
                 )
 

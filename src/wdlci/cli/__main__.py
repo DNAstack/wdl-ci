@@ -2,11 +2,19 @@ import click
 from wdlci.cli.generate_config import generate_config_handler
 from wdlci.cli.lint import lint_handler
 from wdlci.cli.detect_changes import detect_changes_handler
-from wdlci.cli.update_task_digests import update_task_digests_handler
 from wdlci.cli.submit import submit_handler
 from wdlci.cli.monitor import monitor_handler
 from wdlci.cli.cleanup import cleanup_handler
 from wdlci.utils.ordered_group import OrderedGroup
+
+remove_option = click.option(
+    "--remove",
+    "-r",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Remove workflows and tasks that are no longer found",
+)
 
 
 @click.group(cls=OrderedGroup)
@@ -15,14 +23,7 @@ def main():
 
 
 @main.command
-@click.option(
-    "--remove",
-    "-r",
-    is_flag=True,
-    default=False,
-    show_default=True,
-    help="Remove workflows and tasks that are no longer found",
-)
+@remove_option
 def generate_config(**kwargs):
     """Generate or update the WDL CI config file.
 
@@ -47,10 +48,11 @@ def detect_changes(**kwargs):
 
 
 @main.command(hidden=True)
+@remove_option
 def update_task_digests(**kwargs):
     """Update task digests in the config file. This should only be called by the github action"""
 
-    update_task_digests_handler(kwargs)
+    generate_config_handler(kwargs, update_task_digests=True)
 
 
 @main.command
