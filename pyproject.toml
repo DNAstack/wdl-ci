@@ -15,3 +15,16 @@ dependencies = [
 
 [project.scripts]
 wdl-ci = "wdlci.cli.__main__:main"
+
+[tool.black]
+include = '\.pyi?$'
+exclude = '''
+/(
+  \.toml
+  |\.sh
+  |\.git
+  |\.ini
+  |Dockerfile
+  |Jenkinfile
+)/
+'''
