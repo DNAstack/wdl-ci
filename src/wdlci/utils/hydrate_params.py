@@ -1,7 +1,8 @@
 class HydrateParams(object):
     @classmethod
-    def hydrate(cls, source, target):
+    def hydrate(cls, source, target, workflow_name=""):
         result = {}
+        separator = "" if workflow_name == "" else "."
 
         for tk in target.keys():
             tv = target[tk]
@@ -10,5 +11,5 @@ class HydrateParams(object):
                 sv = source[sk]
                 tv = tv.replace("${" + sk + "}", sv)
 
-            result[tk] = tv
+            result[f"{workflow_name}{separator}{tk}"] = tv
         return result

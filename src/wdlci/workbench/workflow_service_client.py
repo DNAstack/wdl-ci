@@ -1,4 +1,5 @@
 import json
+import os
 import requests
 from wdlci.config import Config
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
@@ -8,7 +9,7 @@ class WorkflowServiceClient(object):
     def __init__(self, workflow_service_auth):
         self.workflow_service_auth = workflow_service_auth
 
-    def register_workflow(self, workflow_key, workflow_config):
+    def register_workflow(self, workflow_key, workflow_config, transient=False):
         payload = {
             "name": workflow_config.name,
             "description": workflow_config.description,
@@ -20,6 +21,9 @@ class WorkflowServiceClient(object):
                 }
             ],
         }
+
+        if transient:
+            os.remove(workflow_key)
 
         env = Config.instance().env
         base_url, namespace = (

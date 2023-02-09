@@ -18,7 +18,7 @@ class EwesClient(object):
         response = requests.get(url, headers=headers)
         if response.status_code != 200:
             raise WdlTestCliExitException(
-                f"Could not get engine by specified id: '{engine_id}'"
+                f"Could not get engine by specified id: '{engine_id}'", 1
             )
         return response.json()
 
@@ -40,11 +40,14 @@ class EwesClient(object):
         response = requests.post(url, headers=headers, json=form_data)
         if response.status_code != 200:
             workflow_run.submit_fail()
+            print(f"Error [{response.status_code}] while submitting workflow")
         else:
             workflow_run.submit_success()
             wes_json = response.json()
             workflow_run.wes_run_id = wes_json["run_id"]
             workflow_run.wes_state = wes_json["state"]
+            print(wes_json)
+            print("Workflow submission successful")
 
     def poll_workflow_run_status_and_update(self, workflow_run):
         env = Config.instance().env
