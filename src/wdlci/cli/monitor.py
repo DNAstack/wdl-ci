@@ -69,7 +69,7 @@ def monitor_handler(kwargs):
                     == SubmissionStateWorkflowRun.VALIDATION_UNSTARTED
                 ):
                     # TODO add output validation logic
-                    ewes_client.get_workflow_outputs(workflow_run)
+                    pass
 
             # iterate through all runs, if all runs are in a terminal state,
             # move onto the next step
