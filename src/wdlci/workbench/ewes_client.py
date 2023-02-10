@@ -46,7 +46,7 @@ class EwesClient(object):
             wes_json = response.json()
             workflow_run.wes_run_id = wes_json["run_id"]
             workflow_run.wes_state = wes_json["state"]
-            print(wes_json)
+            print(f"[{workflow_run._workflow_key}]: {wes_json['state']}")
             print("Workflow submission successful")
 
     def poll_workflow_run_status_and_update(self, workflow_run):
@@ -61,6 +61,7 @@ class EwesClient(object):
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             wes_state = response.json()["state"]
+            print(f"[{workflow_run._workflow_key}]: {wes_state}")
             workflow_run.wes_state = wes_state
 
             if wes_state in set(["EXECUTOR_ERROR", "SYSTEM_ERROR", "CANCELED"]):

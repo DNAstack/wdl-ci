@@ -69,7 +69,7 @@ def monitor_handler(kwargs):
                     == SubmissionStateWorkflowRun.VALIDATION_UNSTARTED
                 ):
                     # TODO add output validation logic
-                    pass
+                    ewes_client.get_workflow_outputs(workflow_run)
 
             # iterate through all runs, if all runs are in a terminal state,
             # move onto the next step
@@ -112,6 +112,9 @@ def monitor_handler(kwargs):
                 print(
                     f"run with id '{workflow_run.wes_run_id}' failed with an unspecified error"
                 )
+
+        submission_state_encoded = jsonpickle.encode(submission_state)
+        open(SUBMISSION_JSON, "w").write(submission_state_encoded)
 
         if fail_n > 0:
             raise WdlTestCliExitException(

@@ -1,12 +1,12 @@
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
 
-def validate_inputs(task, input_dict):
-    workflow_task_split = task.workflow_config.key.replace("-", " - ")
+def validate_inputs(test_key, task, input_dict):
+    workflow_task_split = test_key.replace("-", " - ")
 
     # Confirm that all required inputs have been set
     non_optional_task_inputs = [
-        task.name for task in task.task_inputs if not task.type._optional
+        task.name for task in task.inputs if not task.type._optional
     ]
     missing_inputs = [
         task_input
@@ -21,11 +21,11 @@ def validate_inputs(task, input_dict):
         )
 
     # Remove inputs that are not required
-    expected_task_inputs = [task.name for task in task.task_inputs]
+    expected_task_inputs = [task.name for task in task.inputs]
     for task_input in list(input_dict):
         if task_input not in expected_task_inputs:
             print(
-                f"\t[WARN] detected extra input [{task_input}] for test case [{workflow_task_split}]; removing"
+                f"\t[WARN] detected extra input [{task_input}] for test case [{workflow_task_split}]; ignoring"
             )
             del input_dict[task_input]
 

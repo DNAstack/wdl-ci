@@ -81,111 +81,20 @@ class WorkflowTaskConfig(object):
         self.digest = digest
         self.tests = tests
 
-    def generate_task_workflow_config(self, workflow_key):
-        """Generate a WorkflowConfig from a single task"""
-        workflow_task_key = f"{workflow_key}-{self.key}"
-        workflow_config = WorkflowConfig.__new__(
-            workflow_task_key,
-            {
-                "name": f"{workflow_key} - {self.key}",
-                "description": f"Stub workflow auto-generated from the '{self.key}' task, originating in the '{workflow_key}' workflow",
-                "tasks": {},
-            },
-        )
-        self.workflow_config = workflow_config
-
-    def write_task_workflow_file(self, doc_task):
-        """Materialize a workflow file with a call to this task"""
-        outfile = self.workflow_config.key
-        workflow_name = f"wdlci_{doc_task.name}"
-
-        # Used during testing
-        self.workflow_name = workflow_name
-        self.task_inputs = doc_task.inputs
-
-        with open(outfile, "w") as f:
-            f.write(f"version {doc_task.effective_wdl_version}\n\n")
-
-            # Write workflow
-            f.write(f"workflow {workflow_name} {{\n")
-
-            ## Inputs
-            f.write("\tinput " + "{\n")
-            for task_input in doc_task.inputs:
-                f.write(f"\t\t{task_input}\n")
-            f.write("\t}\n")
-            f.write("\n")
-
-            ## Calls
-            f.write(f"\tcall {doc_task.name} {{\n")
-            f.write("\t\tinput:\n")
-            for index, task_input in enumerate(doc_task.inputs):
-                trailing_comma = "" if index == len(doc_task.inputs) - 1 else ","
-                input_name = task_input.name
-                f.write(f"\t\t\t{input_name} = {input_name}{trailing_comma}\n")
-            f.write("\t}\n")
-            f.write("\n")
-
-            ## Outputs
-            f.write("\toutput {\n")
-            for task_output in doc_task.outputs:
-                f.write(
-                    f"\t\t{task_output.type} {task_output.name} = {doc_task.name}.{task_output.name}\n"
-                )
-            f.write("\t}\n")
-            f.write("\n")
-
-            f.write("}\n")
-            f.write("\n")
-
-            # Write task
-            f.write(f"task {doc_task.name} {{\n")
-
-            ## Inputs
-            f.write("\tinput " + "{\n")
-            for task_input in doc_task.inputs:
-                f.write(f"\t\t{task_input}\n")
-            f.write("\t}\n")
-            f.write("\n")
-
-            ## Post inputs
-            for post_input in doc_task.postinputs:
-                f.write(f"\t{post_input}\n")
-            f.write("\n")
-
-            ## Command
-            f.write("\tcommand <<<\n")
-            f.write(f"\t\t{doc_task.command}\n")
-            f.write("\t>>>\n")
-            f.write("\n")
-
-            ## Outputs
-            f.write("\toutput {\n")
-            for task_output in doc_task.outputs:
-                f.write(f"\t\t{task_output}\n")
-            f.write("\t}\n")
-            f.write("\n")
-
-            ## Runtime
-            f.write("\truntime {\n")
-            for runtime_key, runtime_value in doc_task.runtime.items():
-                f.write(f"\t\t{runtime_key}: {runtime_value}\n")
-            f.write("\t}\n")
-
-            f.write("}\n")
-            f.write("\n")
-
 
 class WorkflowTaskTestConfig(object):
     @classmethod
     def __new__(cls, json_dict):
         instance = super(WorkflowTaskTestConfig, cls).__new__(cls)
-        instance.__init__(json_dict["inputs"], json_dict["outputs"])
+        instance.__init__(
+            json_dict["inputs"], json_dict["outputs"], json_dict["test_tasks"]
+        )
         return instance
 
-    def __init__(self, inputs, outputs):
+    def __init__(self, inputs, outputs, test_tasks):
         self.inputs = inputs
         self.outputs = outputs
+        self.test_tasks = test_tasks
 
 
 class EngineConfig(object):

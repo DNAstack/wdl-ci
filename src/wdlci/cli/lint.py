@@ -9,7 +9,6 @@ import wdlci.linters.custom_linters
 
 
 def lint_handler(kwargs):
-
     try:
         Config.load(kwargs)
         config = Config.instance()
