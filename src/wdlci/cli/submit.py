@@ -3,8 +3,10 @@ import os
 import sys
 import itertools
 import WDL
+from importlib.resources import files
 from wdlci.auth.refresh_token_auth import RefreshTokenAuth
 from wdlci.config import Config
+from wdlci.config.config_file import WorkflowConfig
 from wdlci.constants import *
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 from wdlci.model.changeset import Changeset
@@ -13,6 +15,7 @@ from wdlci.workbench.ewes_client import EwesClient
 from wdlci.workbench.workflow_service_client import WorkflowServiceClient
 from wdlci.utils.hydrate_params import HydrateParams
 from wdlci.utils.validate_inputs import validate_inputs
+from wdlci.utils.write_workflow import write_workflow
 
 
 def validate_input(config):
@@ -39,24 +42,6 @@ def validate_input(config):
             )
 
 
-def get_task_contents(workflow_key, doc_task):
-    """
-    Retrieve an array of task lines from the workflow doc
-    Args:
-        workflow_key (String): the path to the workflow file containing the task
-        task (WDL.Tree.Task)
-    Returns:
-        Array[String] - lines comprising the WDL task
-    """
-    task_start_line = doc_task.pos.line - 1
-    task_end_line = doc_task.pos.end_line
-    task_contents = []
-    with open(workflow_key, "r") as f:
-        for line in itertools.islice(f, task_start_line, task_end_line):
-            task_contents.append(line)
-    return task_contents
-
-
 def submit_handler(kwargs):
     try:
         # load and validate config
@@ -81,24 +66,61 @@ def submit_handler(kwargs):
         submission_state = SubmissionState()
 
         # register workflow(s)
-        tasks_to_test = []
+        tasks_to_test = dict()
         for workflow_key in changeset.get_workflow_keys():
             for task_key in changeset.get_tasks(workflow_key):
                 doc = WDL.load(workflow_key)
                 doc_tasks = {task.name: task for task in doc.tasks}
                 task = config.file.get_task(workflow_key, task_key)
 
-                # Check if task has tests; otherwise, no need to register it
-                if len(task.tests) > 0:
-                    doc_task = doc_tasks[task_key]
-                    task.generate_task_workflow_config(workflow_key)
+                # Register and create workflows for all tasks with tests
+                for test_index, test_input_set in enumerate(task.tests):
+                    doc_main_task = doc_tasks[task_key]
 
-                    task.write_task_workflow_file(doc_task)
-                    workflow_id = workflow_service_client.register_workflow(
-                        task.workflow_config.key, task.workflow_config, transient=True
-                    )
-                    submission_state.add_workflow(task.workflow_config.key, workflow_id)
-                    tasks_to_test.append(task)
+                    for test_task_name in test_input_set.test_tasks:
+                        test_key = (
+                            f"{workflow_key}-{task_key}-{test_index}-{test_task_name}"
+                        )
+                        test_wdl = files("wdlci.wdl_tests").joinpath(
+                            f"{test_task_name}.wdl"
+                        )
+                        doc_test_task = WDL.load(str(test_wdl)).tasks[0]
+
+                        workflow_config = WorkflowConfig.__new__(
+                            test_key,
+                            {
+                                "name": test_key,
+                                "description": f"Workflow: {workflow_key}\nTask: {task_key}\nTest set index: {test_index}\nTest: {test_task_name}",
+                                "tasks": {},
+                            },
+                        )
+
+                        workflow_name = f"wdlci_{doc_main_task.name}_{test_task_name}"
+                        test_outputs = test_input_set.outputs
+                        write_workflow(
+                            workflow_name,
+                            doc_main_task,
+                            doc_test_task,
+                            test_outputs,
+                            test_key,
+                        )
+
+                        # TODO validate the workflow; ignore warnings, only check errors
+
+                        workflow_id = workflow_service_client.register_workflow(
+                            test_key,
+                            workflow_config,
+                            transient=True,
+                        )
+                        submission_state.add_workflow(test_key, workflow_id)
+
+                        tasks_to_test[test_key] = {
+                            "task": task,
+                            "doc_task": doc_main_task,
+                            "test_case": task.tests[test_index],
+                            "workflow_name": workflow_name,
+                            "test_index": test_index,
+                        }
 
         for engine_id in config.file.engines.keys():
             if config.file.engines[engine_id].enabled:
@@ -106,44 +128,44 @@ def submit_handler(kwargs):
                 engine_json = ewes_client.get_engine(engine_id)
                 submission_state.add_engine(engine_id, engine_json)
 
-                for task in tasks_to_test:
-                    print(
-                        f"Setting up workflow run for test {task.workflow_config.key}"
+                for test_key, task_config in tasks_to_test.items():
+                    print(f"Setting up workflow run for test {test_key}")
+                    test_case = task_config["test_case"]
+
+                    task_inputs = validate_inputs(
+                        test_key, task_config["doc_task"], test_case.inputs
                     )
-                    workflow_key = task.workflow_config.key
-                    for test_i in range(
-                        0,
-                        len(task.tests),
-                    ):
-                        test_case = task.tests[test_i]
 
-                        task_inputs = validate_inputs(task, test_case.inputs)
+                    source_params = {
+                        **config.file.test_params.global_params,
+                        **config.file.test_params.engine_params[engine_id],
+                    }
+                    inputs_hydrated = HydrateParams.hydrate(
+                        source_params, task_inputs, task_config["workflow_name"]
+                    )
+                    outputs_hydrated = HydrateParams.hydrate(
+                        source_params, test_case.outputs, task_config["workflow_name"]
+                    )
 
-                        source_params = {
-                            **config.file.test_params.global_params,
-                            **config.file.test_params.engine_params[engine_id],
-                        }
-                        inputs_hydrated = HydrateParams.hydrate(
-                            source_params, task_inputs, task.workflow_name
+                    for output_key, output_value in outputs_hydrated.items():
+                        output_key_split = output_key.split(".")
+                        test_output_key = (
+                            output_key_split[0] + ".TEST_OUTPUT_" + output_key_split[1]
                         )
-                        outputs_hydrated = HydrateParams.hydrate(
-                            source_params, test_case.outputs, task.workflow_name
-                        )
+                        inputs_hydrated[f"{test_output_key}"] = output_value
 
-                        workflow_id = submission_state.workflows[
-                            workflow_key
-                        ]._workflow_id
+                    workflow_id = submission_state.workflows[test_key]._workflow_id
 
-                        workflow_run = submission_state.add_workflow_run(
-                            workflow_key,
-                            workflow_id,
-                            task,
-                            test_i,
-                            engine_id,
-                            inputs_hydrated,
-                            outputs_hydrated,
-                        )
-                        ewes_client.submit_workflow_run(workflow_run)
+                    workflow_run = submission_state.add_workflow_run(
+                        test_key,
+                        workflow_id,
+                        task_config["task"],
+                        task_config["test_index"],
+                        engine_id,
+                        inputs_hydrated,
+                        outputs_hydrated,
+                    )
+                    ewes_client.submit_workflow_run(workflow_run)
 
         # write state to JSON for monitoring job
         submission_state_encoded = jsonpickle.encode(submission_state)

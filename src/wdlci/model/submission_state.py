@@ -53,7 +53,6 @@ class SubmissionStateWorkflow(object):
 
 
 class SubmissionStateWorkflowRun(object):
-
     STATUS_UNSUBMITTED = "UNSUBMITTED"
     STATUS_SUBMIT_SUCCESS = "SUBMIT_SUCCESS"
     STATUS_SUBMIT_FAIL = "SUBMIT_FAIL"
@@ -136,4 +135,4 @@ class SubmissionStateWorkflowRun(object):
 
     @validation_message.setter
     def validation_message(self, validation_message):
-        self._validation_message = validation_message
+        self._validation_message = validation_messag
