@@ -27,6 +27,17 @@ By default, only new workflows and/or tasks will be added to the config file; de
 Custom linters may be added to [src/wdlci/linters/custom_linters.py](src/wdlci/linters/custom_linters.py).
 
 
+## Worklfow-based tests
+
+Tests are defined in the [src/wdlci/wdl_tests](src/wdlci/wdl_tests) directory.
+
+- Each test should be written in WDL
+- The test file should be named `${test_name}.wdl`
+- Each test file should contain a single test task, named `${test_name}`
+
+Tests can be selected by including the `${test_name}` as part of the `workflows.${workflow}.tasks.${task}.tests.[],test_tasks` array. For example, to run the `compare` test, which compares various output types, the `test_tasks` section should be set to `["compare"]`. Additional test tasks may be added for the same input set by adding test names to the `test_tasks` array for that set of inputs.
+
+
 ## Linting with black
 
 Install [black](https://github.com/psf/black), then run `git config core.hooksPath hooks/`.
