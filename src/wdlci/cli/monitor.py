@@ -68,8 +68,11 @@ def monitor_handler(kwargs):
                     and workflow_run.validation_status
                     == SubmissionStateWorkflowRun.VALIDATION_UNSTARTED
                 ):
-                    # TODO add output validation logic
-                    pass
+                    # Set validation status to VALIDATION_SUCCESS if the workflow succeeds
+                    workflow_run.validation_status = (
+                        SubmissionStateWorkflowRun.VALIDATION_SUCCESS
+                    )
+                # TODO set validation status to failed if the run finishes in the failed state
 
             # iterate through all runs, if all runs are in a terminal state,
             # move onto the next step
