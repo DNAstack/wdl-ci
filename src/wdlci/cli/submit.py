@@ -77,50 +77,54 @@ def submit_handler(kwargs):
                 for test_index, test_input_set in enumerate(task.tests):
                     doc_main_task = doc_tasks[task_key]
 
-                    for test_task_name in test_input_set.test_tasks:
-                        test_key = (
-                            f"{workflow_key}-{task_key}-{test_index}-{test_task_name}"
-                        )
-                        test_wdl = files("wdlci.wdl_tests").joinpath(
-                            f"{test_task_name}.wdl"
-                        )
-                        doc_test_task = WDL.load(str(test_wdl)).tasks[0]
-
-                        workflow_config = WorkflowConfig.__new__(
-                            test_key,
-                            {
-                                "name": test_key,
-                                "description": f"Workflow: {workflow_key}\nTask: {task_key}\nTest set index: {test_index}\nTest: {test_task_name}",
-                                "tasks": {},
-                            },
-                        )
-
-                        workflow_name = f"wdlci_{doc_main_task.name}_{test_task_name}"
-                        test_outputs = test_input_set.outputs
-                        write_workflow(
-                            workflow_name,
-                            doc_main_task,
-                            doc_test_task,
-                            test_outputs,
-                            test_key,
-                        )
-
-                        # TODO validate the workflow; ignore warnings, only check errors
-
-                        workflow_id = workflow_service_client.register_workflow(
-                            test_key,
-                            workflow_config,
-                            transient=True,
-                        )
-                        submission_state.add_workflow(test_key, workflow_id)
-
-                        tasks_to_test[test_key] = {
-                            "task": task,
-                            "doc_task": doc_main_task,
-                            "test_case": task.tests[test_index],
-                            "workflow_name": workflow_name,
-                            "test_index": test_index,
+                    # TODO Rejig output format pending update of wdl-ci.config.json file format
+                    #   trying to get {output_name: {"value": output_value, "test_tasks": ["test", "task", "names"]}}
+                    #   won't be necessary once wdl-ci config file format has been updated
+                    test_outputs = test_input_set.outputs
+                    test_outputs_restructured = {}
+                    for test_output_name, test_output_value in test_outputs.items():
+                        test_outputs_restructured[test_output_name] = {
+                            "value": test_output_value,
+                            "test_tasks": test_input_set.test_tasks,
                         }
+
+                    workflow_name = f"wdlci_{doc_main_task.name}_{test_index}"
+                    # TODO update with set of test_tasks gathered across all outputs/tests rather than '-'.join(test_input_set.test_tasks) once config file format updated
+                    test_key = f"{workflow_key}-{task_key}-{test_index}-{'-'.join(test_input_set.test_tasks)}"
+
+                    workflow_config = WorkflowConfig.__new__(
+                        test_key,
+                        {
+                            "name": test_key,
+                            "description": f"Workflow: {workflow_key}\nTask: {task_key}\nTest set index: {test_index}",
+                            "tasks": {},
+                        },
+                    )
+
+                    # TODO pass test_outputs, not test_outputs_restructured, once config file structure has been updated
+                    write_workflow(
+                        workflow_name,
+                        doc_main_task,
+                        test_outputs_restructured,
+                        test_key,
+                    )
+
+                    # TODO validate the workflow; ignore warnings, only check errors
+
+                    workflow_id = workflow_service_client.register_workflow(
+                        test_key,
+                        workflow_config,
+                        transient=True,
+                    )
+                    submission_state.add_workflow(test_key, workflow_id)
+
+                    tasks_to_test[test_key] = {
+                        "task": task,
+                        "doc_task": doc_main_task,
+                        "test_case": task.tests[test_index],
+                        "workflow_name": workflow_name,
+                        "test_index": test_index,
+                    }
 
         for engine_id in config.file.engines.keys():
             if config.file.engines[engine_id].enabled:
