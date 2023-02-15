@@ -87,14 +87,13 @@ class WorkflowTaskTestConfig(object):
     def __new__(cls, json_dict):
         instance = super(WorkflowTaskTestConfig, cls).__new__(cls)
         instance.__init__(
-            json_dict["inputs"], json_dict["outputs"], json_dict["test_tasks"]
+            json_dict["inputs"], json_dict["output_tests"]
         )
         return instance
 
-    def __init__(self, inputs, outputs, test_tasks):
+    def __init__(self, inputs, output_tests):
         self.inputs = inputs
-        self.outputs = outputs
-        self.test_tasks = test_tasks
+        self.output_tests = output_tests
 
 
 class EngineConfig(object):

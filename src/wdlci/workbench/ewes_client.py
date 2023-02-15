@@ -29,11 +29,13 @@ class EwesClient(object):
 
         headers = {"Authorization": "Bearer " + self.ewes_auth.access_token}
 
+        output_test_task_params = {k: workflow_run._outputs[k]['value'] for k in workflow_run._outputs.keys()}
+
         form_data = {
-            "workflow_url": f"{env.workbench_workflow_service_url}/{env.workbench_namespace}/workflows/{workflow_run._workflow_id}/versions/latest/descriptor",
+            "workflow_url": f"{env.workbench_workflow_service_url}/{env.workbench_namespace}/workflows/{workflow_run._workflow_id}/versions/v1_0_0/descriptor",
             "workflow_type": "WDL",
             "workflow_type_version": "1.0",
-            "workflow_params": workflow_run._inputs,
+            "workflow_params": {**workflow_run._inputs, **output_test_task_params},
             "workflow_engine_parameters": {"engine_id": workflow_run._engine_key},
         }
 
