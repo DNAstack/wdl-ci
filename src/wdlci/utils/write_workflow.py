@@ -74,8 +74,11 @@ def write_workflow(workflow_name, main_task, output_tests, output_file):
         f.write("\n")
 
     _write_task(main_task, output_file)
+    tasks_written = list()
     for test_task_doc in test_tasks.values():
-        _write_task(test_task_doc, output_file)
+        if test_task_doc.name not in tasks_written:
+            _write_task(test_task_doc, output_file)
+            tasks_written.append(test_task_doc.name)
 
 
 def _write_task(doc_task, output_file):
