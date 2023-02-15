@@ -77,20 +77,9 @@ def submit_handler(kwargs):
                 for test_index, test_input_set in enumerate(task.tests):
                     doc_main_task = doc_tasks[task_key]
 
-                    # TODO Rejig output format pending update of wdl-ci.config.json file format
-                    #   trying to get {output_name: {"value": output_value, "test_tasks": ["test", "task", "names"]}}
-                    #   won't be necessary once wdl-ci config file format has been updated
-                    test_outputs = test_input_set.outputs
-                    test_outputs_restructured = {}
-                    for test_output_name, test_output_value in test_outputs.items():
-                        test_outputs_restructured[test_output_name] = {
-                            "value": test_output_value,
-                            "test_tasks": test_input_set.test_tasks,
-                        }
-
+                    output_tests = test_input_set.output_tests
                     workflow_name = f"wdlci_{doc_main_task.name}_{test_index}"
-                    # TODO update with set of test_tasks gathered across all outputs/tests rather than '-'.join(test_input_set.test_tasks) once config file format updated
-                    test_key = f"{workflow_key}-{task_key}-{test_index}-{'-'.join(test_input_set.test_tasks)}"
+                    test_key = f"{workflow_key}-{task_key}-{test_index}"
 
                     workflow_config = WorkflowConfig.__new__(
                         test_key,
@@ -101,11 +90,10 @@ def submit_handler(kwargs):
                         },
                     )
 
-                    # TODO pass test_outputs, not test_outputs_restructured, once config file structure has been updated
                     write_workflow(
                         workflow_name,
                         doc_main_task,
-                        test_outputs_restructured,
+                        output_tests,
                         test_key,
                     )
 
@@ -145,18 +133,14 @@ def submit_handler(kwargs):
                         **config.file.test_params.engine_params[engine_id],
                     }
                     inputs_hydrated = HydrateParams.hydrate(
-                        source_params, task_inputs, task_config["workflow_name"]
-                    )
-                    outputs_hydrated = HydrateParams.hydrate(
-                        source_params, test_case.outputs, task_config["workflow_name"]
+                        source_params, task_inputs, update_key=True, workflow_name=task_config["workflow_name"]
                     )
 
-                    for output_key, output_value in outputs_hydrated.items():
-                        output_key_split = output_key.split(".")
-                        test_output_key = (
-                            output_key_split[0] + ".TEST_OUTPUT_" + output_key_split[1]
-                        )
-                        inputs_hydrated[f"{test_output_key}"] = output_value
+                    output_tests_hydrated = {}
+                    for output_test_key, output_test_val in test_case.output_tests.items():
+                        output_test_key_hydrated = f"{task_config['workflow_name']}.TEST_OUTPUT_{output_test_key}"
+                        output_test_val_hydrated = HydrateParams.hydrate(source_params, output_test_val, update_key=False)
+                        output_tests_hydrated[output_test_key_hydrated] = output_test_val_hydrated
 
                     workflow_id = submission_state.workflows[test_key]._workflow_id
 
@@ -167,7 +151,7 @@ def submit_handler(kwargs):
                         task_config["test_index"],
                         engine_id,
                         inputs_hydrated,
-                        outputs_hydrated,
+                        output_tests_hydrated,
                     )
                     ewes_client.submit_workflow_run(workflow_run)
 

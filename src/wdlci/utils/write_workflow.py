@@ -3,13 +3,13 @@ from importlib.resources import files
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
 
-def write_workflow(workflow_name, main_task, test_outputs, output_file):
+def write_workflow(workflow_name, main_task, output_tests, output_file):
     """
     Write a workflow out to a file
     Args:
         workflow_name (str): Name of the workflow (workflow entrypoint)
         main_task (WDL.Tree.Task): Task to be tested
-        test_outputs ({output_name: {"value": output_value, "test_tasks": ["test", "task", "names"]}}):
+        output_tests ({output_name: {"value": output_value, "tasks": ["task0", "task1", "task2"]}}):
             Array of validated outputs and the test tasks to apply to them.
             Test tasks should map to files in wdl_tests/${test_task}.wdl
         output_file (str): Path to file to write workflow to
@@ -28,7 +28,7 @@ def write_workflow(workflow_name, main_task, test_outputs, output_file):
         for task_input in main_task.inputs:
             f.write(f"\t\t{task_input}\n")
         f.write("\n")
-        for output_key in test_outputs:
+        for output_key in output_tests:
             test_output_type = main_task_output_types[output_key]
             f.write(f"\t\t{test_output_type} TEST_OUTPUT_{output_key}\n")
         f.write("\t}\n")
@@ -46,7 +46,7 @@ def write_workflow(workflow_name, main_task, test_outputs, output_file):
 
         ## Call to test tasks
         test_tasks = dict()
-        for output_key, output_value in test_outputs.items():
+        for output_key, output_value in output_tests.items():
             for test_task in output_value["test_tasks"]:
                 test_task_key = f"{test_task}_{output_key}"
 

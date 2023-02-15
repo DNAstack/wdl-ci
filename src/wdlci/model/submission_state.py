@@ -135,4 +135,4 @@ class SubmissionStateWorkflowRun(object):
 
     @validation_message.setter
     def validation_message(self, validation_message):
-        self._validation_message = validation_messag
+        self._validation_message = validation_message
