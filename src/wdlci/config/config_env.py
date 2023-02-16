@@ -12,13 +12,13 @@ class ConfigEnv(object):
             "attr": "wallet_url",
             "env": "WALLET_URL",
             "arg": None,
-            "default": DEFAULT_WALLET_URL,
+            "default": None,
         },
         {
             "attr": "wallet_client_id",
             "env": "WALLET_CLIENT_ID",
             "arg": None,
-            "default": DEFAULT_WALLET_CLIENT_ID,
+            "default": None,
         },
         {
             "attr": "wallet_client_secret",
@@ -38,7 +38,7 @@ class ConfigEnv(object):
             "attr": "workbench_ewes_url",
             "env": "WORKBENCH_EWES_URL",
             "arg": None,
-            "default": DEFAULT_WORKBENCH_EWES_URL,
+            "default": None,
         },
         {
             "attr": "workbench_ewes_refresh_token",
@@ -51,7 +51,7 @@ class ConfigEnv(object):
             "attr": "workbench_workflow_service_url",
             "env": "WORKBENCH_WORKFLOW_SERVICE_URL",
             "arg": None,
-            "default": DEFAULT_WORKBENCH_WORKFLOW_SERVICE_URL,
+            "default": None,
         },
         {
             "attr": "workbench_workflow_service_refresh_token",
