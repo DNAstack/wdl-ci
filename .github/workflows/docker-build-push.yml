@@ -3,8 +3,8 @@ run-name: build and push docker image
 on:
   push:
     branches:
-      - *
-      - main
+      - '*'
+      - 'main'
 jobs:
   docker:
     runs-on: ubuntu-latest
