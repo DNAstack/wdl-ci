@@ -1,0 +1,44 @@
+name: build and push docker image
+run-name: build and push docker image
+on:
+  push:
+    branches:
+      - *
+      - main
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: prepare tags
+        id: prep
+        run: |
+          IMAGE="jb-adams/wdl-ci"
+          VERSION_TAG=`git describe --tags --long`
+          LATEST_TAG="latest"
+          ALL_TAGS="${IMAGE}:${VERSION_TAG},${IMAGE}:${LATEST_TAG}"
+
+          echo ::set-output name=all_tags::${ALL_TAGS}
+      - name: set up QEMU
+        uses: docker/setup-qemu-action@master
+        with:
+          platforms: all
+      - name: set up docker buildx
+        id: buildx
+        uses: docker/setup-buildx-action@master
+      - name: login to dockerhub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: build
+        uses: docker/build-push-action@v2
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
+          push: true
+          tags: ${{ steps.prep.outputs.all_tags }}
