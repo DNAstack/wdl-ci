@@ -16,7 +16,7 @@ jobs:
       - name: prepare tags
         id: prep
         run: |
-          IMAGE="jbadams/wdl-ci"
+          IMAGE="dnastack/wdl-ci"
           VERSION_TAG=`git describe --tags --long`
           LATEST_TAG="latest"
           ALL_TAGS="${IMAGE}:${VERSION_TAG},${IMAGE}:${LATEST_TAG}"
