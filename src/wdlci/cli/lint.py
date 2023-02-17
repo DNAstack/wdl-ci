@@ -5,7 +5,8 @@ import WDL.Lint
 from WDL.CLI import check
 from wdlci.config import Config
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
-import wdlci.linters.custom_linters
+
+# import wdlci.linters.custom_linters
 
 
 def lint_handler(kwargs):
