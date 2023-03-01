@@ -1,16 +1,13 @@
 version 1.0
 
-# Compare file basenames
+# Check if file is tab-delimited
 # Input type: File
 
-task compare_file_basename {
+task check_tab_delimited {
 	input {
 		File current_run_output
 		File validated_output
 	}
-
-	String current_run_basename = basename(current_run_output)
-	String validated_basename = basename(validated_output)
 
 	Int disk_size = ceil(size(current_run_output, "GB") + size(validated_output, "GB") + 50)
 
@@ -23,13 +20,14 @@ task compare_file_basename {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if [[ ~{current_run_basename} != ~{validated_basename} ]]; then
-			err "File basenames did not match:
-				Expected output: [~{validated_basename}]
-				Current run output: [~{current_run_basename}]"
-			exit 1
-		else
-			echo "File basenames matched [~{validated_basename}]"
+		if awk '{exit !/\t/}' ~{validated_output}; then
+			echo "Validated file is tab-delimited; continue"
+			if awk '{exit !/\t/}' ~{current_run_output}; then
+				echo "File is tab-delimited"
+			else
+				err "File is not tab-delimited"
+				exit 1
+			fi
 		fi
 	>>>
 
