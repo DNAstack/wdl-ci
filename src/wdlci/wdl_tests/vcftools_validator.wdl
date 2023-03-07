@@ -1,6 +1,6 @@
 version 1.0
 
-# VCFtools validator on input files 
+# VCFtools validator on input files
 # Input type: file.vcf.gz
 
 task vcftools_validator {

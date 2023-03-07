@@ -1,6 +1,6 @@
 version 1.0
 
-# Validate input json files 
+# Validate input json files
 # Input type: JSON
 
 task check_json {

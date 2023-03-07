@@ -51,7 +51,12 @@ def write_workflow(workflow_name, main_task, output_tests, output_file):
                 test_task_key = f"{test_task}_{output_key}"
 
                 test_wdl = files("wdlci.wdl_tests").joinpath(f"{test_task}.wdl")
-                test_task_doc = WDL.load(str(test_wdl)).tasks[0]
+                # Ensure that the test task WDL is valid
+                try:
+                    test_doc = WDL.load(str(test_wdl))
+                    test_task_doc = test_doc.tasks[0]
+                except:
+                    raise WdlTestCliExitException(f"Invalid test task [{test_wdl}]", 1)
                 test_tasks[test_task_key] = test_task_doc
 
                 f.write(f"\tcall {test_task_doc.name} as {test_task_key} {{\n")
@@ -79,6 +84,14 @@ def write_workflow(workflow_name, main_task, output_tests, output_file):
         if test_task_doc.name not in tasks_written:
             _write_task(test_task_doc, output_file)
             tasks_written.append(test_task_doc.name)
+
+    # Ensure the workflow is valid
+    try:
+        wdl_doc = WDL.load(output_file)
+    except:
+        raise WdlTestCliExitException(
+            f"Invalid test workflow [{output_file}] generated; exiting", 1
+        )
 
 
 def _write_task(doc_task, output_file):

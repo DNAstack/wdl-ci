@@ -1,6 +1,6 @@
 version 1.0
 
-# Samtools quickcheck on input files 
+# Samtools quickcheck on input files
 # Input type: SAM/BAM/CRAM
 
 task samtools_quickcheck {
