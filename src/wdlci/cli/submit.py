@@ -100,14 +100,16 @@ def submit_handler(kwargs):
                         },
                     )
 
-                    write_workflow(
-                        workflow_name,
-                        doc_main_task,
-                        output_tests,
-                        test_key,
-                    )
-
-                    # TODO validate the workflow; ignore warnings, only check errors
+                    try:
+                        write_workflow(
+                            workflow_name,
+                            doc_main_task,
+                            output_tests,
+                            test_key,
+                        )
+                    except WdlTestCliExitException as e:
+                        print(f"exiting with code {e.exit_code}, message: {e.message}")
+                        sys.exit(e.exit_code)
 
                     workflow_id = workflow_service_client.register_workflow(
                         test_key,
