@@ -34,7 +34,7 @@ task compare_file_basename {
 	>>>
 
 	output {
-		Int rc = read_int("rc")
+		#Int rc = read_int("rc")
 	}
 
 	runtime {

@@ -20,8 +20,13 @@ task check_empty_lines {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		current_run_output_empty_lines_count=$(gzip -d ~{current_run_output} | grep ^$)
-		validated_output_empty_lines_count=$(gzip -d ~{current_run_output} | grep ^$)
+		if gzip -t ~{validated_output}; then
+			current_run_output_empty_lines_count=$(gzip -d ~{current_run_output} | grep ^$)
+			validated_output_empty_lines_count=$(gzip -d ~{validated_output} | grep ^$)
+		else
+			current_run_output_empty_lines_count=$(grep ^$ ~{current_run_output})
+			validated_output_empty_lines_count=$(grep ^$ ~{validated_output})
+		fi
 
 		if [[ "$current_run_output_empty_lines_count" != "$validated_output_empty_lines_count" ]]; then
 			err "Empty lines present:
@@ -34,7 +39,7 @@ task check_empty_lines {
 	>>>
 
 	output {
-		Int rc = read_int("rc")
+		#Int rc = read_int("rc")
 	}
 
 	runtime {

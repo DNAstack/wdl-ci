@@ -1,19 +1,19 @@
 version 1.0
 
-# Count bed columns
-# Input type: BED file
+# Count bed columns in array of files
+# Input type: Array of BED files
 
-task count_bed_columns {
+task count_bed_columns_array {
 	input {
-		File current_run_output
-		File validated_output
+		Array[File] current_run_output
+		Array[File] validated_output
 	}
 
-	String current_run_basename = basename(current_run_output, ".gz")
-	String validated_basename = basename(validated_output, ".gz")
+	String current_run_basename = basename(current_run_output[0], ".gz")
+	String validated_basename = basename(validated_output[0], ".gz")
 
-	Int disk_size = ceil(size(current_run_output, "GB") + size(validated_output, "GB") + 50)
-
+	Int disk_size = ceil((size(current_run_output[0], "GB") * length(current_run_output)) + (size(validated_output[0], "GB") * length(validated_output)) + 50)
+	
 	command <<<
 		set -euo pipefail
 
@@ -23,9 +23,9 @@ task count_bed_columns {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if gzip -t ~{validated_output}; then
-			gzip -d ~{current_run_output} > ~{current_run_basename}
-			gzip -d ~{validated_output} > ~{validated_basename}
+		if gzip -t ~{validated_output[0]}; then
+			gzip -d ~{current_run_output[0]} > ~{current_run_basename}
+			gzip -d ~{validated_output[0]} > ~{validated_basename}
 		fi
 
 		current_run_output_column_count=$(awk '{print NF}' ~{current_run_basename} | sort -nu | tail -n 1)

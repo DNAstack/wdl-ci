@@ -1,15 +1,15 @@
 version 1.0
 
-# Check if file is tab-delimited
-# Input type: File
+# Check if array of files are tab-delimited
+# Input type: Array of files
 
-task check_tab_delimited {
+task check_tab_delimited_array {
 	input {
-		File current_run_output
-		File validated_output
+		Array[File] current_run_output
+		Array[File] validated_output
 	}
 
-	Int disk_size = ceil(size(current_run_output, "GB") + size(validated_output, "GB") + 50)
+	Int disk_size = ceil((size(current_run_output[0], "GB") * length(current_run_output)) + (size(validated_output[0], "GB") * length(validated_output)) + 50)
 
 	command <<<
 		set -euo pipefail
@@ -20,9 +20,9 @@ task check_tab_delimited {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if awk '{exit !/\t/}' ~{validated_output}; then
+		if awk '{exit !/\t/}' ~{validated_output[0]}; then
 			echo "Validated file is tab-delimited; continue"
-			if awk '{exit !/\t/}' ~{current_run_output}; then
+			if awk '{exit !/\t/}' ~{current_run_output[0]}; then
 				echo "File is tab-delimited"
 			else
 				err "File is not tab-delimited"

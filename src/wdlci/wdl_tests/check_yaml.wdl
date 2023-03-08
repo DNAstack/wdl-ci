@@ -1,9 +1,9 @@
 version 1.0
 
-# VCFtools validator on input files
-# Input type: file.vcf.gz
+# Validate input yaml files 
+# Input type: YAML/YML
 
-task vcftools_validator {
+task check_yaml {
 	input {
 		File current_run_output
 		File validated_output
@@ -20,15 +20,15 @@ task vcftools_validator {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if ! vcf-validator ~{validated_output}; then
-			err "Validated VCF file invalid"
+		if ! yamllint ~{validated_output}; then
+			err "Validated YAML is not valid; check format"
 			exit 1
 		else
-			if ! vcf-validator ~{current_run_output}; then
-				err "Current VCF file invalid"
+			if ! yamllint ~{current_run_output}; then
+				err "Current YAML file is not valid"
 				exit 1
 			else
-				echo "VCF file passed VCFtools validator"
+				echo "YAML file is valid"
 			fi
 		fi
 	>>>
@@ -38,7 +38,7 @@ task vcftools_validator {
 	}
 
 	runtime {
-		docker: "biocontainers/vcftools:v0.1.16-1-deb_cv1"
+		docker: "kfang4/yamllint:latest"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"

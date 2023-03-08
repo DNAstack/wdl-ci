@@ -35,7 +35,7 @@ task check_sorted_alignment {
 	>>>
 
 	output {
-		Int rc = read_int("rc")
+		#Int rc = read_int("rc")
 	}
 
 	runtime {

@@ -34,7 +34,7 @@ task count_columns {
 	>>>
 
 	output {
-		Int rc = read_int("rc")
+		#Int rc = read_int("rc")
 	}
 
 	runtime {
