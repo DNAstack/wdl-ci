@@ -21,14 +21,14 @@ task samtools_quickcheck {
 		}
 
 		if ! samtools quickcheck ~{validated_output}; then
-			err "Validated BAM file did not pass samtools quickcheck"
+			err "Validated BAM: [~{basename(validated_output)}] did not pass samtools quickcheck"
 			exit 1
 		else
 			if ! samtools quickcheck ~{current_run_output}; then
-				err "Current BAM file did not pass samtools quickcheck"
+				err "Current BAM: [~{basename(current_run_output)}] did not pass samtools quickcheck"
 				exit 1
 			else
-				echo "BAM file passed samtools quickcheck"
+				echo "Current BAM: [~{basename(current_run_output)}] passed samtools quickcheck"
 			fi
 		fi
 	>>>

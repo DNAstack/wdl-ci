@@ -20,12 +20,12 @@ task check_empty_lines {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if gzip -t ~{validated_output}; then
-			current_run_output_empty_lines_count=$(gzip -d ~{current_run_output} | grep ^$)
-			validated_output_empty_lines_count=$(gzip -d ~{validated_output} | grep ^$)
+		if gzip -t ~{current_run_output}; then
+			current_run_output_empty_lines_count=$(zgrep -c "^$" ~{current_run_output})
+			validated_output_empty_lines_count=$(zgrep -c "^$" ~{validated_output})
 		else
-			current_run_output_empty_lines_count=$(grep ^$ ~{current_run_output})
-			validated_output_empty_lines_count=$(grep ^$ ~{validated_output})
+			current_run_output_empty_lines_count=$(grep -c "^$" ~{current_run_output})
+			validated_output_empty_lines_count=$(grep -c "^$" ~{validated_output})
 		fi
 
 		if [[ "$current_run_output_empty_lines_count" != "$validated_output_empty_lines_count" ]]; then

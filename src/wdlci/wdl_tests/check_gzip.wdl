@@ -21,14 +21,14 @@ task check_gzip {
 		}
 
 		if ! gzip -t ~{validated_output}; then
-			err "Validated file.gz did not pass gzip check"
+			err "Validated file: [~{basename(validated_output)}] did not pass gzip check"
 			exit 1
 		else
 			if ! gzip -t ~{current_run_output}; then
-				err "Current file.gz did not pass gzip check"
+				err "Current file: [~{basename(current_run_output)}] did not pass gzip check"
 				exit 1
 			else
-				echo "Current file.gz passed gzip check"
+				echo "Current file: [~{basename(current_run_output)}] passed gzip check"
 			fi
 		fi
 	>>>

@@ -19,13 +19,15 @@ task check_tab_delimited {
 
 			echo -e "[ERROR] $message" >&2
 		}
-
-		if awk '{exit !/\t/}' ~{validated_output}; then
-			echo "Validated file is tab-delimited; continue"
+		
+		if ! awk '{exit !/\t/}' ~{validated_output}; then
+			err "Validated file: [~{basename(validated_output)}] is not tab-delimited"
+			exit 1
+		else
 			if awk '{exit !/\t/}' ~{current_run_output}; then
-				echo "File is tab-delimited"
+				echo "File: [~{basename(current_run_output)}] is tab-delimited"
 			else
-				err "File is not tab-delimited"
+				err "File: [~{basename(current_run_output)}] is not tab-delimited"
 				exit 1
 			fi
 		fi

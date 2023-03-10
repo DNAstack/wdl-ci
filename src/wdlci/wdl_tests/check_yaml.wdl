@@ -21,14 +21,14 @@ task check_yaml {
 		}
 
 		if ! yamllint ~{validated_output}; then
-			err "Validated YAML is not valid; check format"
+			err "Validated YAML: [~{basename(validated_output)}] is not valid; check format"
 			exit 1
 		else
 			if ! yamllint ~{current_run_output}; then
-				err "Current YAML file is not valid"
+				err "Current YAML: [~{basename(current_run_output)}] is not valid"
 				exit 1
 			else
-				echo "YAML file is valid"
+				echo "Current YAML: [~{basename(current_run_output)}] is valid"
 			fi
 		fi
 	>>>

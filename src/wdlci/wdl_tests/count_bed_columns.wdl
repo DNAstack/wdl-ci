@@ -9,9 +9,6 @@ task count_bed_columns {
 		File validated_output
 	}
 
-	String current_run_basename = basename(current_run_output, ".gz")
-	String validated_basename = basename(validated_output, ".gz")
-
 	Int disk_size = ceil(size(current_run_output, "GB") + size(validated_output, "GB") + 50)
 
 	command <<<
@@ -23,13 +20,15 @@ task count_bed_columns {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if gzip -t ~{validated_output}; then
-			gzip -d ~{current_run_output} > ~{current_run_basename}
-			gzip -d ~{validated_output} > ~{validated_basename}
+		if gzip -t ~{current_run_output}; then
+			dir_path=$(dirname ~{current_run_output})
+			gzip -d ~{current_run_output} ~{validated_output}
+			current_run_output_column_count=$(awk '{print NF}' "${dir_path}/$(basename ~{current_run_output} .gz)" | sort -nu | tail -n 1)
+			validated_output_column_count=$(awk '{print NF}' "${dir_path}/$(basename ~{validated_output} .gz)" | sort -nu | tail -n 1)
+		else
+			current_run_output_column_count=$(awk '{print NF}' ~{current_run_output} | sort -nu | tail -n 1)
+			validated_output_column_count=$(awk '{print NF}' ~{validated_output} | sort -nu | tail -n 1)
 		fi
-
-		current_run_output_column_count=$(awk '{print NF}' ~{current_run_basename} | sort -nu | tail -n 1)
-		validated_output_column_count=$(awk '{print NF}' ~{validated_basename} | sort -nu | tail -n 1)
 
 		if [[ "$current_run_output_column_count" != "$validated_output_column_count" ]]; then
 			err "Number of columns did not match:

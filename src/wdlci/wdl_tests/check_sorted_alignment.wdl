@@ -22,14 +22,14 @@ task check_sorted_alignment {
 
 		# Using samtools view -H and @HD-SO sort order header tag
 		if ! samtools view -H ~{validated_output} | grep "SO:coordinate"; then
-			err "Validated BAM file is not sorted by coordinate"
+			err "Validated BAM: [~{basename(validated_output)}] is not sorted by coordinate"
 			exit 1
 		else
 			if ! samtools view -H ~{current_run_output} | grep "SO:coordinate"; then
-				err "Current BAM file is not sorted by coordinate"
+				err "Current BAM: [~{basename(current_run_output)}] is not sorted by coordinate"
 				exit 1
 			else
-				echo "BAM file is sorted by coordinate"
+				echo "Current BAM: [~{basename(current_run_output)}] is sorted by coordinate"
 			fi
 		fi
 	>>>

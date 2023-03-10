@@ -21,14 +21,14 @@ task vcftools_validator {
 		}
 
 		if ! vcf-validator ~{validated_output}; then
-			err "Validated VCF file invalid"
+			err "Validated VCF: [~{basename(validated_output)}] is invalid"
 			exit 1
 		else
 			if ! vcf-validator ~{current_run_output}; then
-				err "Current VCF file invalid"
+				err "Current VCF: [~{basename(current_run_output)}] is invalid"
 				exit 1
 			else
-				echo "VCF file passed VCFtools validator"
+				echo "Current VCF: [~{basename(current_run_output)}] passed VCFtools validator"
 			fi
 		fi
 	>>>

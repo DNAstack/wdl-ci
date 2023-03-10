@@ -22,14 +22,14 @@ task check_json {
 
 		# shellcheck disable=SC2002
 		if ! cat ~{validated_output} | json_pp; then
-			err "Validated JSON is not valid; check schema"
+			err "Validated JSON: [~{basename(validated_output)}] is not valid; check schema"
 			exit 1
 		else
 			if ! cat ~{current_run_output}| json_pp; then
-				err "Current JSON file is not valid"
+				err "Current JSON: [~{basename(current_run_output)}] is not valid"
 				exit 1
 			else
-				echo "JSON file is valid"
+				echo "Current JSON: [~{basename(current_run_output)}] is valid"
 			fi
 		fi
 	>>>

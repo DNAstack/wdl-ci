@@ -1,9 +1,9 @@
 version 1.0
 
-# Check if array of files are tab-delimited
-# Input type: Array of files
+# Check integrity of gz file
+# Input type: Array of file.gz
 
-task check_tab_delimited_array {
+task check_gzip_array {
 	input {
 		Array[File] current_run_output
 		Array[File] validated_output
@@ -21,18 +21,18 @@ task check_tab_delimited_array {
 		}
 
 		for file in ~{sep=' ' validated_output}; do
-			if ! awk '{exit !/\t/}' "${file}"; then
-				err "Validated file: [${file}] is not tab-delimited"
+			if ! gzip -t "${file}"; then
+				err "Validated file: ${file} did not pass gzip check"
 				exit 1
 			fi
 		done
 
 		for file in ~{sep=' ' current_run_output}; do
-			if awk '{exit !/\t/}' "${file}"; then
-				echo "File: [${file}] is tab-delimited"
-			else
-				err "File: [${file}] is not tab-delimited"
+			if ! gzip -t "${file}"; then
+				err "Current file: ${file} did not pass gzip check"
 				exit 1
+			else
+				echo "Current file: ${file} passed gzip check"
 			fi
 		done
 	>>>
