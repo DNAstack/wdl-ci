@@ -20,33 +20,18 @@ task fasta_validator {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if gzip -t ~{current_run_output}; then
-			dir_path=$(dirname ~{current_run_output})
-			gzip -d ~{current_run_output} ~{validated_output}
-			if ! fasta_validate -v "${dir_path}/$(basename ~{validated_output} .gz)"; then
-				err "Validated FASTA: [~{basename(validated_output)}] is not valid; check format"
-				exit 1
-			else
-				if ! fasta_validate -v "${dir_path}/$(basename ~{current_run_output} .gz)"; then
-					err "Current FASTA: [~{basename(current_run_output)}] is not valid"
-					exit 1
-				else
-					echo "Current FASTA: [~{basename(current_run_output)}] is valid"
-				fi
-			fi
+		# Checks both compressed and uncompressed fastas
+		if ! py_fasta_validator -f ~{validated_output}; then
+			err "Validated FASTA: [~{basename(validated_output)}] is not valid; check format"
+			exit 1
 		else
-			if ! fasta_validate -v ~{validated_output}; then
-				err "Validated FASTA: [~{basename(validated_output)}] is not valid; check format"
+			if ! py_fasta_validator -f ~{current_run_output}; then
+				err "Current FASTA: [~{basename(current_run_output)}] is not valid"
 				exit 1
 			else
-				if ! fasta_validate -v ~{current_run_output}; then
-					err "Current FASTA: [~{basename(current_run_output)}] is not valid"
-					exit 1
-				else
-					echo "Current FASTA: [~{basename(current_run_output)}] is valid"
-				fi
-			fi			
-		fi
+				echo "Current FASTA: [~{basename(current_run_output)}] is valid"
+			fi
+		fi			
 	>>>
 
 	output {
@@ -54,7 +39,7 @@ task fasta_validator {
 	}
 
 	runtime {
-		docker: "kfang4/fasta_validator:latest"
+		docker: "dnastack/fasta_validator:0.6"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"

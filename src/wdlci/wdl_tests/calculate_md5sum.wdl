@@ -36,7 +36,7 @@ task calculate_md5sum {
 	>>>
 
 	output {
-		Int rc = read_int("rc")
+		#Int rc = read_int("rc")
 	}
 
 	runtime {

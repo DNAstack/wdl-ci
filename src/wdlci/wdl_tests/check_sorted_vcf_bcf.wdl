@@ -3,7 +3,7 @@ version 1.0
 # Check if input files are sorted by coordinates
 # Input type: VCF/BCF
 
-task check_sorted_vcf {
+task check_sorted_vcf_bcf {
 	input {
 		File current_run_output
 		File validated_output

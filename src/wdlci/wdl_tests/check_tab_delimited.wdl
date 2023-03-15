@@ -19,12 +19,18 @@ task check_tab_delimited {
 
 			echo -e "[ERROR] $message" >&2
 		}
+
+		dir_path=$(dirname ~{current_run_output})
+
+		if gzip -t ~{current_run_output}; then
+			gzip -d ~{current_run_output} ~{validated_output}
+		fi
 		
-		if ! awk '{exit !/\t/}' ~{validated_output}; then
+		if ! awk '{exit !/\t/}' "${dir_path}/$(basename ~{validated_output} .gz)"; then
 			err "Validated file: [~{basename(validated_output)}] is not tab-delimited"
 			exit 1
 		else
-			if awk '{exit !/\t/}' ~{current_run_output}; then
+			if awk '{exit !/\t/}' "${dir_path}/$(basename ~{current_run_output} .gz)"; then
 				echo "File: [~{basename(current_run_output)}] is tab-delimited"
 			else
 				err "File: [~{basename(current_run_output)}] is not tab-delimited"

@@ -38,7 +38,7 @@ task check_yaml {
 	}
 
 	runtime {
-		docker: "kfang4/yamllint:latest"
+		docker: "dnastack/yamllint:1.29.0"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"
