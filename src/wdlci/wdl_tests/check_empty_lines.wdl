@@ -19,23 +19,22 @@ task check_empty_lines {
 
 			echo -e "[ERROR] $message" >&2
 		}
-
-		dir_path=$(dirname ~{current_run_output})
-
+	
 		if gzip -t ~{current_run_output}; then
-			gzip -d ~{current_run_output} ~{validated_output}
+			current_run_output_empty_lines_count=$(zgrep -c "^$" ~{current_run_output} || [[ $? == 1 ]])
+			validated_output_empty_lines_count=$(zgrep -c "^$" ~{validated_output} || [[ $? == 1 ]])
+		else
+			current_run_output_empty_lines_count=$(grep ^$ ~{current_run_output} || [[ $? == 1 ]])
+			validated_output_empty_lines_count=$(grep ^$ ~{validated_output} || [[ $? == 1 ]])
 		fi
 
-		#validated_output_empty_lines_count=$(grep -c "^$" "${dir_path}/$(basename ~{validated_output} .gz)")
-		#current_run_output_empty_lines_count=$(grep -c "^$" "${dir_path}/$(basename ~{current_run_output} .gz)")
-
-		if [[ $(grep -c "^$" "${dir_path}/$(basename ~{validated_output} .gz)") != $(grep -c "^$" "${dir_path}/$(basename ~{current_run_output} .gz)") ]]; then
+		if [[ "$current_run_output_empty_lines_count" != "$validated_output_empty_lines_count" ]]; then
 			err "Empty lines present:
-				Expected output: [$(grep -c "^$" "${dir_path}/$(basename ~{validated_output} .gz)")]
-				Current run output: [$(grep -c "^$" "${dir_path}/$(basename ~{current_run_output} .gz)")]"
+				Expected output: [$validated_output_empty_lines_count]
+				Current run output: [$current_run_output_empty_lines_count]"
 			exit 1
 		else
-			echo "No empty lines. Count: [$(grep -c "^$" "${dir_path}/$(basename ~{current_run_output} .gz)")]"
+			echo "No empty lines. Count: [$validated_output_empty_lines_count]"
 		fi
 	>>>
 

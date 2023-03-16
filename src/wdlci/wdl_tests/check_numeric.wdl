@@ -20,14 +20,14 @@ task check_numeric {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		#non_numeric_validated_output=$(sed 's/\t//g' ~{validated_output} | grep -cv '^[0-9]\+$')
-		#non_numeric_current_output=$(sed 's/\t//g' ~{current_run_output} | grep -cv '^[0-9]\+$')
+		non_numeric_validated_output=$(sed 's/\t//g' ~{validated_output} | grep -cv '^[0-9]\+$' || [[ $? == 1 ]])
+		non_numeric_current_output=$(sed 's/\t//g' ~{current_run_output} | grep -cv '^[0-9]\+$' || [[ $? == 1 ]])
 
-		if [[ $(sed 's/\t//g' ~{validated_output} | grep -cv '^[0-9]\+$') != $(sed 's/\t//g' ~{current_run_output} | grep -cv '^[0-9]\+$') ]]; then
-			err "Current file: [~{basename(current_run_output)}] contains non-numeric values"
+		if [[ "$non_numeric_validated_output" != "$non_numeric_current_output" ]]; then
+			err "Current file: [~{basename(current_run_output)}] contains non-numeric values. Count for non-numeric values: [$non_numeric_validated_output]"
 			exit 1
 		else
-			echo "Current file: [~{basename(current_run_output)}] contains only numeric values"
+			echo "Current file: [~{basename(current_run_output)}] contains only numeric values. Count for non-numeric values: [$non_numeric_current_output]"
 		fi
 	>>>
 

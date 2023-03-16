@@ -38,6 +38,7 @@ class WorkflowServiceClient(object):
         response = requests.post(url, json=payload, headers=headers)
         if response.status_code != 200:
             print(workflow_content)
+            print(response.__dict__)
             raise WdlTestCliExitException(
                 f"Could not register workflow [{workflow_key}] on Workbench", 1
             )
