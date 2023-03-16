@@ -10,6 +10,7 @@ class WorkflowServiceClient(object):
         self.workflow_service_auth = workflow_service_auth
 
     def register_workflow(self, workflow_key, workflow_config, transient=False):
+        workflow_content = open(workflow_key, "r").read()
         payload = {
             "name": workflow_config.name,
             "description": workflow_config.description,
@@ -17,7 +18,7 @@ class WorkflowServiceClient(object):
                 {
                     "path": workflow_key,
                     "file_type": "PRIMARY_DESCRIPTOR",
-                    "content": open(workflow_key, "r").read(),
+                    "content": workflow_content,
                 }
             ],
         }
@@ -36,6 +37,7 @@ class WorkflowServiceClient(object):
 
         response = requests.post(url, json=payload, headers=headers)
         if response.status_code != 200:
+            print(workflow_content)
             raise WdlTestCliExitException(
                 f"Could not register workflow [{workflow_key}] on Workbench", 1
             )
