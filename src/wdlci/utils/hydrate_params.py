@@ -21,7 +21,7 @@ class HydrateParams(object):
                     substituted_dict[key] = _replace_value_recursive(value)
                 return substituted_dict
             else:
-                raise SystemExit(f"Unexpected type detected for value {value}")
+                raise SystemExit(f"Unexpected type detected for value {target_value}")
 
         for tk in target.keys():
             tv = target[tk]
