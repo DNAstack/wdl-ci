@@ -20,8 +20,12 @@ class HydrateParams(object):
                 for key, value in target_value.items():
                     substituted_dict[key] = _replace_value_recursive(value)
                 return substituted_dict
+            elif type(target_value) is int or type(target_value) is bool:
+                return target_value
             else:
-                raise SystemExit(f"Unexpected type detected for value {target_value}")
+                raise SystemExit(
+                    f"Unexpected type [{type(target_value)}] detected for value {target_value}"
+                )
 
         for tk in target.keys():
             tv = target[tk]
