@@ -90,6 +90,7 @@ def submit_handler(kwargs):
 
                     workflow_name = f"wdlci_{doc_main_task.name}_{test_index}"
                     test_key = f"{workflow_key}-{task_key}-{test_index}"
+                    struct_imports = test_input_set.struct_imports
 
                     workflow_config = WorkflowConfig.__new__(
                         test_key,
@@ -106,6 +107,7 @@ def submit_handler(kwargs):
                             doc_main_task,
                             output_tests,
                             test_key,
+                            struct_imports,
                         )
                     except WdlTestCliExitException as e:
                         print(f"exiting with code {e.exit_code}, message: {e.message}")
