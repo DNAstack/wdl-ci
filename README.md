@@ -33,55 +33,55 @@ By default, only new workflows and/or tasks will be added to the config file; de
 
 ```json
 {
-	"workflows": {
-		"<path/to/workflow.wdl>": {
-			"key": "<path/to/workflow.wdl>",
-			"name": "String",
-			"description": "String",
-			"tasks": {
-				"<task_name>": {
-					"key": "<task_name>",
-					"digest": "String; autopopulated",
-					"tests": [
-						{
-							"inputs": {
-								"<input_name>": "<input_value>; type depends on input type",
-								...
-							},
-							"output_tests": {
-								"<output_name>": {
-									"value": "<output_value>; type depends on output type",
-									"test_tasks": [
-										"<test task WDL basename>"
-									]
-								}
-							},
-							"struct_imports": [
-								"<path/to/imports/defining/structs.wdl>"
-							]
-						}
-					]
-				}
-			}
-		}
-	},
-	"engines": {
-		"<engine_id>": {
-			"key": "<engine_id>",
-			"enabled": "Boolean",
-			"name": "String; human-readable name for the engine"
-		}
-	},
-	"test_params": {
-		"global_params": {
-			"<param_name>": "String"
-		},
-		"engine_params": {
-			"<engine_id>": {
-				"<param_name>": "String"
-			}
-		}
-	}
+  "workflows": {
+    "<path/to/workflow.wdl>": {
+      "key": "<path/to/workflow.wdl>",
+      "name": "String",
+      "description": "String",
+      "tasks": {
+        "<task_name>": {
+          "key": "<task_name>",
+          "digest": "String; autopopulated",
+          "tests": [
+            {
+              "inputs": {
+                "<input_name>": "<input_value>; type depends on input type",
+                ...
+              },
+              "output_tests": {
+                "<output_name>": {
+                  "value": "<output_value>; type depends on output type",
+                  "test_tasks": [
+                    "<test task WDL basename>"
+                  ]
+                }
+              },
+              "struct_imports": [
+                "<path/to/imports/defining/structs.wdl>"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "engines": {
+    "<engine_id>": {
+      "key": "<engine_id>",
+      "enabled": "Boolean",
+      "name": "String; human-readable name for the engine"
+    }
+  },
+  "test_params": {
+    "global_params": {
+      "<param_name>": "String"
+    },
+    "engine_params": {
+      "<engine_id>": {
+        "<param_name>": "String"
+      }
+    }
+  }
 }
 ```
 
@@ -121,13 +121,13 @@ version 1.0
 # Input type: String
 
 task compare_string {
-	...
+  ...
 ```
 
 - Each test file should contain a single test task, named `${test_name}`
 - Tests must specify two inputs:
-	- `${input_type} current_run_output`
-	- `${input_type} validated_output`
+  - `${input_type} current_run_output`
+  - `${input_type} validated_output`
 - The `current_run_output` and `validated_output` will be passed to the test task automatically; it is up to the test writer to implement the desired comparison
 
 
