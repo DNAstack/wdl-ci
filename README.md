@@ -85,7 +85,7 @@ By default, only new workflows and/or tasks will be added to the config file; de
 }
 ```
 
-### workflows.<workflow>.tasks.<task>.tests[].struct_imports
+### workflows.\<workflow>.tasks.\<task>.tests[].struct_imports
 
 - Struct imports can include non-struct blocks; only structs will be imported
 - Nested imports by imported struct files will **not** be auto-imported; they must be explicitly added to the array of `struct_imports`
