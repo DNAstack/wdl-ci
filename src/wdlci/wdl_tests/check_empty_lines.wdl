@@ -24,8 +24,8 @@ task check_empty_lines {
 			current_run_output_empty_lines_count=$(zgrep -c "^$" ~{current_run_output} || [[ $? == 1 ]])
 			validated_output_empty_lines_count=$(zgrep -c "^$" ~{validated_output} || [[ $? == 1 ]])
 		else
-			current_run_output_empty_lines_count=$(grep ^$ ~{current_run_output} || [[ $? == 1 ]])
-			validated_output_empty_lines_count=$(grep ^$ ~{validated_output} || [[ $? == 1 ]])
+			current_run_output_empty_lines_count=$(grep -c "^$" ~{current_run_output} || [[ $? == 1 ]])
+			validated_output_empty_lines_count=$(grep -c "^$" ~{validated_output} || [[ $? == 1 ]])
 		fi
 
 		if [[ "$current_run_output_empty_lines_count" != "$validated_output_empty_lines_count" ]]; then
