@@ -1,7 +1,7 @@
 version 1.0
 
 # Check if file is tab-delimited
-# Input type: File
+# Input type: File or GZ file
 
 task check_tab_delimited {
 	input {
@@ -10,6 +10,8 @@ task check_tab_delimited {
 	}
 
 	Int disk_size = ceil(size(current_run_output, "GB") + size(validated_output, "GB") + 50)
+	String current_run_output_unzipped = sub(current_run_output, "\\.gz$", "")
+	#String validated_output_unzipped = sub(validated_output, "\\.gz$", "")
 
 	command <<<
 		set -euo pipefail
@@ -20,17 +22,17 @@ task check_tab_delimited {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		dir_path=$(dirname ~{current_run_output})
-
 		if gzip -t ~{current_run_output}; then
 			gzip -d ~{current_run_output} ~{validated_output}
 		fi
+
+		validated_dir_path=$(dirname ~{validated_output})
 		
-		if ! awk '{exit !/\t/}' "${dir_path}/$(basename ~{validated_output} .gz)"; then
+		if ! awk '{exit !/\t/}' "${validated_dir_path}/$(basename ~{validated_output} .gz)"; then
 			err "Validated file: [~{basename(validated_output)}] is not tab-delimited"
 			exit 1
 		else
-			if awk '{exit !/\t/}' "${dir_path}/$(basename ~{current_run_output} .gz)"; then
+			if awk '{exit !/\t/}' ~{current_run_output_unzipped}; then
 				echo "File: [~{basename(current_run_output)}] is tab-delimited"
 			else
 				err "File: [~{basename(current_run_output)}] is not tab-delimited"

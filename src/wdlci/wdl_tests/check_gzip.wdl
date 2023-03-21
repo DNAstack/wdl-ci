@@ -1,7 +1,7 @@
 version 1.0
 
-# Check integrity of gz file
-# Input type: file.gz
+# Check integrity of GZ file
+# Input type: GZ file
 
 task check_gzip {
 	input {

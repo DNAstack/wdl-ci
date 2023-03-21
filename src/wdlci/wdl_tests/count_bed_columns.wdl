@@ -1,7 +1,7 @@
 version 1.0
 
 # Count bed columns
-# Input type: BED file
+# Input type: BED file or BED GZ file
 
 task count_bed_columns {
 	input {
@@ -10,6 +10,8 @@ task count_bed_columns {
 	}
 
 	Int disk_size = ceil(size(current_run_output, "GB") + size(validated_output, "GB") + 50)
+	String current_run_output_unzipped = sub(current_run_output, "\\.gz$", "")
+	#String validated_output_unzipped = sub(validated_output, "\\.gz$", "")
 
 	command <<<
 		set -euo pipefail
@@ -20,14 +22,16 @@ task count_bed_columns {
 			echo -e "[ERROR] $message" >&2
 		}
 
+		validated_dir_path=$(dirname ~{validated_output})
+
 		if gzip -t ~{current_run_output}; then
-			dir_path=$(dirname ~{current_run_output})
 			gzip -d ~{current_run_output} ~{validated_output}
-			current_run_output_column_count=$(awk '{print NF}' "${dir_path}/$(basename ~{current_run_output} .gz)" | sort -nu | tail -n 1)
-			validated_output_column_count=$(awk '{print NF}' "${dir_path}/$(basename ~{validated_output} .gz)" | sort -nu | tail -n 1)
+			# Assuming header does not start with chr...
+			current_run_output_column_count=$(sed '/^chr/!d' ~{current_run_output_unzipped} | awk '{print NF}' | sort -nu | tail -n 1)
+			validated_output_column_count=$(sed '/^chr/!d' "${validated_dir_path}/$(basename ~{validated_output} .gz)" | awk '{print NF}' | sort -nu | tail -n 1)
 		else
-			current_run_output_column_count=$(awk '{print NF}' ~{current_run_output} | sort -nu | tail -n 1)
-			validated_output_column_count=$(awk '{print NF}' ~{validated_output} | sort -nu | tail -n 1)
+			current_run_output_column_count=$(sed '/^chr/!d' ~{current_run_output} | awk '{print NF}' | sort -nu | tail -n 1)
+			validated_output_column_count=$(sed '/^chr/!d' ~{validated_output} | awk '{print NF}' | sort -nu | tail -n 1)
 		fi
 
 		if [[ "$current_run_output_column_count" != "$validated_output_column_count" ]]; then

@@ -1,7 +1,7 @@
 version 1.0
 
 # Count bed columns in array of files
-# Input type: Array of BED files
+# Input type: Array of BED files or BED GZ files
 
 task count_bed_columns_array {
 	input {
@@ -24,29 +24,30 @@ task count_bed_columns_array {
 		}
 
 		if gzip -t ~{first_validated_output}; then
-			for file in ~{sep=' ' validated_output}; do 	
-				gzip -d "${file}"
-			done
-			validated_output_column_count=$(for file in ~{sep=' ' validated_output}; do
-				awk '{print NF}' "$(basename ${file} .gz)" | sort -nu | tail -n 1
-			done)
+			while read -r file || [[ -n "$file" ]]; do
+				gzip -d "$file"
+			done < ~{write_lines(validated_output)}
+			# Assuming header does not start with chr...
+			validated_output_column_count=$(while read -r file || [[ -n "$file" ]]; do
+				sed '/^chr/!d' "$(basename "$file" .gz)" | awk '{print NF}' | sort -nu | tail -n 1
+			done < ~{write_lines(validated_output)})
 		else
-			validated_output_column_count=$(for file in ~{sep=' ' validated_output}; do
-				awk '{print NF}' "${file}" | sort -nu | tail -n 1
-			done)
+			validated_output_column_count=$(while read -r file || [[ -n "$file" ]]; do
+				sed '/^chr/!d' "$(basename "$file" .gz)" | awk '{print NF}' | sort -nu | tail -n 1
+			done < ~{write_lines(validated_output)})
 		fi
 
 		if gzip -t ~{first_current_run_output}; then
-			for file in ~{sep=' ' current_run_output}; do 	
+			while read -r file || [[ -n "$file" ]]; do
 				gzip -d "${file}"
-			done
-			current_run_output_column_count=$(for file in ~{sep=' ' current_run_output}; do
-				awk '{print NF}' "$(basename ${file} .gz)" | sort -nu | tail -n 1
-			done)
+			done < ~{write_lines(current_run_output)}
+			current_run_output_column_count=$(while read -r file || [[ -n "$file" ]]; do
+				sed '/^chr/!d' "$(basename "$file" .gz)" | awk '{print NF}' | sort -nu | tail -n 1
+			done < ~{write_lines(current_run_output)})
 		else
-			current_run_output_column_count=$(for file in ~{sep=' ' current_run_output}; do
-				awk '{print NF}' "${file}" | sort -nu | tail -n 1
-			done)
+			current_run_output_column_count=$(while read -r file || [[ -n "$file" ]]; do
+				sed '/^chr/!d' "$(basename "$file" .gz)" | awk '{print NF}' | sort -nu | tail -n 1
+			done < ~{write_lines(current_run_output)})
 		fi
 
 		validated_output_column_count_array=$(echo "$validated_output_column_count" | tr '\n' ' ')

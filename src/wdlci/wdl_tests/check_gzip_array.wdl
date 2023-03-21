@@ -1,7 +1,7 @@
 version 1.0
 
-# Check integrity of gz file
-# Input type: Array of file.gz
+# Check integrity of GZ file
+# Input type: Array of GZ files
 
 task check_gzip_array {
 	input {
@@ -20,21 +20,21 @@ task check_gzip_array {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		for file in ~{sep=' ' validated_output}; do
-			if ! gzip -t "${file}"; then
-				err "Validated file: ${file} did not pass gzip check"
+		while read -r file || [[ -n "$file" ]]; do
+			if ! gzip -t "$file"; then
+				err "Validated file: $file did not pass gzip check"
 				exit 1
 			fi
-		done
-
-		for file in ~{sep=' ' current_run_output}; do
-			if ! gzip -t "${file}"; then
-				err "Current file: ${file} did not pass gzip check"
+		done < ~{write_lines(validated_output)}
+			
+		while read -r file || [[ -n "$file" ]]; do
+			if ! gzip -t "$file"; then
+				err "Current file: [$file] did not pass gzip check"
 				exit 1
 			else
-				echo "Current file: ${file} passed gzip check"
+				echo "Current file: [$file] passed gzip check"
 			fi
-		done
+		done < ~{write_lines(current_run_output)}
 	>>>
 
 	output {

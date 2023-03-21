@@ -1,7 +1,7 @@
 version 1.0
 
 # Check if array of files are tab-delimited
-# Input type: Array of files
+# Input type: Array of GZ files or files
 
 task check_tab_delimited_array {
 	input {
@@ -20,21 +20,21 @@ task check_tab_delimited_array {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		for file in ~{sep=' ' validated_output}; do
-			if ! awk '{exit !/\t/}' "${file}"; then
-				err "Validated file: [${file}] is not tab-delimited"
+		while read -r file || [[ -n "$file" ]]; do
+			if ! awk '{exit !/\t/}' "$file"; then
+				err "Validated file: [$file] is not tab-delimited"
 				exit 1
 			fi
-		done
+		done < ~{write_lines(validated_output)}
 
-		for file in ~{sep=' ' current_run_output}; do
-			if awk '{exit !/\t/}' "${file}"; then
-				echo "File: [${file}] is tab-delimited"
+		while read -r file || [[ -n "$file" ]]; do
+			if awk '{exit !/\t/}' "$file"; then
+				echo "File: [$file] is tab-delimited"
 			else
-				err "File: [${file}] is not tab-delimited"
+				err "File: [$file] is not tab-delimited"
 				exit 1
 			fi
-		done
+		done < ~{write_lines(current_run_output)}
 	>>>
 
 	output {

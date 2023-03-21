@@ -1,7 +1,7 @@
 version 1.0
 
 # Check empty lines
-# Input type: File
+# Input type: File or GZ file
 
 task check_empty_lines {
 	input {
@@ -19,13 +19,18 @@ task check_empty_lines {
 
 			echo -e "[ERROR] $message" >&2
 		}
-	
+
 		if gzip -t ~{current_run_output}; then
 			current_run_output_empty_lines_count=$(zgrep -c "^$" ~{current_run_output} || [[ $? == 1 ]])
 			validated_output_empty_lines_count=$(zgrep -c "^$" ~{validated_output} || [[ $? == 1 ]])
 		else
 			current_run_output_empty_lines_count=$(grep -c "^$" ~{current_run_output} || [[ $? == 1 ]])
 			validated_output_empty_lines_count=$(grep -c "^$" ~{validated_output} || [[ $? == 1 ]])
+		fi
+
+		if [[ "$validated_output_empty_lines_count" != 0 ]]; then
+			err "Empty lines present in validated output: [~{basename(validated_output)}]. Count: [$validated_output_empty_lines_count]"
+			exit 1
 		fi
 
 		if [[ "$current_run_output_empty_lines_count" != "$validated_output_empty_lines_count" ]]; then
