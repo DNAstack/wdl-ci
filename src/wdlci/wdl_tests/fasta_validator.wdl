@@ -22,7 +22,7 @@ task fasta_validator {
 
 		# Checks both compressed and uncompressed fastas
 		if ! py_fasta_validator -f ~{validated_output}; then
-			err "Validated FASTA: [~{basename(validated_output)}] is not valid; check format"
+			err "Validated FASTA: [~{basename(validated_output)}] is invalid"
 			exit 1
 		else
 			if ! py_fasta_validator -f ~{current_run_output}; then

@@ -22,17 +22,17 @@ task check_gzip_array {
 
 		while read -r file || [[ -n "$file" ]]; do
 			if ! gzip -t "$file"; then
-				err "Validated file: $file did not pass gzip check"
+				err "Validated file: [$(basename "$file")] did not pass gzip check"
 				exit 1
 			fi
 		done < ~{write_lines(validated_output)}
 			
 		while read -r file || [[ -n "$file" ]]; do
 			if ! gzip -t "$file"; then
-				err "Current run file: [$file] did not pass gzip check"
+				err "Current run file: [$(basename "$file")] did not pass gzip check"
 				exit 1
 			else
-				echo "Current run file: [$file] passed gzip check"
+				echo "Current run file: [$(basename "$file")] passed gzip check"
 			fi
 		done < ~{write_lines(current_run_output)}
 	>>>

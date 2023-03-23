@@ -22,11 +22,11 @@ task html_validator {
 
 		# Ignore flag specified because error: Element "head" is missing a required instance of child element "title".
 		if ! html5validator ~{validated_output} --ignore head; then
-			err "Validated HTML: [~{basename(validated_output)}] is not valid; check format"
+			err "Validated HTML: [~{basename(validated_output)}] is invalid"
 			exit 1
 		else
 			if ! html5validator ~{current_run_output} --ignore head; then
-				err "Current run HTML: [~{basename(current_run_output)}] is not valid"
+				err "Current run HTML: [~{basename(current_run_output)}] is invalid"
 				exit 1
 			else
 				echo "Current run HTML: [~{basename(current_run_output)}] is valid"
