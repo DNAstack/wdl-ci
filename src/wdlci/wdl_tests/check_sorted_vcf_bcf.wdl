@@ -24,10 +24,10 @@ task check_sorted_vcf_bcf {
 		bcftools view --header-only ~{current_run_output} | grep "##contig" | sort > current_header_contig.txt
 
 		if cmp -s "validated_header_contig.txt" "current_header_contig.txt"; then
-			err "Current VCF: [~{basename(current_run_output)}] is not sorted"
+			err "Current run output: [~{basename(current_run_output)}] is not sorted"
 			exit 1
 		else
-			echo "Current VCF: [~{basename(current_run_output)}] is sorted"
+			echo "Current run output: [~{basename(current_run_output)}] is sorted"
 		fi
 	>>>
 

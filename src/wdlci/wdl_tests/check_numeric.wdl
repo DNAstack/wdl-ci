@@ -24,10 +24,10 @@ task check_numeric {
 		non_numeric_current_output=$(sed 's/\t//g' ~{current_run_output} | grep -cv '^[0-9]\+$' || [[ $? == 1 ]])
 
 		if [[ "$non_numeric_validated_output" != "$non_numeric_current_output" ]]; then
-			err "Current file: [~{basename(current_run_output)}] contains non-numeric values. Count for non-numeric values: [$non_numeric_validated_output]"
+			err "Current run file: [~{basename(current_run_output)}] contains non-numeric values. Count for non-numeric values: [$non_numeric_validated_output]"
 			exit 1
 		else
-			echo "Current file: [~{basename(current_run_output)}] contains only numeric values. Count for non-numeric values: [$non_numeric_current_output]"
+			echo "Current run file: [~{basename(current_run_output)}] contains only numeric values. Count for non-numeric values: [$non_numeric_current_output]"
 		fi
 	>>>
 

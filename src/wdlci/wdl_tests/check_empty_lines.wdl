@@ -39,7 +39,7 @@ task check_empty_lines {
 				Current run output: [$current_run_output_empty_lines_count]"
 			exit 1
 		else
-			echo "No empty lines. Count: [$validated_output_empty_lines_count]"
+			echo "No empty lines. Count: [$current_run_output_empty_lines_count]"
 		fi
 	>>>
 

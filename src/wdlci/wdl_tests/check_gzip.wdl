@@ -25,10 +25,10 @@ task check_gzip {
 			exit 1
 		else
 			if ! gzip -t ~{current_run_output}; then
-				err "Current file: [~{basename(current_run_output)}] did not pass gzip check"
+				err "Current run file: [~{basename(current_run_output)}] did not pass gzip check"
 				exit 1
 			else
-				echo "Current file: [~{basename(current_run_output)}] passed gzip check"
+				echo "Current run file: [~{basename(current_run_output)}] passed gzip check"
 			fi
 		fi
 	>>>

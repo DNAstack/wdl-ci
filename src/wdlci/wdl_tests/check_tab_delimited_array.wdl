@@ -20,21 +20,47 @@ task check_tab_delimited_array {
 			echo -e "[ERROR] $message" >&2
 		}
 
+		# TODO this will unzip every file in the output array
+		if gzip -t ~{current_run_output[0]}; then
+			while read -r file || [[ -n "$file" ]]; do
+				gzip -d "$file"
+			done < ~{write_lines(current_run_output)}
+
+			while read -r file || [[ -n "$file" ]]; do
+				gzip -d "$file"
+			done < ~{write_lines(validated_output)}
+		fi
+
+		validated_dir_path=$(dirname ~{validated_output[0]})
+		current_dir_path=$(dirname ~{current_run_output[0]})
+
+		# Select tab-delimited files only
+		tab_delimited_list=$(find "$validated_dir_path" -name "*.bed" -or -name "*.txt" -or -name "*.tsv" -or -name "*.ped" -or -name "*.gtf" -or -name "*.blocklist" -type f)
+
+		# This is the path/to/file string with separated file names by space
+		file_names=$(for file in $tab_delimited_list; do
+				basename "$file" .gz
+			done)
+
+		# Prepend appropriate path to each unzipped file
+		echo "$file_names" | sed "s;^;$validated_dir_path/;" > validated_tab_delimited_files.txt
+		echo "$file_names" | sed "s;^;$current_dir_path/;" > current_tab_delimited_files.txt
+
 		while read -r file || [[ -n "$file" ]]; do
 			if ! awk '{exit !/\t/}' "$file"; then
-				err "Validated file: [$file] is not tab-delimited"
+				err "Validated file: [$(basename "$file")] is not tab-delimited"
 				exit 1
 			fi
-		done < ~{write_lines(validated_output)}
+		done < validated_tab_delimited_files.txt
 
 		while read -r file || [[ -n "$file" ]]; do
 			if awk '{exit !/\t/}' "$file"; then
-				echo "File: [$file] is tab-delimited"
+				echo "Current run file: [$(basename "$file")] is tab-delimited"
 			else
-				err "File: [$file] is not tab-delimited"
+				err "Current run file: [$(basename "$file")] is not tab-delimited"
 				exit 1
 			fi
-		done < ~{write_lines(current_run_output)}
+		done < current_tab_delimited_files.txt
 	>>>
 
 	output {

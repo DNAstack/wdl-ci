@@ -26,10 +26,10 @@ task check_json {
 			exit 1
 		else
 			if ! cat ~{current_run_output}| json_pp; then
-				err "Current JSON: [~{basename(current_run_output)}] is not valid"
+				err "Current run JSON: [~{basename(current_run_output)}] is not valid"
 				exit 1
 			else
-				echo "Current JSON: [~{basename(current_run_output)}] is valid"
+				echo "Current run JSON: [~{basename(current_run_output)}] is valid"
 			fi
 		fi
 	>>>

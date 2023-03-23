@@ -9,9 +9,6 @@ task count_bed_columns_array {
 		Array[File] validated_output
 	}
 
-	String first_current_run_output = current_run_output[0]
-	String first_validated_output = validated_output[0]
-
 	Int disk_size = ceil((size(current_run_output[0], "GB") * length(current_run_output)) + (size(validated_output[0], "GB") * length(validated_output)) + 50)
 	
 	command <<<
@@ -23,46 +20,66 @@ task count_bed_columns_array {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if gzip -t ~{first_validated_output}; then
+		validated_dir_path=$(dirname ~{validated_output[0]})
+		current_dir_path=$(dirname ~{current_run_output[0]})
+
+		# Select BED files only; -regex works for full path only
+		bed_list=$(find "$validated_dir_path" -name '*.bed')
+
+		# This is the path/to/file string with separated file names by space
+		file_names=$(for file in $bed_list; do
+				basename "$file" .gz
+			done)
+
+		# Prepend appropriate path to each unzipped file
+		echo "$file_names" | sed "s;^;$validated_dir_path/;" > validated_bed_files.txt
+		echo "$file_names" | sed "s;^;$current_dir_path/;" > current_bed_files.txt
+
+		# TODO this will unzip every file in the output array
+		if gzip -t ~{validated_output[0]}; then
 			while read -r file || [[ -n "$file" ]]; do
 				gzip -d "$file"
 			done < ~{write_lines(validated_output)}
 			# Assuming header does not start with chr...
 			validated_output_column_count=$(while read -r file || [[ -n "$file" ]]; do
-				sed '/^chr/!d' "$(basename "$file" .gz)" | awk '{print NF}' | sort -nu | tail -n 1
-			done < ~{write_lines(validated_output)})
+				sed '/^chr/!d' "$file" | awk '{print NF}' | sort -nu | tail -n 1
+			done < validated_bed_files.txt)
 		else
 			validated_output_column_count=$(while read -r file || [[ -n "$file" ]]; do
-				sed '/^chr/!d' "$(basename "$file" .gz)" | awk '{print NF}' | sort -nu | tail -n 1
-			done < ~{write_lines(validated_output)})
+				sed '/^chr/!d' "$file" | awk '{print NF}' | sort -nu | tail -n 1
+			done < validated_bed_files.txt)
 		fi
 
-		if gzip -t ~{first_current_run_output}; then
+		if gzip -t ~{current_run_output[0]}; then
 			while read -r file || [[ -n "$file" ]]; do
 				gzip -d "${file}"
 			done < ~{write_lines(current_run_output)}
 			current_run_output_column_count=$(while read -r file || [[ -n "$file" ]]; do
-				sed '/^chr/!d' "$(basename "$file" .gz)" | awk '{print NF}' | sort -nu | tail -n 1
-			done < ~{write_lines(current_run_output)})
+				sed '/^chr/!d' "$file" | awk '{print NF}' | sort -nu | tail -n 1
+			done < current_bed_files.txt)
 		else
 			current_run_output_column_count=$(while read -r file || [[ -n "$file" ]]; do
-				sed '/^chr/!d' "$(basename "$file" .gz)" | awk '{print NF}' | sort -nu | tail -n 1
-			done < ~{write_lines(current_run_output)})
+				sed '/^chr/!d' "$file" | awk '{print NF}' | sort -nu | tail -n 1
+			done < current_bed_files.txt)
 		fi
 
-		validated_output_column_count_array=$(echo "$validated_output_column_count" | tr '\n' ' ')
-		current_run_output_column_count_array=$(echo "$current_run_output_column_count" | tr '\n' ' ')
+		validated_output_column_count_string=$(echo "$validated_output_column_count" | tr '\n' ' ')
+		current_run_output_column_count_string=$(echo "$current_run_output_column_count" | tr '\n' ' ')
+
+		# Make it into an array
+		validated_output_column_count_array=( "$validated_output_column_count_string" )
+		current_run_output_column_count_array=( "$current_run_output_column_count_string" )
 
 		# Validated and current should have the same amount of files
-		length_array=$("${#validated_output_column_count_array[@]}")
+		length_array=$(echo "${#validated_output_column_count_array[@]}")
 
 		for (( i=0; i<length_array; i++ )); do
 			if [[ "${validated_output_column_count_array[$i]}" != "${current_run_output_column_count_array[$i]}" ]]; then
 				err "Number of columns did not match:
-					Expected output: [${validated_output_column_count_array[$i]}]
-					Current run output: [${current_run_output_column_count_array[i]}]"
+					Expected output for [$(sed -n "$i"p current_bed_files.txt)]: [${validated_output_column_count_array[$i]}]
+					Current run output [$(sed -n "$i"p validated_bed_files.txt)]: [${current_run_output_column_count_array[$i]}]"
 					if [[ "${current_run_output_column_count_array[$i]}" -lt 3 ]] && [[ "${current_run_output_column_count_array[$i]}" -gt 12 ]]; then
-						err "Invalid number of columns"
+						err "Invalid number of columns for [$(sed -n "$i"p validated_bed_files.txt)]"
 					fi
 				exit 1
 			else

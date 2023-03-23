@@ -25,10 +25,10 @@ task check_yaml {
 			exit 1
 		else
 			if ! yamllint ~{current_run_output}; then
-				err "Current YAML: [~{basename(current_run_output)}] is not valid"
+				err "Current run YAML: [~{basename(current_run_output)}] is not valid"
 				exit 1
 			else
-				echo "Current YAML: [~{basename(current_run_output)}] is valid"
+				echo "Current run YAML: [~{basename(current_run_output)}] is valid"
 			fi
 		fi
 	>>>

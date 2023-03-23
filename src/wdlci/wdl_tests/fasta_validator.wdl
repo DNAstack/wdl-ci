@@ -26,10 +26,10 @@ task fasta_validator {
 			exit 1
 		else
 			if ! py_fasta_validator -f ~{current_run_output}; then
-				err "Current FASTA: [~{basename(current_run_output)}] is not valid"
+				err "Current run FASTA: [~{basename(current_run_output)}] is not valid"
 				exit 1
 			else
-				echo "Current FASTA: [~{basename(current_run_output)}] is valid"
+				echo "Current run FASTA: [~{basename(current_run_output)}] is valid"
 			fi
 		fi			
 	>>>

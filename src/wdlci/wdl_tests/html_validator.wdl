@@ -26,10 +26,10 @@ task html_validator {
 			exit 1
 		else
 			if ! html5validator ~{current_run_output} --ignore head; then
-				err "Current HTML: [~{basename(current_run_output)}] is not valid"
+				err "Current run HTML: [~{basename(current_run_output)}] is not valid"
 				exit 1
 			else
-				echo "Current HTML: [~{basename(current_run_output)}] is valid"
+				echo "Current run HTML: [~{basename(current_run_output)}] is valid"
 			fi
 		fi
 	>>>
