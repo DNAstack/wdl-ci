@@ -106,7 +106,7 @@ Test params can be used to avoid repeating paths and values for test inputs and 
 Custom linters may be added to [src/wdlci/linters/custom_linters.py](src/wdlci/linters/custom_linters.py).
 
 
-# Worklfow-based tests
+# Workflow-based tests
 
 Tests are defined in the [src/wdlci/wdl_tests](src/wdlci/wdl_tests) directory.
 
