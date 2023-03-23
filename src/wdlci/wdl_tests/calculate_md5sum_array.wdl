@@ -43,7 +43,7 @@ task calculate_md5sum_array {
 		current_run_output_md5sum_array=( "$current_run_output_md5sum_string" )
 
 		# Validated and current should have the same amount of files
-		length_array=$(echo "${#validated_output_md5sum_array[@]}")
+		length_array=${#validated_output_md5sum_array[@]}
 
 		for (( i=0; i<length_array; i++ )); do
 			if [[ "${current_run_output_md5sum_array[$i]}" != "${validated_output_md5sum_array[$i]}" ]]; then
@@ -58,7 +58,6 @@ task calculate_md5sum_array {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

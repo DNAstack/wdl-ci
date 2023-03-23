@@ -3,6 +3,7 @@ version 1.0
 # Compare column names in metadata
 # Input type: File
 
+# TODO UNDER CONSTRUCTION
 task compare_column_names {
 	input {
 		File current_run_output
@@ -54,7 +55,6 @@ task compare_column_names {
 	>>>
 
 	output {
-		Int rc = read_int("rc")
 	}
 
 	runtime {

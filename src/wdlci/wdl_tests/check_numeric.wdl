@@ -32,7 +32,6 @@ task check_numeric {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

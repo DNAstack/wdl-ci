@@ -30,18 +30,18 @@ task check_empty_lines_array {
 
 		# This is a variable with empty line count by space
 		current_run_output_empty_lines_counts=$(for count in $current_run_output_empty_lines_count; do
-				echo "$count" | sed 's/.*://'
+				echo "${count/*:/}"
 			done)
 		validated_output_empty_lines_counts=$(for count in $validated_output_empty_lines_count; do
-				echo "$count" | sed 's/.*://'
+				echo "${count/*:/}"
 			done)
 
 		# Make it into an array
-		current_run_output_empty_lines_counts_array=($(echo "$current_run_output_empty_lines_counts" | tr ' ' '\n'))
-		validated_output_empty_lines_counts_array=($(echo "$validated_output_empty_lines_counts" | tr ' ' '\n'))
+		mapfile -t current_run_output_empty_lines_counts_array < <(echo "$current_run_output_empty_lines_counts" | tr ' ' '\n')
+		mapfile -t validated_output_empty_lines_counts_array < <(echo "$validated_output_empty_lines_counts" | tr ' ' '\n')
 
 		# Validated and current should have the same amount of files
-		length_array=$(echo "${#validated_output_empty_lines_counts_array[@]}")
+		length_array=${#validated_output_empty_lines_counts_array[@]}
 
 		for (( i=0; i<length_array; i++ )); do
 			if [[ "${validated_output_empty_lines_counts_array[$i]}" != 0 ]]; then
@@ -63,7 +63,6 @@ task check_empty_lines_array {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

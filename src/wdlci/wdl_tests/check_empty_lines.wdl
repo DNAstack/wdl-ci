@@ -44,7 +44,6 @@ task check_empty_lines {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

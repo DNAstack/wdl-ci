@@ -35,7 +35,6 @@ task html_validator {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

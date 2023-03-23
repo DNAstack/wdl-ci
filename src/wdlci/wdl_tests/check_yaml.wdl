@@ -1,6 +1,6 @@
 version 1.0
 
-# Validate input yaml files 
+# Validate input yaml files
 # Input type: YAML/YML
 
 task check_yaml {
@@ -34,7 +34,6 @@ task check_yaml {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

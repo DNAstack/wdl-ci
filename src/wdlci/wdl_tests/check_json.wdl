@@ -20,12 +20,11 @@ task check_json {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		# shellcheck disable=SC2002
-		if ! cat ~{validated_output} | json_pp; then
+		if ! json_pp < ~{validated_output}; then
 			err "Validated JSON: [~{basename(validated_output)}] is not valid; check schema"
 			exit 1
 		else
-			if ! cat ~{current_run_output}| json_pp; then
+			if ! json_pp < ~{current_run_output}; then
 				err "Current run JSON: [~{basename(current_run_output)}] is not valid"
 				exit 1
 			else
@@ -35,7 +34,6 @@ task check_json {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

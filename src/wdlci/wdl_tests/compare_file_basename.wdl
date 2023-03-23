@@ -23,7 +23,7 @@ task compare_file_basename {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if [[ ~{current_run_basename} != ~{validated_basename} ]]; then
+		if [[ "~{current_run_basename}" != "~{validated_basename}" ]]; then
 			err "File basenames did not match:
 				Expected output: [~{validated_basename}]
 				Current run output: [~{current_run_basename}]"
@@ -34,7 +34,6 @@ task compare_file_basename {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

@@ -26,7 +26,7 @@ task check_gzip_array {
 				exit 1
 			fi
 		done < ~{write_lines(validated_output)}
-			
+
 		while read -r file || [[ -n "$file" ]]; do
 			if ! gzip -t "$file"; then
 				err "Current run file: [$(basename "$file")] did not pass gzip check"
@@ -38,7 +38,6 @@ task check_gzip_array {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

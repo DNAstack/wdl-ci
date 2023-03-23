@@ -10,7 +10,7 @@ task bigwig_validator_array {
 	}
 
 	Int disk_size = ceil((size(current_run_output[0], "GB") * length(current_run_output)) + (size(validated_output[0], "GB") * length(validated_output)) + 50)
-	
+
 	command <<<
 		set -euo pipefail
 
@@ -45,7 +45,6 @@ task bigwig_validator_array {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

@@ -32,7 +32,6 @@ task check_sorted_vcf_bcf {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

@@ -31,11 +31,10 @@ task fasta_validator {
 			else
 				echo "Current run FASTA: [~{basename(current_run_output)}] is valid"
 			fi
-		fi			
+		fi
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

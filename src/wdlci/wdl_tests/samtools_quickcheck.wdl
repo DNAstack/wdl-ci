@@ -34,7 +34,6 @@ task samtools_quickcheck {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

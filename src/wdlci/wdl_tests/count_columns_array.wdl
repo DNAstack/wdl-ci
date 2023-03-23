@@ -36,7 +36,7 @@ task count_columns_array {
 		current_run_output_column_count_array=( "$current_run_output_column_count_string" )
 
 		# Validated and current should have the same amount of files
-		length_array=$(echo "${#validated_output_column_count_array[@]}")
+		length_array=${#validated_output_column_count_array[@]}
 
 		for (( i=0; i<length_array; i++ )); do
 			if [[ "${validated_output_column_count_array[$i]}" != "${current_run_output_column_count_array[$i]}" ]]; then
@@ -51,7 +51,6 @@ task count_columns_array {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

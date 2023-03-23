@@ -10,7 +10,7 @@ task count_bed_columns_array {
 	}
 
 	Int disk_size = ceil((size(current_run_output[0], "GB") * length(current_run_output)) + (size(validated_output[0], "GB") * length(validated_output)) + 50)
-	
+
 	command <<<
 		set -euo pipefail
 
@@ -32,10 +32,12 @@ task count_bed_columns_array {
 			done)
 
 		# Prepend appropriate path to each unzipped file
+		# shellcheck disable=SC2001
 		echo "$file_names" | sed "s;^;$validated_dir_path/;" > validated_bed_files.txt
+		# shellcheck disable=SC2001
 		echo "$file_names" | sed "s;^;$current_dir_path/;" > current_bed_files.txt
 
-		# TODO this will unzip every file in the output array
+		# unzip every file in the input and output arrays
 		if gzip -t ~{validated_output[0]}; then
 			while read -r file || [[ -n "$file" ]]; do
 				gzip -d "$file"
@@ -71,7 +73,7 @@ task count_bed_columns_array {
 		current_run_output_column_count_array=( "$current_run_output_column_count_string" )
 
 		# Validated and current should have the same amount of files
-		length_array=$(echo "${#validated_output_column_count_array[@]}")
+		length_array=${#validated_output_column_count_array[@]}
 
 		for (( i=0; i<length_array; i++ )); do
 			if [[ "${validated_output_column_count_array[$i]}" != "${current_run_output_column_count_array[$i]}" ]]; then
@@ -79,7 +81,7 @@ task count_bed_columns_array {
 					Expected output for [$(sed -n "$i"p current_bed_files.txt)]: [${validated_output_column_count_array[$i]}]
 					Current run output [$(sed -n "$i"p validated_bed_files.txt)]: [${current_run_output_column_count_array[$i]}]"
 					if [[ "${current_run_output_column_count_array[$i]}" -lt 3 ]] && [[ "${current_run_output_column_count_array[$i]}" -gt 12 ]]; then
-						err "Invalid number of columns for [$(sed -n "$i"p validated_bed_files.txt)]"
+						err "Invalid number of columns for a bed-format file for [$(sed -n "$i"p validated_bed_files.txt)]"
 					fi
 				exit 1
 			else
@@ -89,7 +91,6 @@ task count_bed_columns_array {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

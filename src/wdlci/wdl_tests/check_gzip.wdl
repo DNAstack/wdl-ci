@@ -34,7 +34,6 @@ task check_gzip {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {

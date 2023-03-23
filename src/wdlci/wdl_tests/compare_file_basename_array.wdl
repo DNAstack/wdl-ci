@@ -33,7 +33,7 @@ task compare_file_basename_array {
 		current_run_basenames=( "$current_run_basenames" )
 
 		# Validated and current should have the same amount of files
-		length_array=$(echo "${#validated_basenames[@]}")
+		length_array=${#validated_basenames[@]}
 
 		for (( i=0; i<length_array; i++ )); do
 			if [[ "${validated_basenames[$i]}" != "${current_run_basenames[$i]}" ]]; then
@@ -48,7 +48,6 @@ task compare_file_basename_array {
 	>>>
 
 	output {
-		#Int rc = read_int("rc")
 	}
 
 	runtime {
