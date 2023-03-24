@@ -11,7 +11,6 @@ task check_tab_delimited {
 
 	Int disk_size = ceil(size(current_run_output, "GB") + size(validated_output, "GB") + 50)
 	String current_run_output_unzipped = sub(current_run_output, "\\.gz$", "")
-	#String validated_output_unzipped = sub(validated_output, "\\.gz$", "")
 
 	command <<<
 		set -euo pipefail
