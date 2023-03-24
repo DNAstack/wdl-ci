@@ -20,7 +20,7 @@ task compare_string {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if [[ ~{current_run_output} != ~{validated_output} ]]; then
+		if [[ "~{current_run_output}" != "~{validated_output}" ]]; then
 			err "Strings did not match:
 				Expected output: [~{validated_output}]
 				Current run output: [~{current_run_output}]"
@@ -31,7 +31,6 @@ task compare_string {
 	>>>
 
 	output {
-		Int rc = read_int("rc")
 	}
 
 	runtime {

@@ -3,7 +3,7 @@ from importlib.resources import files
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
 
-def write_workflow(workflow_name, main_task, output_tests, output_file):
+def write_workflow(workflow_name, main_task, output_tests, output_file, struct_imports):
     """
     Write a workflow out to a file
     Args:
@@ -13,6 +13,8 @@ def write_workflow(workflow_name, main_task, output_tests, output_file):
             Array of validated outputs and the test tasks to apply to them.
             Test tasks should map to files in wdl_tests/${test_task}.wdl
         output_file (str): Path to file to write workflow to
+        struct_imports (list): List of paths to WDL files that need to be imported; only structs from these files will be imported
+            Any files imported by the listed files will not be imported and must be explicitly added the the struct_imports array
     """
     wdl_version = main_task.effective_wdl_version
 
@@ -20,6 +22,18 @@ def write_workflow(workflow_name, main_task, output_tests, output_file):
 
     with open(output_file, "w") as f:
         f.write(f"version {wdl_version}\n\n")
+
+        for struct_import in struct_imports:
+            struct_doc = WDL.load(struct_import)
+            # structs seem to be parsed in reverse order; later structs may rely on earlier, so we reverse this
+            struct_defs = reversed(
+                [struct_def for struct_def in struct_doc.struct_typedefs]
+            )
+            for struct_def in struct_defs:
+                f.write(f"struct {struct_def.name} {{\n")
+                for member_name, member_type in struct_def._value.members.items():
+                    f.write(f"\t{member_type} {member_name}\n")
+                f.write("}\n\n")
 
         f.write(f"workflow {workflow_name} {{\n")
 
@@ -51,7 +65,12 @@ def write_workflow(workflow_name, main_task, output_tests, output_file):
                 test_task_key = f"{test_task}_{output_key}"
 
                 test_wdl = files("wdlci.wdl_tests").joinpath(f"{test_task}.wdl")
-                test_task_doc = WDL.load(str(test_wdl)).tasks[0]
+                # Ensure that the test task WDL is valid
+                try:
+                    test_doc = WDL.load(str(test_wdl))
+                    test_task_doc = test_doc.tasks[0]
+                except:
+                    raise WdlTestCliExitException(f"Invalid test task [{test_wdl}]", 1)
                 test_tasks[test_task_key] = test_task_doc
 
                 f.write(f"\tcall {test_task_doc.name} as {test_task_key} {{\n")
@@ -61,7 +80,7 @@ def write_workflow(workflow_name, main_task, output_tests, output_file):
                 f.write("\t}\n")
 
         ## Outputs
-        f.write("\toutput {\n")
+        f.write("\n\toutput {\n")
         for test_task_key, test_task_doc in test_tasks.items():
             for task_output in test_task_doc.outputs:
                 f.write(
@@ -79,6 +98,14 @@ def write_workflow(workflow_name, main_task, output_tests, output_file):
         if test_task_doc.name not in tasks_written:
             _write_task(test_task_doc, output_file)
             tasks_written.append(test_task_doc.name)
+
+    # Ensure the workflow is valid
+    try:
+        wdl_doc = WDL.load(output_file)
+    except:
+        raise WdlTestCliExitException(
+            f"Invalid test workflow [{output_file}] generated; exiting", 1
+        )
 
 
 def _write_task(doc_task, output_file):

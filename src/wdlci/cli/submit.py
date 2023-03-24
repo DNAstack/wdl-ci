@@ -78,8 +78,19 @@ def submit_handler(kwargs):
                     doc_main_task = doc_tasks[task_key]
 
                     output_tests = test_input_set.output_tests
+
+                    # Skip input sets with no test tasks defined for any output
+                    all_test_tasks = [
+                        test_task
+                        for output in output_tests.values()
+                        for test_task in output["test_tasks"]
+                    ]
+                    if len(all_test_tasks) == 0:
+                        continue
+
                     workflow_name = f"wdlci_{doc_main_task.name}_{test_index}"
                     test_key = f"{workflow_key}-{task_key}-{test_index}"
+                    struct_imports = test_input_set.struct_imports
 
                     workflow_config = WorkflowConfig.__new__(
                         test_key,
@@ -90,14 +101,17 @@ def submit_handler(kwargs):
                         },
                     )
 
-                    write_workflow(
-                        workflow_name,
-                        doc_main_task,
-                        output_tests,
-                        test_key,
-                    )
-
-                    # TODO validate the workflow; ignore warnings, only check errors
+                    try:
+                        write_workflow(
+                            workflow_name,
+                            doc_main_task,
+                            output_tests,
+                            test_key,
+                            struct_imports,
+                        )
+                    except WdlTestCliExitException as e:
+                        print(f"exiting with code {e.exit_code}, message: {e.message}")
+                        sys.exit(e.exit_code)
 
                     workflow_id = workflow_service_client.register_workflow(
                         test_key,
@@ -133,14 +147,24 @@ def submit_handler(kwargs):
                         **config.file.test_params.engine_params[engine_id],
                     }
                     inputs_hydrated = HydrateParams.hydrate(
-                        source_params, task_inputs, update_key=True, workflow_name=task_config["workflow_name"]
+                        source_params,
+                        task_inputs,
+                        update_key=True,
+                        workflow_name=task_config["workflow_name"],
                     )
 
                     output_tests_hydrated = {}
-                    for output_test_key, output_test_val in test_case.output_tests.items():
+                    for (
+                        output_test_key,
+                        output_test_val,
+                    ) in test_case.output_tests.items():
                         output_test_key_hydrated = f"{task_config['workflow_name']}.TEST_OUTPUT_{output_test_key}"
-                        output_test_val_hydrated = HydrateParams.hydrate(source_params, output_test_val, update_key=False)
-                        output_tests_hydrated[output_test_key_hydrated] = output_test_val_hydrated
+                        output_test_val_hydrated = HydrateParams.hydrate(
+                            source_params, output_test_val, update_key=False
+                        )
+                        output_tests_hydrated[
+                            output_test_key_hydrated
+                        ] = output_test_val_hydrated
 
                     workflow_id = submission_state.workflows[test_key]._workflow_id
 
