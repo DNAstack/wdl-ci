@@ -3,7 +3,7 @@ version 1.0
 # Check if input files are sorted by coordinates
 # Input type: SAM/BAM/CRAM
 
-task check_sorted_alignment {
+task check_coordinate_sorted_alignment {
 	input {
 		File current_run_output
 		File validated_output
@@ -38,7 +38,7 @@ task check_sorted_alignment {
 	}
 
 	runtime {
-		docker: "biocontainers/samtools:v1.9-4-deb_cv1"
+		docker: "dnastack/dnastack-wdl-ci-tools:0.0.1"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"

@@ -28,14 +28,14 @@ task bigwig_validator_array {
 		find "$current_dir_path" -name '*.bw' > current_bw_list.txt
 
 		while read -r file || [[ -n "$file" ]]; do
-			if ! (python -c "import pyBigWig; bw = pyBigWig.open('$file'); bw.isBigWig();"); then
+			if ! (python3.9 -c "import pyBigWig; bw = pyBigWig.open('$file'); bw.isBigWig();"); then
 				err "Validated bigWig file: [$(basename "$file")] is invalid"
 				exit 1
 			fi
 		done < validated_bw_list.txt
 
 		while read -r file || [[ -n "$file" ]]; do
-			if (python -c "import pyBigWig; bw = pyBigWig.open('$file'); bw.isBigWig();"); then
+			if (python3.9 -c "import pyBigWig; bw = pyBigWig.open('$file'); bw.isBigWig();"); then
 				echo "Current run bigWig file: [$(basename "$file")] is valid"
 			else
 				err "Current run bigWig file: [$(basename "$file")] is invalid"
@@ -48,7 +48,7 @@ task bigwig_validator_array {
 	}
 
 	runtime {
-		docker: "quay.io/biocontainers/pybigwig:0.3.18--py310h722e95c_2"
+		docker: "dnastack/dnastack-wdl-ci-tools:0.0.1"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"

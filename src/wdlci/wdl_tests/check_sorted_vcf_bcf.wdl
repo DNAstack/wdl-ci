@@ -35,7 +35,7 @@ task check_sorted_vcf_bcf {
 	}
 
 	runtime {
-		docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
+		docker: "dnastack/dnastack-wdl-ci-tools:0.0.1"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"

@@ -37,7 +37,7 @@ task vcftools_validator {
 	}
 
 	runtime {
-		docker: "biocontainers/vcftools:v0.1.16-1-deb_cv1"
+		docker: "dnastack/dnastack-wdl-ci-tools:0.0.1"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"

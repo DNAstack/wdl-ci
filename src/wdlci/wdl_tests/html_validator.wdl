@@ -38,7 +38,7 @@ task html_validator {
 	}
 
 	runtime {
-		docker: "dnastack/html5validator:0.4.2"
+		docker: "dnastack/dnastack-wdl-ci-tools:0.0.1"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"

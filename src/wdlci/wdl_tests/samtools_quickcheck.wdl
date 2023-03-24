@@ -37,7 +37,7 @@ task samtools_quickcheck {
 	}
 
 	runtime {
-		docker: "biocontainers/samtools:v1.9-4-deb_cv1"
+		docker: "dnastack/dnastack-wdl-ci-tools:0.0.1"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"
