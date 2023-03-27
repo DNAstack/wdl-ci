@@ -3,6 +3,63 @@ from importlib.resources import files
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
 
+def _order_structs(struct_typedefs):
+    """
+    Order struct_typedefs such that structs that are dependencies of other structs are written first
+    This is necessary if the workflow is run using Cromwell
+    Args:
+        struct_typedefs ([WDL.Env.Binding]): structs imported by the main workflow
+    Returns:
+        ([WDL.Env.Binding]): Ordered list of struct_typedefs, with dependent structs before the structs that require them
+    """
+
+    def _flatten_array(array_member):
+        if type(array_member) is WDL.Type.Array:
+            return _flatten_array(array_member.item_type)
+        else:
+            return array_member
+
+    def _get_dependencies(members, dependencies):
+        for member_name, member in members.items():
+            if type(member) is WDL.Type.StructInstance:
+                dependencies.append(member.type_name)
+                dependencies = _get_dependencies(member.members, dependencies)
+            elif type(member) is WDL.Type.Array:
+                array_member = _flatten_array(member)
+                if type(array_member) is WDL.Type.StructInstance:
+                    dependencies.append(array_member.type_name)
+                    dependencies = _get_dependencies(array_member.members, dependencies)
+
+        return list(set(dependencies))
+
+    struct_info = dict()
+    all_structs = list()
+    for struct_def in struct_typedefs:
+        struct_name = struct_def._name
+        struct_dependencies = _get_dependencies(struct_def._value.members, list())
+
+        struct_info[struct_name] = {
+            "def": struct_def,
+            "dependencies": struct_dependencies,
+        }
+        all_structs.append(struct_name)
+
+    # Reorder all_structs such that structs that are dependencies of other structs come earlier in the array
+    for struct_name, struct in struct_info.items():
+        struct_index = all_structs.index(struct_name)
+
+        # Move dependencies to earlier in the array if they occur later than the struct that depends on them
+        for dependency in struct["dependencies"]:
+            dependency_index = all_structs.index(dependency)
+            if dependency_index > struct_index:
+                all_structs.insert(struct_index, all_structs.pop(dependency_index))
+
+    ordered_struct_defs = [
+        struct_info[struct_name]["def"] for struct_name in all_structs
+    ]
+    return ordered_struct_defs
+
+
 def write_workflow(
     workflow_name, main_task, output_tests, output_file, struct_typedefs
 ):
@@ -24,10 +81,10 @@ def write_workflow(
     with open(output_file, "w") as f:
         f.write(f"version {wdl_version}\n\n")
 
-        # Add structs
-        ## structs are loaded from the main doc in reverse order
-        struct_defs = reversed([struct_def for struct_def in struct_typedefs])
-        for struct_def in struct_defs:
+        # Order structs based on struct member dependencies
+        struct_defs_ordered = _order_structs(struct_typedefs)
+
+        for struct_def in struct_defs_ordered:
             f.write(f"struct {struct_def.name} {{\n")
             for member_name, member_type in struct_def._value.members.items():
                 f.write(f"\t{member_type} {member_name}\n")
