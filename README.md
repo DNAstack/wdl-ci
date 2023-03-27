@@ -55,10 +55,7 @@ By default, only new workflows and/or tasks will be added to the config file; de
                     "<test task WDL basename>"
                   ]
                 }
-              },
-              "struct_imports": [
-                "<path/to/imports/defining/structs.wdl>"
-              ]
+              }
             }
           ]
         }
@@ -84,13 +81,6 @@ By default, only new workflows and/or tasks will be added to the config file; de
   }
 }
 ```
-
-### workflows.\<workflow>.tasks.\<task>.tests[].struct_imports
-
-- Struct imports can include non-struct blocks; only structs will be imported
-- Nested imports by imported struct files will **not** be auto-imported; they must be explicitly added to the array of `struct_imports`
-- Structs will be added in the order they appear in the array; take care to order imports appropriately
-
 
 ### workflows.test_params
 
