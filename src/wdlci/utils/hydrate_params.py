@@ -1,3 +1,6 @@
+import re
+
+
 class HydrateParams(object):
     @classmethod
     def hydrate(cls, source, target, update_key=True, workflow_name=""):
@@ -7,9 +10,25 @@ class HydrateParams(object):
         def _replace_value_recursive(target_value):
             if type(target_value) is str:
                 for source_key, source_value in source.items():
-                    target_value = target_value.replace(
-                        "${" + source_key + "}", source_value
-                    )
+                    # Don't try replacing the source value when it's non-string
+                    if type(source_value) is str:
+                        target_value = target_value.replace(
+                            "${" + source_key + "}", source_value
+                        )
+                    else:
+                        # If the target value selects only a source_key whose type is non-string
+                        # Return the substituted version of that source_value
+                        # Only matches if the source_key is the _only_ contents of target_value; otherwise emit an error
+                        if re.match(rf"^\${{{source_key}}}$", target_value):
+                            source_value_substituted = _replace_value_recursive(
+                                source_value
+                            )
+                            return source_value_substituted
+                        # If the source key is found in the target_value but is not the only contents of target_value, emit an error
+                        elif re.search(rf"\${{{source_key}}}", target_value):
+                            raise SystemExit(
+                                f'[ERROR] Cannot set complex parameter {source_key} for target key [{target_key}]; in order to set a non-string parameter (e.g. dict or array) to a value it must be the sole content of the target\nAllowed:\n\t"{target_key}": "${{{source_key}}}"\nYou had:\n\t"{target_key}": "{target_value}"'
+                            )
                 return target_value
             elif type(target_value) is list:
                 substituted_list = list()
