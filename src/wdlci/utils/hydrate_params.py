@@ -6,9 +6,10 @@ class HydrateParams(object):
 
         def _replace_value_recursive(target_value):
             if type(target_value) is str:
-                for sk in source.keys():
-                    sv = source[sk]
-                    target_value = target_value.replace("${" + sk + "}", sv)
+                for source_key, source_value in source.items():
+                    target_value = target_value.replace(
+                        "${" + source_key + "}", source_value
+                    )
                 return target_value
             elif type(target_value) is list:
                 substituted_list = list()
@@ -27,10 +28,11 @@ class HydrateParams(object):
                     f"Unexpected type [{type(target_value)}] detected for value {target_value}"
                 )
 
-        for tk in target.keys():
-            tv = target[tk]
-            tv = _replace_value_recursive(tv)
+        for target_key, target_value in target.items():
+            target_value_substituted = _replace_value_recursive(target_value)
 
-            new_key = f"{workflow_name}{separator}{tk}" if update_key else tk
-            result[new_key] = tv
+            new_key = (
+                f"{workflow_name}{separator}{target_key}" if update_key else target_key
+            )
+            result[new_key] = target_value_substituted
         return result
