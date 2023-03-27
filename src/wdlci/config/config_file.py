@@ -86,16 +86,12 @@ class WorkflowTaskTestConfig(object):
     @classmethod
     def __new__(cls, json_dict):
         instance = super(WorkflowTaskTestConfig, cls).__new__(cls)
-        struct_imports = json_dict.get("struct_imports", [])
-        instance.__init__(
-            json_dict["inputs"], json_dict["output_tests"], struct_imports
-        )
+        instance.__init__(json_dict["inputs"], json_dict["output_tests"])
         return instance
 
-    def __init__(self, inputs, output_tests, struct_imports):
+    def __init__(self, inputs, output_tests):
         self.inputs = inputs
         self.output_tests = output_tests
-        self.struct_imports = struct_imports
 
 
 class EngineConfig(object):

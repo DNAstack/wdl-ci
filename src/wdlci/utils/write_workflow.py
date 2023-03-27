@@ -3,18 +3,19 @@ from importlib.resources import files
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
 
-def write_workflow(workflow_name, main_task, output_tests, output_file, struct_imports):
+def write_workflow(
+    workflow_name, main_task, output_tests, output_file, struct_typedefs
+):
     """
     Write a workflow out to a file
     Args:
-        workflow_name (str): Name of the workflow (workflow entrypoint)
+        workflow_name (str): Name of the test workflow being generated (workflow entrypoint)
         main_task (WDL.Tree.Task): Task to be tested
         output_tests ({output_name: {"value": output_value, "tasks": ["task0", "task1", "task2"]}}):
             Array of validated outputs and the test tasks to apply to them.
             Test tasks should map to files in wdl_tests/${test_task}.wdl
         output_file (str): Path to file to write workflow to
-        struct_imports (list): List of paths to WDL files that need to be imported; only structs from these files will be imported
-            Any files imported by the listed files will not be imported and must be explicitly added the the struct_imports array
+        struct_typedefs ([WDL.Env.Binding]): structs imported by the main workflow; these will be available to the test task
     """
     wdl_version = main_task.effective_wdl_version
 
@@ -23,17 +24,14 @@ def write_workflow(workflow_name, main_task, output_tests, output_file, struct_i
     with open(output_file, "w") as f:
         f.write(f"version {wdl_version}\n\n")
 
-        for struct_import in struct_imports:
-            struct_doc = WDL.load(struct_import)
-            # structs seem to be parsed in reverse order; later structs may rely on earlier, so we reverse this
-            struct_defs = reversed(
-                [struct_def for struct_def in struct_doc.struct_typedefs]
-            )
-            for struct_def in struct_defs:
-                f.write(f"struct {struct_def.name} {{\n")
-                for member_name, member_type in struct_def._value.members.items():
-                    f.write(f"\t{member_type} {member_name}\n")
-                f.write("}\n\n")
+        # Add structs
+        ## structs are loaded from the main doc in reverse order
+        struct_defs = reversed([struct_def for struct_def in struct_typedefs])
+        for struct_def in struct_defs:
+            f.write(f"struct {struct_def.name} {{\n")
+            for member_name, member_type in struct_def._value.members.items():
+                f.write(f"\t{member_type} {member_name}\n")
+            f.write("}\n\n")
 
         f.write(f"workflow {workflow_name} {{\n")
 
