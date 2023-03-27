@@ -89,6 +89,33 @@ Test params can be used to avoid repeating paths and values for test inputs and 
 - Parameters defined here can be used in inputs and outputs for task tests in the format `${param_name}`; these will be replaced with the `<param_value>` for workflow submission
 - Global params will replace values for all engines
 - Engine params will replace values only when submitting to a particular engine; useful if for example input sets exist across multiple environments and are prefixed with different paths
+- Objects and arrays can be used for parameters; if you are using a complex parameter as an input or output value, this parameter must be the only content of the value, e.g. `"my_input": "${complex_param}"`, not `"my_input": "${complex_param}.something_else"`
+- Complex parameters can themselves use parameters, and will be substituted appropriately
+
+```json
+"test_params": {
+  "global_params": {
+    "reference_name": "MN12345"
+    "reference_fasta": {
+      "data": "${base_path}/${reference_name}.fa",
+      "data_index": "${base_path}/${reference_name}.fa.fai"
+    },
+    "bwa_files": {
+      "reference_fasta": "${reference_fasta}",
+      "reference_ann": "${base_path}/${reference_name}.ann",
+      "reference_pac": "${base_path}/${reference_name}.pac"
+    }
+  },
+  "engine_params": {
+    "engine_A": {
+      "base_path": "/data"
+    },
+    "engine_B": {
+      "base_path": "/home/admin/pipeline_files"
+    }
+  }
+}
+```
 
 
 # Custom workflow linters
