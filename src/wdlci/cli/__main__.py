@@ -16,6 +16,15 @@ remove_option = click.option(
     help="Remove workflows and tasks that are no longer found",
 )
 
+update_digests_option = click.option(
+    "--update-digests",
+    "-u",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Update the task digests for tasks that completed their tests successfully",
+)
+
 
 @click.group(cls=OrderedGroup)
 def main():
@@ -66,6 +75,7 @@ def submit(**kwargs):
 
 
 @main.command
+@update_digests_option
 def monitor(**kwargs):
     """Monitor test runs and validate output"""
 
