@@ -172,7 +172,7 @@ Test params can be used to avoid repeating paths and values for test inputs and 
 - Parameters defined here can be used in inputs and outputs for task tests in the format `${param_name}`; these will be replaced with the `<param_value>` for workflow submission
 - Global params will replace values for all engines
 - Engine params will replace values only when submitting to a particular engine; useful if for example input sets exist across multiple environments and are prefixed with different paths
-- Objects and arrays can be used for parameters; if you are using a complex parameter as an input or output value, this parameter must be the only content of the value, e.g. `"my_input": "${complex_param}"`, not `"my_input": "${complex_param}.something_else"`
+- Objects and arrays can be used for parameters; if you are using a complex parameter as an input or output value, this parameter must be the only content of the value, e.g. `"my_input": "${complex_param}"`, not `"my_input": "${complex_param}.some_key"`
 - Complex parameters can themselves use parameters, and will be substituted appropriately
 
 ```json
@@ -232,6 +232,11 @@ task compare_string {
 
 
 Tests can be selected and applied to input sets by including the `${test_name}` as part of the `workflows.${workflow}.tasks.${task}.tests.[],test_tasks` array. For example, to run the `compare` test, which compares various output types, the `test_tasks` section should be set to `["compare"]`. Additional test tasks may be added for the same input set by adding test names to the `test_tasks` array for that set of inputs.
+
+
+## Array comparison
+
+Note that at present, testing array-type outputs needs to use a test task that iterates over items in the array. At some point it may be possible to scatter over array outputs and use single-input versions of tasks, but at present two separate tests must be made for each test type in order to compare both non-array and array-based outputs.
 
 
 # Commands
