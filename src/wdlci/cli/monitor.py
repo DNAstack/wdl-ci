@@ -100,7 +100,8 @@ def monitor_handler(kwargs):
                 rf"-{task}-{test_index}$", "", workflow_run._workflow_key
             )
             if workflow_path in task_status:
-                task_status[workflow_path][task] = {"succeeded": None}
+                if task not in task_status[workflow_path]:
+                    task_status[workflow_path][task] = {"succeeded": None}
             else:
                 task_status[workflow_path] = {task: {"succeeded": None}}
 
@@ -109,7 +110,8 @@ def monitor_handler(kwargs):
                 and workflow_run.validation_status
                 == SubmissionStateWorkflowRun.VALIDATION_SUCCESS
             ):
-                task_status[workflow_path][task]["succeeded"] = True
+                if task_status[workflow_path][task]["succeeded"] != False:
+                    task_status[workflow_path][task]["succeeded"] = True
             elif workflow_run.status == SubmissionStateWorkflowRun.STATUS_FINISH_FAIL:
                 fail_n += 1
                 print(
@@ -144,15 +146,20 @@ def monitor_handler(kwargs):
                 doc = WDL.load(workflow_path)
                 for task in doc.tasks:
                     task_name = task.name
-                    if tasks.get(task_name) and tasks[task_name]["succeeded"]:
-                        print(
-                            f"All tests succeeded for [{workflow_path} - {task_name}]. Updating task digest."
-                        )
-                        task_digest = task.digest
-                        config.file.workflows[workflow_path].tasks[
-                            task_name
-                        ].digest = task_digest
-                        config_updated = True
+                    if tasks.get(task_name):
+                        if tasks[task_name]["succeeded"]:
+                            print(
+                                f"All tests succeeded for [{workflow_path} - {task_name}]. Updating task digest."
+                            )
+                            task_digest = task.digest
+                            config.file.workflows[workflow_path].tasks[
+                                task_name
+                            ].digest = task_digest
+                            config_updated = True
+                        else:
+                            print(
+                                f"At least one test failed for [{workflow_path} - {task_name}]."
+                            )
 
         if config_updated:
             config.write()
