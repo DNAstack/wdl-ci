@@ -7,7 +7,10 @@ Tools to validate and test WDL-based repositories. To be used as part of CI/CD p
 
 1. Add the workflow
 
-Copy the [example_workflow.yml](example_workflow.yml) file to the target repo at the path `.github/workflows/workflow.yml`. This workflow is set up to run upon push to a non-main/master branch.
+Copy one of the example workflow files to the target repo at the path `.github/workflows/workflow.yml`.
+
+- [example_workflow.push.yml](example_workflow.push.yml): This workflow is set up to run upon push to a non-main/master branch.
+- [example_workflow.pr.yml](example_workflow.pr.yml): This workflow is set up to run upon pull request (and upon update to the PR).
 
 2. Define secrets
 

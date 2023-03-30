@@ -15,7 +15,7 @@ jobs:
         with:
           submodules: true
       - name: wdl-ci
-        uses: dnastack/wdl-ci@1.1
+        uses: dnastack/wdl-ci@0.1.2
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
