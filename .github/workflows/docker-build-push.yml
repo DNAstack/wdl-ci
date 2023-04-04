@@ -16,7 +16,7 @@ jobs:
         id: prep
         run: |
           IMAGE="dnastack/wdl-ci"
-          VERSION_TAG=`git describe --tags --long`
+          VERSION_TAG=`git describe --tags --long --always`
           LATEST_TAG="latest"
           ALL_TAGS="${IMAGE}:${VERSION_TAG},${IMAGE}:${LATEST_TAG}"
 
