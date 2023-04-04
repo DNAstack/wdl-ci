@@ -1,9 +1,9 @@
 version 1.0
 
-# Validate input FASTA files
-# Input type: FASTA file
+# Check integrity of image file
+# Input type: PNG, JNG or MNG image files
 
-task fasta_validator {
+task png_validator {
 	input {
 		File current_run_output
 		File validated_output
@@ -20,16 +20,15 @@ task fasta_validator {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		# Checks both compressed and uncompressed fastas
-		if ! py_fasta_validator -f ~{validated_output}; then
-			err "Validated FASTA: [~{basename(validated_output)}] is invalid"
+		if ! pngcheck ~{validated_output}; then
+			err "Validated image file: [~{basename(validated_output)}] is invalid"
 			exit 1
 		else
-			if ! py_fasta_validator -f ~{current_run_output}; then
-				err "Current run FASTA: [~{basename(current_run_output)}] is invalid"
+			if ! pngcheck ~{current_run_output}; then
+				err "Current run image file: [~{basename(current_run_output)}] is invalid"
 				exit 1
 			else
-				echo "Current run FASTA: [~{basename(current_run_output)}] is valid"
+				echo "Current run image file: [~{basename(current_run_output)}] is valid"
 			fi
 		fi
 	>>>
