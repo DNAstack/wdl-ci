@@ -30,11 +30,7 @@ task calculate_md5sum_array {
 		validated_output_md5sums=$(while read -r file || [[ -n "$file" ]]; do
 				md5sum "$file" | cut -d ' ' -f 1
 			done < ~{write_lines(validated_output)})
-
-		#validated_output_md5sums=$(for file in "${validated_output[@]}"; do
-		#	md5sum "$file" | cut -d ' ' -f 1
-		#done)
-
+		
 		validated_output_md5sum_string=$(echo "$validated_output_md5sums" | tr '\n' ' ')
 		current_run_output_md5sum_string=$(echo "$current_run_md5sums" | tr '\n' ' ')
 
