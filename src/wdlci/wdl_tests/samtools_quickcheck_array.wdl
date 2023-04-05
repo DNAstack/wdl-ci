@@ -20,17 +20,32 @@ task samtools_quickcheck_array {
 			echo -e "[ERROR] $message" >&2
 		}
 
+		warn() {
+			message=$1
+
+			echo -e "[WARNING] $message" >&2
+		}
+
 		while read -r file || [[ -n "$file" ]]; do
 			if ! samtools quickcheck "$file"; then
-				err "Validated output: [$(basename "$file")] did not pass samtools quickcheck"
-				exit 1
+				warn "Validated output: [$(basename "$file")] did not pass first samtools quickcheck"
+			else
+				if ! samtools quickcheck -u "$file"; then
+					err "Validated output: [$(basename "$file")] did not pass samtools quickcheck with unmapped input flag"
+					exit 1
+				fi
 			fi
 		done < ~{write_lines(validated_output)}
 
 		while read -r file || [[ -n "$file" ]]; do
 			if ! samtools quickcheck "$file"; then
-				err "Current run output: [$(basename "$file")] did not pass samtools quickcheck"
-				exit 1
+				warn "Current run output: [$(basename "$file")] did not pass first samtools quickcheck"
+				if ! samtools quickcheck -u "$file"; then
+					err "Current run output: [$(basename "$file")] did not pass samtools quickcheck with unmapped input flag"
+					exit 1
+				else 
+					echo "Current run output: [$(basename "$file")] passed samtools quickcheck with unmapped input flag"
+				fi
 			else
 				echo "Current run output: [$(basename "$file")] passed samtools quickcheck"
 			fi

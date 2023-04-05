@@ -34,7 +34,7 @@ task check_chr_lines {
 				Current run output: [$current_run_output_not_chr_lines_count]"
 			exit 1
 		else
-			echo "All lines start with 'chr'. Count: [$current_run_output_not_chr_lines_count]"
+			echo "All lines start with 'chr'. Lines without 'chr' count: [$current_run_output_not_chr_lines_count]"
 		fi
 	>>>
 

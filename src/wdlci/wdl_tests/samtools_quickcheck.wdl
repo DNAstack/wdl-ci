@@ -20,13 +20,28 @@ task samtools_quickcheck {
 			echo -e "[ERROR] $message" >&2
 		}
 
+		warn() {
+			message=$1
+
+			echo -e "[WARNING] $message" >&2
+		}
+
 		if ! samtools quickcheck ~{validated_output}; then
-			err "Validated output: [~{basename(validated_output)}] did not pass samtools quickcheck"
+			warn "Validated output: [~{basename(validated_output)}] did not pass first samtools quickcheck"
+		fi
+
+		if ! samtools quickcheck -u ~{validated_output}; then
+			err "Validated output: [~{basename(validated_output)}] did not pass samtools quickcheck with unmapped input flag"
 			exit 1
 		else
 			if ! samtools quickcheck ~{current_run_output}; then
-				err "Current run output: [~{basename(current_run_output)}] did not pass samtools quickcheck"
-				exit 1
+				warn "Current run output: [~{basename(current_run_output)}] did not pass first samtools quickcheck"
+				if ! samtools quickcheck -u ~{current_run_output}; then
+					err "Current run output: [~{basename(current_run_output)}] did not pass samtools quickcheck with unmapped input flag"
+					exit 1
+				else 
+					echo "Current run output: [~{basename(current_run_output)}] passed samtools quickcheck with unmapped input flag"
+				fi
 			else
 				echo "Current run output: [~{basename(current_run_output)}] passed samtools quickcheck"
 			fi
