@@ -35,7 +35,7 @@ task check_tab_delimited_array {
 		current_dir_path=$(dirname ~{current_run_output[0]})
 
 		# Select tab-delimited files only
-		tab_delimited_list=$(find "$validated_dir_path" -name "*.bed" -or -name "*.txt" -or -name "*.tsv" -or -name "*.ped" -or -name "*.gtf" -or -name "*.blocklist" -type f)
+		tab_delimited_list=$(find "$validated_dir_path" -name "*.bed" -or -name "*.txt" -or -name "*.tsv" -or -name "*.ped" -or -name "*.gtf" -or -name "*.blocklist" -or -name "*.report" -type f)
 
 		# This is the path/to/file string with separated file names by space
 		file_names=$(for file in $tab_delimited_list; do
