@@ -73,59 +73,62 @@ def submit_handler(kwargs):
                 doc_tasks = {task.name: task for task in doc.tasks}
                 task = config.file.get_task(workflow_key, task_key)
 
-                # Register and create workflows for all tasks with tests
-                for test_index, test_input_set in enumerate(task.tests):
-                    doc_main_task = doc_tasks[task_key]
+                if task is not None:
+                    # Register and create workflows for all tasks with tests
+                    for test_index, test_input_set in enumerate(task.tests):
+                        doc_main_task = doc_tasks[task_key]
 
-                    output_tests = test_input_set.output_tests
+                        output_tests = test_input_set.output_tests
 
-                    # Skip input sets with no test tasks defined for any output
-                    all_test_tasks = [
-                        test_task
-                        for output in output_tests.values()
-                        for test_task in output["test_tasks"]
-                    ]
-                    if len(all_test_tasks) == 0:
-                        continue
+                        # Skip input sets with no test tasks defined for any output
+                        all_test_tasks = [
+                            test_task
+                            for output in output_tests.values()
+                            for test_task in output["test_tasks"]
+                        ]
+                        if len(all_test_tasks) == 0:
+                            continue
 
-                    workflow_name = f"wdlci_{doc_main_task.name}_{test_index}"
-                    test_key = f"{workflow_key}-{task_key}-{test_index}"
+                        workflow_name = f"wdlci_{doc_main_task.name}_{test_index}"
+                        test_key = f"{workflow_key}-{task_key}-{test_index}"
 
-                    workflow_config = WorkflowConfig.__new__(
-                        test_key,
-                        {
-                            "name": test_key,
-                            "description": f"Workflow: {workflow_key}\nTask: {task_key}\nTest set index: {test_index}",
-                            "tasks": {},
-                        },
-                    )
-
-                    try:
-                        write_workflow(
-                            workflow_name,
-                            doc_main_task,
-                            output_tests,
+                        workflow_config = WorkflowConfig.__new__(
                             test_key,
-                            doc.struct_typedefs,
+                            {
+                                "name": test_key,
+                                "description": f"Workflow: {workflow_key}\nTask: {task_key}\nTest set index: {test_index}",
+                                "tasks": {},
+                            },
                         )
-                    except WdlTestCliExitException as e:
-                        print(f"exiting with code {e.exit_code}, message: {e.message}")
-                        sys.exit(e.exit_code)
 
-                    workflow_id = workflow_service_client.register_workflow(
-                        test_key,
-                        workflow_config,
-                        transient=True,
-                    )
-                    submission_state.add_workflow(test_key, workflow_id)
+                        try:
+                            write_workflow(
+                                workflow_name,
+                                doc_main_task,
+                                output_tests,
+                                test_key,
+                                doc.struct_typedefs,
+                            )
+                        except WdlTestCliExitException as e:
+                            print(
+                                f"exiting with code {e.exit_code}, message: {e.message}"
+                            )
+                            sys.exit(e.exit_code)
 
-                    tasks_to_test[test_key] = {
-                        "task": task,
-                        "doc_task": doc_main_task,
-                        "test_case": task.tests[test_index],
-                        "workflow_name": workflow_name,
-                        "test_index": test_index,
-                    }
+                        workflow_id = workflow_service_client.register_workflow(
+                            test_key,
+                            workflow_config,
+                            transient=True,
+                        )
+                        submission_state.add_workflow(test_key, workflow_id)
+
+                        tasks_to_test[test_key] = {
+                            "task": task,
+                            "doc_task": doc_main_task,
+                            "test_case": task.tests[test_index],
+                            "workflow_name": workflow_name,
+                            "test_index": test_index,
+                        }
 
         for engine_id in config.file.engines.keys():
             if config.file.engines[engine_id].enabled:
