@@ -39,7 +39,10 @@ class ConfigFile(object):
         self.test_params = test_params
 
     def get_task(self, workflow_key, task_key):
-        return self.workflows[workflow_key].tasks[task_key]
+        if task_key in self.workflows[workflow_key].tasks:
+            return self.workflows[workflow_key].tasks[task_key]
+        else:
+            return None
 
 
 class WorkflowConfig(object):
