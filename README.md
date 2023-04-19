@@ -262,8 +262,9 @@ Tests can be selected and applied to input sets by including the `${test_name}` 
 
 ## Array comparison
 
-Note that at present, testing array-type outputs needs to use a test task that iterates over items in the array. At some point it may be possible to scatter over array outputs and use single-input versions of tasks, but at present two separate tests must be made for each test type in order to compare both non-array and array-based outputs.
+If an output is of type `Array[X]`, the test task will be automatically scattered over the outputs, and any tests will be run once for each item in the validated output array. Validated outputs must be present in the same order as the outputs from the task. Due to the scatter over elements of array-type outputs, both array-type and non-array-type outputs should use the same underlying tests which operate on items of type `X`.
 
+It is not necessary to test every item in the current run output array, but keep in mind that if a subset of the outputs are to be tested, they must be the first items in the output array. All items in the validated output array will be compared to the items in the corresponding current run output array at the same array index.
 
 # Commands
 
