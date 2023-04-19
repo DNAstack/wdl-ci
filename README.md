@@ -2,7 +2,7 @@
 
 **Note that this tool is not intended to access or manipulate protected health information (PHI). `wdl-ci` and its corresponding GitHub action should _not_ be configured with a workflow engine that has access to PHI, and PHI should not be used in tests.**
 
-Tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). Detects changes in tasks and runs tests via [DNAstack's Workbench](https://docs.dnastack.com/docs/introduction-to-workbench).
+`wdl-ci` provides tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). `wdl-ci` detects changes to workflow tasks and runs tests via [DNAstack's Workbench](https://docs.dnastack.com/docs/introduction-to-workbench) to confirm that the task still produces expected outputs.
 
 When installed as a github action, `wdl-ci` will run the following steps:
 1. Lint workflows
@@ -10,7 +10,7 @@ When installed as a github action, `wdl-ci` will run the following steps:
 3. If test inputs/outputs are defined for a changed task, submit a test workflow for each changed task
 4. For successful tests, update task digests in the configuration file. Task digests are used to detect changes to tasks; a digest represents the last state of a task where all tests passed.
 
-If any step of the action fails, the check will fail; however, if some task tests succeed, the digest of those tasks will still be updated such that only failing tests will be rerun with further pushes/updates.
+If any step of the action fails, the check will fail; however if some task tests succeed, the digests for those tasks will still be updated such that only failing tests will be rerun upon subsequent pushes.
 
 # GitHub action usage
 
@@ -34,7 +34,7 @@ If any step of the action fails, the check will fail; however, if some task test
     wallet-client-secret: ${{ secrets.WALLET_CLIENT_SECRET }}
 
     # DNAstack Workbench namespace. This determines which user's Workbench will be
-    # responsible for workbench runs. Engines configured in the config-file must be
+    # responsible for workflow runs. Engines configured in the config-file must be
     # configured in this user's namespace.
     # WORKBENCH_NAMESPACE must be defined in actions secrets
     workbench-namespace: ${{ secrets.WORKBENCH_NAMESPACE }}
@@ -159,7 +159,7 @@ jobs:
 
 # Configuring and installing the GitHub action
 
-1. Define secrets
+1. Define secrets on the target repository.
 
 The following secrets must be defined on the target repo (see [creating GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository)):
 
@@ -172,7 +172,7 @@ The following secrets must be defined on the target repo (see [creating GitHub s
 - `WORKBENCH_EWES_REFRESH_TOKEN`
 - `WORKBENCH_WORKFLOW_SERVICE_REFRESH_TOKEN`
 
-2. Add the workflow
+2. Add the workflow.
 
 Create a `workflow.yml` file in the target repo at the path `.github/workflows/workflow.yml`.
 
@@ -182,22 +182,20 @@ See [scenarios](#scenarios) for example workflow definitions.
 
 4. Fill out tests and engines sections of [the config file](#config-file-structure).
 
-5. Trigger the action
+5. Trigger the action.
 
 Depending on the workflow you have configured, push to a non-main/master branch or open a pull request. Test runs will be triggered for any tasks that have altered digests (when initially adding the config file, this will be all tests, since their digests will be initialized to `""`) and that have tests defined. Test run status can be monitored on [Workbench](https://workbench.dnastack.com).
 
 
 # The wdl-ci config file
 
-Th configuration file is named `wdl-ci.config.json` and should be created at the root of the repo where wdl-ci is installed, i.e. the repo that hosts workflow files to be tested.
-
+The configuration file is named `wdl-ci.config.json` and should be created at the root of the repo where wdl-ci is installed, i.e. the repo that hosts workflow files to be tested.
 
 ## Generating and updating the config file
 
 Generate a config file: `wdl-ci generate-config` (using Docker: `docker run -v ${PWD}:/usr/test dnastack/wdl-ci:latest generate-config`).
 
 This will search through the present working directory for all files with ".wdl" extensions and initialize the wdl-ci configuration file (`wdl-ci.config.json`). Tests and engines may then be configured by the user. The `workflow.task.digest` field should not be altered by the user; this field is used to detect task changes and rerun tests where necessary.
-
 
 ## Config file structure
 
@@ -256,25 +254,21 @@ The set of workflow files found in the repo.
 - `key`: The path to the workflow relative to the wdl-ci.config.json file.
 - `tasks`: An array of the tasks defined in the given workflow file
 
-
 ### `task`
 
 - `key`: The task name
 - `digest`: Autopopulated; a digest of the contents of the task. Used to determine whether a task has changed and tests should be run. To force a rerun of tests for a task, the digest can be set to the empty string.
 - `tests`: Sets of validated inputs and outputs to use to run tests on the given task
 
-
 ### `tests`
 
 An array of different input sets and their corresponding validated outupts. Each input/output set can have a different set of tests applied to them; this may be useful if for example you want to ensure your task works across several different sample sets.
-
 
 #### `inputs`
 
 Inputs required by the task to be tested. Must define all required inputs to the task. Input values can use parameters defined in [test_params](#test_params).
 
 If an input is a file, the value should be the path to the file on the filesystem corresponding to the engine(s) that have been configured in the [engines section](#engines). This must be a file that is accessible by the engine.
-
 
 #### `output_tests`
 
@@ -297,7 +291,6 @@ Each test task will be passed the validated output as well as the output from th
 
 Output values can use parameters defined in [test_params](#test_params).
 
-
 ### `engines`
 
 **Do not configure an engine that has access to protected health information, even if that data is not being used in tests.** Ideally a workflow engine that is used only for testing and has access only to non-protected test input files should be used.
@@ -308,7 +301,6 @@ Engines configured in Workbench that test tasks will be submitted to. The engine
 - `name`: Optional human-readable name for the engine; used to distinguish configured engines
 
 Multiple engines can be configured. Tests will be submitted to all enabled engines; if two engines are enabled, each test will run in each engine.
-
 
 ### `test_params`
 
@@ -378,7 +370,6 @@ task compare_string {
 
 Tests can be selected and applied to input sets by including the `${test_name}` as part of the `workflows.${workflow}.tasks.${task}.tests.[],test_tasks` array. For example, to run the `compare` test, which compares various output types, the `test_tasks` section should be set to `["compare"]`. Additional test tasks may be added for the same input set by adding test names to the `test_tasks` array for that set of inputs.
 
-
 ## Array comparison
 
 If an output is of type `Array[X]`, the test task will be automatically scattered over the outputs, and any tests will be run once for each item in the validated output array. Validated outputs must be present in the same order as the outputs from the task. Due to the scatter over elements of array-type outputs, both array-type and non-array-type outputs should use the same underlying tests which operate on items of type `X`.
@@ -407,7 +398,6 @@ The following environment variables must be defined when running `wdl-ci`:
 
 Optionally, the `WDL_CI_CUSTOM_TEST_WDL_DIR` environment variable may used to specify an additional directory where WDL-based tests may be found.
 
-
 ## Installing using pip
 
 Requires: python3.9+
@@ -415,7 +405,6 @@ Requires: python3.9+
 Installation: `python3 -m pip install .`
 
 Run: `wdl-ci`
-
 
 ## Running using Docker
 
@@ -442,16 +431,13 @@ If a configuration file already exists, this will add workflows or tasks that do
 
 `wdl-ci generate-config [--remove]`
 
-
 ## Lint workflows
 
 `wdl-ci lint`
 
-
 ## Detect changed tasks
 
 `wdl-ci detect-changes`
-
 
 ## Submit test runs
 
@@ -459,13 +445,11 @@ This should be run following `wdl-ci detect-changes` to submit tests for tasks t
 
 `wdl-ci submit`
 
-
 ## Monitor running tests
 
 This should be run following `wdl-ci submit` to monitor the status of running tests. Workflow status is polled every 60 seconds until all workflows have completed.
 
 `wdl-ci monitor`
-
 
 ## Clean up custom workflows from the Workbench namespace
 
