@@ -4,7 +4,7 @@
 
 Tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). Detects changes in tasks and runs tests via [DNAstack's Workbench](https://docs.dnastack.com/docs/introduction-to-workbench).
 
-When installed as a github action, `wdl-ci` will run the following steps upon pull request:
+When installed as a github action, `wdl-ci` will run the following steps:
 1. Lint workflows
 2. Detect tasks that have changed
 3. If test inputs/outputs are defined for a changed task, submit a test workflow for each changed task
@@ -63,7 +63,42 @@ If any step of the action fails, the check will fail; however, if some task test
 
 # Scenarios
 
-## Run wdl-ci
+- [Run on push to non-main/master branches](#run-on-push-to-non-main-master-branches)
+- [Run on pull request](#run-on-pull-request)
+- [Extend the tests available to wdl-ci](#extend-the-tests-available-to-wdl-ci)
+
+## Run on push to non-main/master branches
+
+```yaml
+name: Lint and test workflows
+on:
+  push:
+    branches:
+      - '*'
+      - '!master'
+      - '!main'
+jobs:
+  wdl-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: wdl-ci
+        uses: dnastack/wdl-ci@0.1.3
+        with:
+          wallet-url: ${{ secrets.WALLET_URL }}
+          wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
+          wallet-client-secret: ${{ secrets.WALLET_CLIENT_SECRET }}
+          workbench-namespace: ${{ secrets.WORKBENCH_NAMESPACE }}
+          workbench-ewes-url: ${{ secrets.WORKBENCH_EWES_URL }}
+          workbench-workflow-service-url:  ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_URL }}
+          workbench-ewes-refresh-token: ${{ secrets.WORKBENCH_EWES_REFRESH_TOKEN }}
+          workbench-workflow-service-refresh-token: ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_REFRESH_TOKEN }}
+```
+
+## Run on pull request
 
 ```yaml
 name: Lint and test workflows
@@ -72,13 +107,28 @@ jobs:
   wdl-ci:
     runs-on: ubuntu-latest
     steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: wdl-ci
         uses: dnastack/wdl-ci@0.1.3
+        with:
+          wallet-url: ${{ secrets.WALLET_URL }}
+          wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
+          wallet-client-secret: ${{ secrets.WALLET_CLIENT_SECRET }}
+          workbench-namespace: ${{ secrets.WORKBENCH_NAMESPACE }}
+          workbench-ewes-url: ${{ secrets.WORKBENCH_EWES_URL }}
+          workbench-workflow-service-url:  ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_URL }}
+          workbench-ewes-refresh-token: ${{ secrets.WORKBENCH_EWES_REFRESH_TOKEN }}
+          workbench-workflow-service-refresh-token: ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_REFRESH_TOKEN }}
 ```
 
 ## Extend the tests available to wdl-ci
 
-Define custom WDL-based tests in a directory (here `my-custom-test-dir`); these test tasks may then be used in to test tasks. See [WDL-based tests](#wdl-based-tests) for more information on writing custom test tasks.
+Define the `wdl_ci_custom_test_wdl_dir` to specify a directory containing custom WDL-based tests; these test tasks may then be used to test workflow tasks. See [WDL-based tests](#wdl-based-tests) for more information on writing custom test tasks. The `wdl_ci_custom_test_wdl_dir` should refer to a directory that exists in the target repository.
 
 ```yaml
 name: Lint and test workflows
@@ -87,9 +137,23 @@ jobs:
   wdl-ci:
     runs-on: ubuntu-latest
     steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: wdl-ci
         uses: dnastack/wdl-ci@0.1.3
         with:
+          wallet-url: ${{ secrets.WALLET_URL }}
+          wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
+          wallet-client-secret: ${{ secrets.WALLET_CLIENT_SECRET }}
+          workbench-namespace: ${{ secrets.WORKBENCH_NAMESPACE }}
+          workbench-ewes-url: ${{ secrets.WORKBENCH_EWES_URL }}
+          workbench-workflow-service-url:  ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_URL }}
+          workbench-ewes-refresh-token: ${{ secrets.WORKBENCH_EWES_REFRESH_TOKEN }}
+          workbench-workflow-service-refresh-token: ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_REFRESH_TOKEN }}
           wdl_ci_custom_test_wdl_dir: my-custom-test-dir
 ```
 

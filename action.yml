@@ -8,47 +8,33 @@ inputs:
   wallet-url:
     description: Wallet URL
     required: true
-    default: ${{ secrets.WALLET_URL }}
   wallet-client-id:
     description: Wallet Client ID
     required: true
-    default: ${{ secrets.WALLET_CLIENT_ID }}
   wallet-client-secret:
     description: Wallet Client Secret
     required: true
-    default: ${{ secrets.WALLET_CLIENT_SECRET }}
   workbench-namespace:
     description: Workbench Namespace
     required: true
-    default: ${{ secrets.WORKBENCH_NAMESPACE }}
   workbench-ewes-url:
     description: Workbench EWES URL
     required: true
-    default: ${{ secrets.WORKBENCH_EWES_URL }}
   workbench-workflow-service-url:
     description: Workbench Workflow Service URL
     required: true
-    default: ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_URL }}
   workbench-ewes-refresh-token:
     description: Workbench EWES Refresh Token
     required: true
-    default: ${{ secrets.WORKBENCH_EWES_REFRESH_TOKEN }}
   workbench-workflow-service-refresh-token:
     description: Workbench Workflow Service Refresh Token
     required: true
-    default: ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_REFRESH_TOKEN }}
   wdl_ci_custom_test_wdl_dir:
     description: Directory to find custom test WDLs in
     required: false
 runs:
   using: 'composite'
   steps:
-    - name: checkout
-      uses: actions/checkout@v3
-      with:
-        submodules: true
-        repository: ${{ github.event.pull_request.head.repo.full_name }}
-        ref: ${{ github.event.pull_request.head.ref }}
     - name: set-env
       shell: bash
       run: |
