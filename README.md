@@ -2,6 +2,14 @@
 
 Tools to validate and test WDL-based repositories. To be used as part of CI/CD pipelines.
 
+When installed as a github action, `wdl-ci` will run the following steps:
+1. Lint workflows
+2. Detect tasks that have changed
+3. If test inputs/outputs are defined for a changed task, submit a test workflow for each changed task
+4. For successful tests, update task digests in the configuration file. Task digests are used to detect changes to tasks; a digest represents the last state of a task where all tests passed.
+
+If any step of the action fails, the check will fail; however, if some task tests succeed, the digest of those tasks will still be updated such that only failing tests will be rerun with further pushes/updates.
+
 
 ## Installing the github action
 
@@ -43,15 +51,20 @@ Installation: `python -m pip install .`
 Run: `wdl-ci`
 
 
-## Building and running using Docker
+## Running using Docker
+
+A Docker image is available from [DNAstack's dockerhub](https://hub.docker.com/r/dnastack/wdl-ci) as `dnastack/wdl-ci:latest`.
+
+Run Docker container: `docker run dnastack/wdl-ci:latest`
+
+Run Docker container (mounting repo directory): `docker run -v ${PWD}:/usr/test dnastack/wdl-ci:latest`
+
+Commands and arugments to wdl-ci can be passed after the run command, e.g. `docker run -v ${PWD}:/usr/test dnastack/wdl-ci:latest lint`.
+
+
+### Building locally using Docker
 
 Build Docker image: `docker build -t wdl-ci:latest .`
-
-Run Docker container: `docker run wdl-ci:latest`
-
-Run Docker container (mounting repo directory): `docker run -v ${PWD}:/usr/test wdl-ci:latest`
-
-Commands and arugments to wdl-ci can be passed after the run command, e.g. `docker run -v ${PWD}:/usr/test wdl-ci:latest lint`.
 
 
 # The wdl-ci config file
@@ -138,21 +151,31 @@ An array of different input sets and their corresponding validated outupts. Each
 
 #### `inputs`
 
-Inputs required by the task to be tested. Must define all required inputs to the task. Input values can use parameters defined in [test_params](#test_params) here.
+Inputs required by the task to be tested. Must define all required inputs to the task. Input values can use parameters defined in [test_params](#test_params).
 
-If an inputs is a file, the value should be the path to the file on the filesystem corresponding to the engine(s) that have been configured in the [engines section](#engines). This must be a file that is accessible by the engine.
+If an input is a file, the value should be the path to the file on the filesystem corresponding to the engine(s) that have been configured in the [engines section](#engines). This must be a file that is accessible by the engine.
 
 
-#### `outputs`
+#### `output_tests`
 
-Outputs from the task to be tested. Not all outputs must be defined or tested.
+Outputs from the task to be tested. Not all outputs must be defined or tested. This field is an object containing one entry per output to be tested, where the object key is the name of the output and the value is an object with keys:
 
-- `value`: Validated outputs of the task from a previous run.
+- `value`: Validated output of the task from a previous run.
 - `test_tasks`: This specifies the array of tests that should be applied to a specific output. See [workflow-based tests](#workflow-based-tests) for information on defining and using test tasks on ourputs.
 
-Each test task will be passed the validated output set as `value` as well as the output from the current test run of the task, and they will be compared as defined in the test task WDL.
 
-Output values can use parameters defined in [test_params](#test_params) here.
+```json
+"output_tests": {
+  "<output_name>": {
+    "value": "<output_value>",
+    "test_tasks": []
+  }
+}
+```
+
+Each test task will be passed the validated output as well as the output from the current test run of the task, and they will be compared as defined in the test task WDL.
+
+Output values can use parameters defined in [test_params](#test_params).
 
 
 ### `engines`
@@ -247,7 +270,7 @@ Generates the configuration file that is required by other commands. See [here](
 
 If a configuration file already exists, this will add workflows or tasks that do not already exist in the file. By default, only new workflows and/or tasks will be added to the config file; deleted workflows or tasks will not be removed. The `--remove` flag may be used to force removal of workflows and tasks that are no longer present at the specified paths.
 
-`wdl-ci generate-config`
+`wdl-ci generate-config [--remove]`
 
 
 ## Lint workflows
