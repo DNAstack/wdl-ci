@@ -1,6 +1,6 @@
 # WDL Testing CLI
 
-**Note that this tool is not intended to work with or access protected health information (PHI). This workflow should _not_ be configured with an engine that has access to PHI, and PHI should not be used in tests.**
+**Note that this tool is not intended to access or manipulate protected health information (PHI). `wdl-ci` and its corresponding GitHub action should _not_ be configured with a workflow engine that has access to PHI, and PHI should not be used in tests.**
 
 Tools to validate and test WDL-based repositories. To be used as part of CI/CD pipelines.
 
