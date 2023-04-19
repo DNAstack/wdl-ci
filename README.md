@@ -184,48 +184,7 @@ See [scenarios](#scenarios) for example workflow definitions.
 
 5. Trigger the action
 
-Depending on the workflow you have configured, push to a non-main/master branch or open a pull request. Test runs will be triggered for any tasks that have changed digests (when initially adding the config file, this will be all tests, since their digests will be initialized to `""`) and that have tests defined. Test run status can be monitored on [Workbench](https://workbench.dnastack.com).
-
-# Local installation
-
-`wdl-ci` is meant to be run as part of a GitHub action, but can be installed locally for testing and linting.
-
-The following environment variables must be defined when running `wdl-ci`:
-
-- `WALLET_URL`
-- `WALLET_CLIENT_ID`
-- `WALLET_CLIENT_SECRET`
-- `WORKBENCH_NAMESPACE`
-- `WORKBENCH_EWES_URL`
-- `WORKBENCH_WORKFLOW_SERVICE_URL`
-- `WORKBENCH_EWES_REFRESH_TOKEN`
-- `WORKBENCH_WORKFLOW_SERVICE_REFRESH_TOKEN`
-
-Optionally, the `WDL_CI_CUSTOM_TEST_WDL_DIR` environment variable may used to specify an additional directory where WDL-based tests may be found.
-
-
-## Installing using pip
-
-Requires: python3.9+
-
-Installation: `python3 -m pip install .`
-
-Run: `wdl-ci`
-
-
-## Running using Docker
-
-A Docker image is available from [DNAstack's dockerhub](https://hub.docker.com/r/dnastack/wdl-ci) as `dnastack/wdl-ci`.
-
-Run `wdl-ci` via the Docker container: `docker run dnastack/wdl-ci:latest`
-
-Run `wdl-ci` via the Docker container (mounting the target repository, run from the root of the target repository): `docker run -v ${PWD}:/usr/test dnastack/wdl-ci:latest`
-
-Commands and arguments to wdl-ci can be passed after the run command, e.g. `docker run -v ${PWD}:/usr/test dnastack/wdl-ci:latest lint`.
-
-To pass required environment variables, they may be written to a newline-delimited file in the format `WALLET_URL=value` and passed to the `docker run` command using the `--env-file <env_file>` argument.
-
-Run a wdl-ci command, using variables defined in `wdl-ci.env`: `docker run --env-file wdl-ci.env -v ${PWD}:/usr/test dnastack/wdl-ci:latest submit`
+Depending on the workflow you have configured, push to a non-main/master branch or open a pull request. Test runs will be triggered for any tasks that have altered digests (when initially adding the config file, this will be all tests, since their digests will be initialized to `""`) and that have tests defined. Test run status can be monitored on [Workbench](https://workbench.dnastack.com).
 
 
 # The wdl-ci config file
@@ -429,6 +388,49 @@ It is not necessary to test every item in the current run output array, but keep
 ## Custom tests
 
 Custom test WDLs may be defined in a directory located in the target repository. To allow `wdl-ci` access to custom tests, the `WDL_CI_CUSTOM_TEST_WDL_DIR` environment variable must be set (GitHub action: [run with `wdl_ci_custom_test_wdl_dir` set](#extend-the-tests-available-to-wdl-ci)).
+
+
+# Local installation
+
+`wdl-ci` is meant to be run as part of a GitHub action, but can be installed locally for testing and linting.
+
+The following environment variables must be defined when running `wdl-ci`:
+
+- `WALLET_URL`
+- `WALLET_CLIENT_ID`
+- `WALLET_CLIENT_SECRET`
+- `WORKBENCH_NAMESPACE`
+- `WORKBENCH_EWES_URL`
+- `WORKBENCH_WORKFLOW_SERVICE_URL`
+- `WORKBENCH_EWES_REFRESH_TOKEN`
+- `WORKBENCH_WORKFLOW_SERVICE_REFRESH_TOKEN`
+
+Optionally, the `WDL_CI_CUSTOM_TEST_WDL_DIR` environment variable may used to specify an additional directory where WDL-based tests may be found.
+
+
+## Installing using pip
+
+Requires: python3.9+
+
+Installation: `python3 -m pip install .`
+
+Run: `wdl-ci`
+
+
+## Running using Docker
+
+A Docker image is available from [DNAstack's dockerhub](https://hub.docker.com/r/dnastack/wdl-ci) as `dnastack/wdl-ci`.
+
+Run `wdl-ci` via the Docker container: `docker run dnastack/wdl-ci:latest`
+
+Run `wdl-ci` via the Docker container (mounting the target repository, run from the root of the target repository): `docker run -v ${PWD}:/usr/test dnastack/wdl-ci:latest`
+
+Commands and arguments to wdl-ci can be passed after the run command, e.g. `docker run -v ${PWD}:/usr/test dnastack/wdl-ci:latest lint`.
+
+To pass required environment variables, they may be written to a newline-delimited file in the format `WALLET_URL=value` and passed to the `docker run` command using the `--env-file <env_file>` argument.
+
+Run a wdl-ci command, using variables defined in `wdl-ci.env`: `docker run --env-file wdl-ci.env -v ${PWD}:/usr/test dnastack/wdl-ci:latest submit`
+
 
 # Commands
 
