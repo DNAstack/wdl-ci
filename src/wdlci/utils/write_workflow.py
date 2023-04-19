@@ -121,6 +121,16 @@ def write_workflow(
         ## Call to test tasks
         test_tasks = dict()
         for output_key, output_value in output_tests.items():
+            output_type = str(main_task_output_types[output_key])
+            scatter_indent = ""
+            scatter_index = ""
+            if output_type.startswith("Array"):
+                f.write(
+                    f"\tscatter (index in range(length(TEST_OUTPUT_{output_key}))) {{\n"
+                )
+                scatter_indent = "\t"
+                scatter_index = "[index]"
+
             for test_task in output_value["test_tasks"]:
                 test_task_key = f"{test_task}_{output_key}"
 
@@ -134,18 +144,25 @@ def write_workflow(
                     raise WdlTestCliExitException(f"Invalid test task [{test_wdl}]", 1)
                 test_tasks[test_task_key] = test_task_doc
 
-                f.write(f"\tcall {test_task_doc.name} as {test_task_key} {{\n")
-                f.write("\t\tinput:\n")
+                f.write(
+                    f"{scatter_indent}\tcall {test_task_doc.name} as {test_task_key} {{\n"
+                )
+                f.write(f"{scatter_indent}\t\tinput:\n")
                 # If the current run output is an optional, coerce it into non-optional; we expect there to be an output if we have a test for it
-                if str(main_task_output_types[output_key]).endswith("?"):
+                if output_type.endswith("?"):
                     f.write(
-                        f"\t\t\tcurrent_run_output = select_first([{main_task.name}.{output_key}]),\n"
+                        f"{scatter_indent}\t\t\tcurrent_run_output = select_first([{main_task.name}.{output_key}]){scatter_index},\n"
                     )
                 else:
                     f.write(
-                        f"\t\t\tcurrent_run_output = {main_task.name}.{output_key},\n"
+                        f"{scatter_indent}\t\t\tcurrent_run_output = {main_task.name}.{output_key}{scatter_index},\n"
                     )
-                f.write(f"\t\t\tvalidated_output = TEST_OUTPUT_{output_key}\n")
+                f.write(
+                    f"{scatter_indent}\t\t\tvalidated_output = TEST_OUTPUT_{output_key}{scatter_index}\n"
+                )
+                f.write(f"{scatter_indent}\t}}\n")
+
+            if output_type.startswith("Array"):
                 f.write("\t}\n")
 
         ## Outputs
