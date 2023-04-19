@@ -1,5 +1,6 @@
 import WDL
 import subprocess
+from pathlib import Path
 from importlib.resources import files
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
@@ -62,7 +63,12 @@ def _order_structs(struct_typedefs):
 
 
 def write_workflow(
-    workflow_name, main_task, output_tests, output_file, struct_typedefs
+    workflow_name,
+    main_task,
+    output_tests,
+    output_file,
+    struct_typedefs,
+    custom_test_dir=None,
 ):
     """
     Write a workflow out to a file
@@ -74,6 +80,7 @@ def write_workflow(
             Test tasks should map to files in wdl_tests/${test_task}.wdl
         output_file (str): Path to file to write workflow to
         struct_typedefs ([WDL.Env.Binding]): structs imported by the main workflow; these will be available to the test task
+        custom_test_dir (str): Path to a directory containing test WDL tasks; this directory will be checked for test tasks first
     """
     wdl_version = main_task.effective_wdl_version
 
@@ -134,7 +141,15 @@ def write_workflow(
             for test_task in output_value["test_tasks"]:
                 test_task_key = f"{test_task}_{output_key}"
 
-                test_wdl = files("wdlci.wdl_tests").joinpath(f"{test_task}.wdl")
+                # Try to find a user-defined test wdl
+                test_wdl = None
+                if custom_test_dir is not None:
+                    test_wdl = Path(f"{custom_test_dir}/{test_task}.wdl")
+
+                # If a user-defined test WDL does not exist, try to find the test in wdl_tests
+                if test_wdl is None or not test_wdl.exists():
+                    test_wdl = files("wdlci.wdl_tests").joinpath(f"{test_task}.wdl")
+
                 # Ensure that the test task WDL is valid
                 try:
                     test_doc = WDL.load(str(test_wdl))
