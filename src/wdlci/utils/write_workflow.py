@@ -100,7 +100,11 @@ def write_workflow(
         f.write("\n")
         for output_key in output_tests:
             test_output_type = main_task_output_types[output_key]
-            f.write(f"\t\t{test_output_type} TEST_OUTPUT_{output_key}\n")
+            # If a task output is optional, write the validated input as required (remove '?' from type); if the validated
+            # output was provided, it means we expect an output from the task as well
+            f.write(
+                f"\t\t{str(test_output_type).replace('?', '')} TEST_OUTPUT_{output_key}\n"
+            )
         f.write("\t}\n")
         f.write("\n")
 
@@ -126,12 +130,21 @@ def write_workflow(
                     test_doc = WDL.load(str(test_wdl))
                     test_task_doc = test_doc.tasks[0]
                 except:
+                    subprocess.run(["miniwdl", "check", str(test_wdl)])
                     raise WdlTestCliExitException(f"Invalid test task [{test_wdl}]", 1)
                 test_tasks[test_task_key] = test_task_doc
 
                 f.write(f"\tcall {test_task_doc.name} as {test_task_key} {{\n")
                 f.write("\t\tinput:\n")
-                f.write(f"\t\t\tcurrent_run_output = {main_task.name}.{output_key},\n")
+                # If the current run output is an optional, coerce it into non-optional; we expect there to be an output if we have a test for it
+                if str(main_task_output_types[output_key]).endswith("?"):
+                    f.write(
+                        f"\t\t\tcurrent_run_output = select_first([{main_task.name}.{output_key}]),\n"
+                    )
+                else:
+                    f.write(
+                        f"\t\t\tcurrent_run_output = {main_task.name}.{output_key},\n"
+                    )
                 f.write(f"\t\t\tvalidated_output = TEST_OUTPUT_{output_key}\n")
                 f.write("\t}\n")
 
