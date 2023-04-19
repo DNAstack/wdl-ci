@@ -1,4 +1,5 @@
 import WDL
+import subprocess
 from importlib.resources import files
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
@@ -156,8 +157,8 @@ def write_workflow(
 
     # Ensure the workflow is valid
     try:
-        wdl_doc = WDL.load(output_file)
-    except:
+        subprocess.run(["miniwdl", "check", output_file], check=True)
+    except subprocess.CalledProcessError:
         raise WdlTestCliExitException(
             f"Invalid test workflow [{output_file}] generated; exiting", 1
         )
