@@ -2,7 +2,7 @@ import json
 import sys
 import WDL
 import WDL.Lint
-from WDL.CLI import check
+import subprocess
 from wdlci.config import Config
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
@@ -18,7 +18,12 @@ def lint_handler(kwargs):
 
         for workflow_key in config.file.workflows.keys():
             # Pretty-print lint messages
-            WDL.CLI.check([workflow_key])
+            try:
+                subprocess.run(["miniwdl", "check", workflow_key], check=True)
+            except subprocess.CalledProcessError:
+                raise WdlTestCliExitException(
+                    f"Linting failed for workflow {workflow_key}", 1
+                )
 
             lint = WDL.Lint.collect(WDL.Lint.lint(WDL.load(workflow_key)))
             num_unsuppressed_lints = len(

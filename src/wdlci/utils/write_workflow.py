@@ -1,4 +1,6 @@
 import WDL
+import subprocess
+from pathlib import Path
 from importlib.resources import files
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
@@ -61,7 +63,12 @@ def _order_structs(struct_typedefs):
 
 
 def write_workflow(
-    workflow_name, main_task, output_tests, output_file, struct_typedefs
+    workflow_name,
+    main_task,
+    output_tests,
+    output_file,
+    struct_typedefs,
+    custom_test_dir=None,
 ):
     """
     Write a workflow out to a file
@@ -73,6 +80,7 @@ def write_workflow(
             Test tasks should map to files in wdl_tests/${test_task}.wdl
         output_file (str): Path to file to write workflow to
         struct_typedefs ([WDL.Env.Binding]): structs imported by the main workflow; these will be available to the test task
+        custom_test_dir (str): Path to a directory containing test WDL tasks; this directory will be checked for test tasks first
     """
     wdl_version = main_task.effective_wdl_version
 
@@ -99,7 +107,11 @@ def write_workflow(
         f.write("\n")
         for output_key in output_tests:
             test_output_type = main_task_output_types[output_key]
-            f.write(f"\t\t{test_output_type} TEST_OUTPUT_{output_key}\n")
+            # If a task output is optional, write the validated input as required (remove '?' from type); if the validated
+            # output was provided, it means we expect an output from the task as well
+            f.write(
+                f"\t\t{str(test_output_type).replace('?', '')} TEST_OUTPUT_{output_key}\n"
+            )
         f.write("\t}\n")
         f.write("\n")
 
@@ -116,22 +128,56 @@ def write_workflow(
         ## Call to test tasks
         test_tasks = dict()
         for output_key, output_value in output_tests.items():
+            output_type = str(main_task_output_types[output_key])
+            scatter_indent = ""
+            scatter_index = ""
+            if output_type.startswith("Array"):
+                f.write(
+                    f"\tscatter (index in range(length(TEST_OUTPUT_{output_key}))) {{\n"
+                )
+                scatter_indent = "\t"
+                scatter_index = "[index]"
+
             for test_task in output_value["test_tasks"]:
                 test_task_key = f"{test_task}_{output_key}"
 
-                test_wdl = files("wdlci.wdl_tests").joinpath(f"{test_task}.wdl")
+                # Try to find a user-defined test wdl
+                test_wdl = None
+                if custom_test_dir is not None:
+                    test_wdl = Path(f"{custom_test_dir}/{test_task}.wdl")
+
+                # If a user-defined test WDL does not exist, try to find the test in wdl_tests
+                if test_wdl is None or not test_wdl.exists():
+                    test_wdl = files("wdlci.wdl_tests").joinpath(f"{test_task}.wdl")
+
                 # Ensure that the test task WDL is valid
                 try:
                     test_doc = WDL.load(str(test_wdl))
                     test_task_doc = test_doc.tasks[0]
                 except:
+                    subprocess.run(["miniwdl", "check", str(test_wdl)])
                     raise WdlTestCliExitException(f"Invalid test task [{test_wdl}]", 1)
                 test_tasks[test_task_key] = test_task_doc
 
-                f.write(f"\tcall {test_task_doc.name} as {test_task_key} {{\n")
-                f.write("\t\tinput:\n")
-                f.write(f"\t\t\tcurrent_run_output = {main_task.name}.{output_key},\n")
-                f.write(f"\t\t\tvalidated_output = TEST_OUTPUT_{output_key}\n")
+                f.write(
+                    f"{scatter_indent}\tcall {test_task_doc.name} as {test_task_key} {{\n"
+                )
+                f.write(f"{scatter_indent}\t\tinput:\n")
+                # If the current run output is an optional, coerce it into non-optional; we expect there to be an output if we have a test for it
+                if output_type.endswith("?"):
+                    f.write(
+                        f"{scatter_indent}\t\t\tcurrent_run_output = select_first([{main_task.name}.{output_key}]){scatter_index},\n"
+                    )
+                else:
+                    f.write(
+                        f"{scatter_indent}\t\t\tcurrent_run_output = {main_task.name}.{output_key}{scatter_index},\n"
+                    )
+                f.write(
+                    f"{scatter_indent}\t\t\tvalidated_output = TEST_OUTPUT_{output_key}{scatter_index}\n"
+                )
+                f.write(f"{scatter_indent}\t}}\n")
+
+            if output_type.startswith("Array"):
                 f.write("\t}\n")
 
         ## Outputs
@@ -156,8 +202,8 @@ def write_workflow(
 
     # Ensure the workflow is valid
     try:
-        wdl_doc = WDL.load(output_file)
-    except:
+        subprocess.run(["miniwdl", "check", output_file], check=True)
+    except subprocess.CalledProcessError:
         raise WdlTestCliExitException(
             f"Invalid test workflow [{output_file}] generated; exiting", 1
         )

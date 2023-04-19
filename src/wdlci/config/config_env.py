@@ -4,7 +4,6 @@ from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
 
 class ConfigEnv(object):
-
     _cli_kwargs = None
     _configuration_parameters = [
         # WALLET
@@ -59,12 +58,18 @@ class ConfigEnv(object):
             "arg": None,
             "default": None,
         },
+        # DIRECTORY WHERE CUSTOM WDL TESTS MAY BE FOUND
+        {
+            "attr": "wdl_ci_custom_test_wdl_dir",
+            "env": "WDL_CI_CUSTOM_TEST_WDL_DIR",
+            "arg": None,
+            "default": None,
+        },
         {"attr": "all", "env": None, "arg": "all", "default": False},
     ]
 
     @classmethod
     def __eval(cls, env, arg, default):
-
         # attempt to load from environment variable
         if env and os.getenv(env):
             return os.getenv(env)

@@ -108,6 +108,7 @@ def submit_handler(kwargs):
                                 output_tests,
                                 test_key,
                                 doc.struct_typedefs,
+                                config.env.wdl_ci_custom_test_wdl_dir,
                             )
                         except WdlTestCliExitException as e:
                             print(
