@@ -1,5 +1,7 @@
 # WDL Testing CLI
 
+**Note that this tool is not intended to work with or access protected health information (PHI). This workflow should _not_ be configured with an engine that has access to PHI, and PHI should not be used in tests.**
+
 Tools to validate and test WDL-based repositories. To be used as part of CI/CD pipelines.
 
 When installed as a github action, `wdl-ci` will run the following steps:
@@ -9,7 +11,6 @@ When installed as a github action, `wdl-ci` will run the following steps:
 4. For successful tests, update task digests in the configuration file. Task digests are used to detect changes to tasks; a digest represents the last state of a task where all tests passed.
 
 If any step of the action fails, the check will fail; however, if some task tests succeed, the digest of those tasks will still be updated such that only failing tests will be rerun with further pushes/updates.
-
 
 ## Installing the github action
 
@@ -179,6 +180,8 @@ Output values can use parameters defined in [test_params](#test_params).
 
 
 ### `engines`
+
+**Do not configure an engine that has access to protected health information, even if that data is not being used in tests.** Ideally a workflow engine that is used only for testing and has access only to non-protected test input files should be used.
 
 Engines configured in Workbench that test tasks will be submitted to. The engine ID can be found in the engine configuration on Workbench.
 - `key`: The engine ID, found from the engine configuration on Workbench
