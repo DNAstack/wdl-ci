@@ -2,9 +2,9 @@
 
 **Note that this tool is not intended to access or manipulate protected health information (PHI). `wdl-ci` and its corresponding GitHub action should _not_ be configured with a workflow engine that has access to PHI, and PHI should not be used in tests.**
 
-Tools to validate and test WDL-based repositories. To be used as part of CI/CD pipelines.
+Tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). Detects changes in tasks and runs tests via [DNAstack's Workbench](https://docs.dnastack.com/docs/introduction-to-workbench).
 
-When installed as a github action, `wdl-ci` will run the following steps:
+When installed as a github action, `wdl-ci` will run the following steps upon pull request:
 1. Lint workflows
 2. Detect tasks that have changed
 3. If test inputs/outputs are defined for a changed task, submit a test workflow for each changed task
@@ -12,16 +12,90 @@ When installed as a github action, `wdl-ci` will run the following steps:
 
 If any step of the action fails, the check will fail; however, if some task tests succeed, the digest of those tasks will still be updated such that only failing tests will be rerun with further pushes/updates.
 
-## Installing the github action
+# GitHub action usage
 
-1. Add the workflow
+```yaml
+- uses: dnastack/wdl-ci@0.1.3
+  with:
+    # Configuration file where tests can be found
+    # Default: wdl-ci.config.json
+    config_file: ''
 
-Copy one of the example workflow files to the target repo at the path `.github/workflows/workflow.yml`.
+    # DNAstack wallet URL to authenticate with
+    # WALLET_URL must be defined in actions secrets
+    wallet-url: ${{ secrets.WALLET_URL }}
 
-- [example_workflow.push.yml](example_workflow.push.yml): This workflow is set up to run upon push to a non-main/master branch.
-- [example_workflow.pr.yml](example_workflow.pr.yml): This workflow is set up to run upon pull request (and upon update to the PR).
+    # DNAstack wallet client ID
+    # WALLET_CLIENT_ID must be defined in actions secrets
+    wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
 
-2. Define secrets
+    # DNAstack wallet client secret
+    # WALLET_CLIENT_SECRET must be defined in actions secrets
+    wallet-client-secret: ${{ secrets.WALLET_CLIENT_SECRET }}
+
+    # DNAstack Workbench namespace. This determines which user's Workbench will be
+    # responsible for workbench runs. Engines configured in the config-file must be
+    # configured in this user's namespace.
+    # WORKBENCH_NAMESPACE must be defined in actions secrets
+    workbench-namespace: ${{ secrets.WORKBENCH_NAMESPACE }}
+
+    # DNAstack Workbench EWES (Extended WES) URL
+    # WORKBENCH_EWES_URL must be defined in actions secrets
+    workbench-ewes-url: ${{ secrets.WORKBENCH_EWES_URL }}
+
+    # DNAstack Workbench workflow service URL
+    # WORKBENCH_WORKFLOW_SERVICE_URL must be defined in actions secrets
+    workbench-workflow-service-url:  ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_URL }}
+
+    # DNAstack Workbench EWES refresh token
+    # WORKBENCH_EWES_REFRESH_TOKEN must be defined in actions secrets
+    workbench-ewes-refresh-token: ${{ secrets.WORKBENCH_EWES_REFRESH_TOKEN }}
+
+    # DNAstack Workbench workflow service refresh token
+    # WORKBENHC_WORKFLOW_SERVICE_REFRESH_TOKEN must be defined in actions secrets
+    workbench-workflow-service-refresh-token: ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_REFRESH_TOKEN }}
+
+    # Directory containing custom test WDLs. If defined, this directory will be searched for
+    # WDL test files specified as tests in the config-file prior to searching through tests
+    # defined in src/wdlci/wdl_tests
+    wdl_ci_custom_test_wdl_dir: ''
+```
+
+# Scenarios
+
+## Run wdl-ci
+
+```yaml
+name: Lint and test workflows
+on: pull_request
+jobs:
+  wdl-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: wdl-ci
+        uses: dnastack/wdl-ci@0.1.3
+```
+
+## Extend the tests available to wdl-ci
+
+Define custom WDL-based tests in a directory (here `my-custom-test-dir`); these test tasks may then be used in to test tasks. See [WDL-based tests](#wdl-based-tests) for more information on writing custom test tasks.
+
+```yaml
+name: Lint and test workflows
+on: pull_request
+jobs:
+  wdl-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: wdl-ci
+        uses: dnastack/wdl-ci@0.1.3
+        with:
+          wdl_ci_custom_test_wdl_dir: my-custom-test-dir
+```
+
+# Configuring and installing the GitHub action
+
+1. Define secrets
 
 The following secrets must be defined on the target repo (see [creating GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository)):
 
@@ -34,38 +108,58 @@ The following secrets must be defined on the target repo (see [creating GitHub s
 - `WORKBENCH_EWES_REFRESH_TOKEN`
 - `WORKBENCH_WORKFLOW_SERVICE_REFRESH_TOKEN`
 
+2. Add the workflow
+
+Create a `workflow.yml` file in the target repo at the path `.github/workflows/workflow.yml`.
+
+See [scenarios](#scenarios) for example workflow definitions.
+
 3. [Generate a config file](#generating-and-updating-the-config-file).
 
 4. Fill out tests and engines sections of [the config file](#config-file-structure).
 
-5. Push your changes to a non-main/master branch; check the actions tab of the repo in GitHub to inspect the running job. Test runs will be triggered for any tasks that have changed digests (when initially adding the config file, this will be all tests, since their digests will be initialized to `""`) and that have tests defined. Test run status can be monitored on [Workbench](https://workbench.dnastack.com).
+5. Open a pull request; check the actions tab of the repo in GitHub to inspect the running job. Test runs will be triggered for any tasks that have changed digests (when initially adding the config file, this will be all tests, since their digests will be initialized to `""`) and that have tests defined. Test run status can be monitored on [Workbench](https://workbench.dnastack.com).
 
-
-## Local installation
+# Local installation
 
 `wdl-ci` is meant to be run as part of a GitHub action, but can be installed locally for testing and linting.
 
+The following environment variables must be defined when running `wdl-ci`:
+
+- `WALLET_URL`
+- `WALLET_CLIENT_ID`
+- `WALLET_CLIENT_SECRET`
+- `WORKBENCH_NAMESPACE`
+- `WORKBENCH_EWES_URL`
+- `WORKBENCH_WORKFLOW_SERVICE_URL`
+- `WORKBENCH_EWES_REFRESH_TOKEN`
+- `WORKBENCH_WORKFLOW_SERVICE_REFRESH_TOKEN`
+
+Optionally, the `WDL_CI_CUSTOM_TEST_WDL_DIR` environment variable may used to specify an additional directory where WDL-based tests may be found.
+
+
+## Installing using pip
+
 Requires: python3.9+
 
-Installation: `python -m pip install .`
+Installation: `python3 -m pip install .`
 
 Run: `wdl-ci`
 
 
 ## Running using Docker
 
-A Docker image is available from [DNAstack's dockerhub](https://hub.docker.com/r/dnastack/wdl-ci) as `dnastack/wdl-ci:latest`.
+A Docker image is available from [DNAstack's dockerhub](https://hub.docker.com/r/dnastack/wdl-ci) as `dnastack/wdl-ci`.
 
-Run Docker container: `docker run dnastack/wdl-ci:latest`
+Run `wdl-ci` via the Docker container: `docker run dnastack/wdl-ci:latest`
 
-Run Docker container (mounting repo directory): `docker run -v ${PWD}:/usr/test dnastack/wdl-ci:latest`
+Run `wdl-ci` via the Docker container (mounting the target repository, run from the root of the target repository): `docker run -v ${PWD}:/usr/test dnastack/wdl-ci:latest`
 
-Commands and arugments to wdl-ci can be passed after the run command, e.g. `docker run -v ${PWD}:/usr/test dnastack/wdl-ci:latest lint`.
+Commands and arguments to wdl-ci can be passed after the run command, e.g. `docker run -v ${PWD}:/usr/test dnastack/wdl-ci:latest lint`.
 
+To pass required environment variables, they may be written to a newline-delimited file in the format `WALLET_URL=value` and passed to the `docker run` command using the `--env-file <env_file>` argument.
 
-### Building locally using Docker
-
-Build Docker image: `docker build -t wdl-ci:latest .`
+Run a wdl-ci command, using variables defined in `wdl-ci.env`: `docker run --env-file wdl-ci.env -v ${PWD}:/usr/test dnastack/wdl-ci:latest submit`
 
 
 # The wdl-ci config file
@@ -162,7 +256,7 @@ If an input is a file, the value should be the path to the file on the filesyste
 Outputs from the task to be tested. Not all outputs must be defined or tested. This field is an object containing one entry per output to be tested, where the object key is the name of the output and the value is an object with keys:
 
 - `value`: Validated output of the task from a previous run.
-- `test_tasks`: This specifies the array of tests that should be applied to a specific output. See [workflow-based tests](#workflow-based-tests) for information on defining and using test tasks on ourputs.
+- `test_tasks`: This specifies the array of tests that should be applied to a specific output. See [WDL-based tests](#WDL-based-tests) for information on defining and using test tasks on ourputs.
 
 
 ```json
@@ -232,7 +326,7 @@ Test params can be used to avoid repeating paths and values for test inputs and 
 Custom linters may be added to [src/wdlci/linters/custom_linters.py](src/wdlci/linters/custom_linters.py).
 
 
-# Workflow-based tests
+# WDL-based tests
 
 Tests are defined in the [src/wdlci/wdl_tests](src/wdlci/wdl_tests) directory.
 
@@ -265,6 +359,10 @@ Tests can be selected and applied to input sets by including the `${test_name}` 
 If an output is of type `Array[X]`, the test task will be automatically scattered over the outputs, and any tests will be run once for each item in the validated output array. Validated outputs must be present in the same order as the outputs from the task. Due to the scatter over elements of array-type outputs, both array-type and non-array-type outputs should use the same underlying tests which operate on items of type `X`.
 
 It is not necessary to test every item in the current run output array, but keep in mind that if a subset of the outputs are to be tested, they must be the first items in the output array. All items in the validated output array will be compared to the items in the corresponding current run output array at the same array index.
+
+## Custom tests
+
+Custom test WDLs may be defined in a directory located in the target repository. To allow `wdl-ci` access to custom tests, the `WDL_CI_CUSTOM_TEST_WDL_DIR` environment variable must be set (GitHub action: [run with `wdl_ci_custom_test_wdl_dir` set](#extend-the-tests-available-to-wdl-ci)).
 
 # Commands
 
