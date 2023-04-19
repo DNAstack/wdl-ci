@@ -63,7 +63,7 @@ If any step of the action fails, the check will fail; however, if some task test
 
 # Scenarios
 
-- [Run on push to non-main/master branches](#run-on-push-to-non-main-master-branches)
+- [Run on push to non-main/master branches](#run-on-push-to-non-mainmaster-branches)
 - [Run on pull request](#run-on-pull-request)
 - [Extend the tests available to wdl-ci](#extend-the-tests-available-to-wdl-ci)
 
@@ -114,7 +114,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
       - name: wdl-ci
-        uses: dnastack/wdl-ci@0.1.3
+        uses: dnastack/wdl-ci@0.1.4
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
@@ -182,7 +182,9 @@ See [scenarios](#scenarios) for example workflow definitions.
 
 4. Fill out tests and engines sections of [the config file](#config-file-structure).
 
-5. Open a pull request; check the actions tab of the repo in GitHub to inspect the running job. Test runs will be triggered for any tasks that have changed digests (when initially adding the config file, this will be all tests, since their digests will be initialized to `""`) and that have tests defined. Test run status can be monitored on [Workbench](https://workbench.dnastack.com).
+5. Trigger the action
+
+Depending on the workflow you have configured, push to a non-main/master branch or open a pull request. Test runs will be triggered for any tasks that have changed digests (when initially adding the config file, this will be all tests, since their digests will be initialized to `""`) and that have tests defined. Test run status can be monitored on [Workbench](https://workbench.dnastack.com).
 
 # Local installation
 
