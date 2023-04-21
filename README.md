@@ -86,7 +86,7 @@ jobs:
         with:
           submodules: true
       - name: wdl-ci
-        uses: dnastack/wdl-ci@0.1.4
+        uses: dnastack/wdl-ci@v0.1.5
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
@@ -114,7 +114,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
       - name: wdl-ci
-        uses: dnastack/wdl-ci@0.1.4
+        uses: dnastack/wdl-ci@v0.1.5
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
@@ -144,7 +144,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
       - name: wdl-ci
-        uses: dnastack/wdl-ci@0.1.4
+        uses: dnastack/wdl-ci@v0.1.5
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
