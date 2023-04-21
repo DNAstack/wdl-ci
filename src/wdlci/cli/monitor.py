@@ -118,6 +118,7 @@ def monitor_handler(kwargs):
                     f"run with id '{workflow_run.wes_run_id}' failed execution with a state of {workflow_run.wes_state}"
                 )
                 task_status[workflow_path][task]["succeeded"] = False
+                task_status[workflow_path][task]["workflow_run"] = workflow_run
             elif (
                 workflow_run.status == SubmissionStateWorkflowRun.STATUS_FINISH_SUCCESS
                 and workflow_run.validation_status
@@ -128,12 +129,14 @@ def monitor_handler(kwargs):
                     f"run with id '{workflow_run.wes_run_id}' failed output validation. message: {workflow_run.validation_message}"
                 )
                 task_status[workflow_path][task]["succeeded"] = False
+                task_status[workflow_path][task]["workflow_run"] = workflow_run
             else:
                 fail_n += 1
                 print(
                     f"run with id '{workflow_run.wes_run_id}' failed with an unspecified error"
                 )
                 task_status[workflow_path][task]["succeeded"] = False
+                task_status[workflow_path][task]["workflow_run"] = workflow_run
 
         submission_state_encoded = jsonpickle.encode(submission_state)
         open(SUBMISSION_JSON, "w").write(submission_state_encoded)
@@ -159,6 +162,9 @@ def monitor_handler(kwargs):
                         else:
                             print(
                                 f"At least one test failed for [{workflow_path} - {task_name}]."
+                            )
+                            ewes_client.get_failed_task_logs(
+                                tasks[task_name]["workflow_run"]
                             )
 
         if config_updated:

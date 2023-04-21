@@ -86,7 +86,7 @@ jobs:
         with:
           submodules: true
       - name: wdl-ci
-        uses: dnastack/wdl-ci@0.1.4
+        uses: dnastack/wdl-ci@v0.1.5
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
@@ -114,7 +114,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
       - name: wdl-ci
-        uses: dnastack/wdl-ci@0.1.4
+        uses: dnastack/wdl-ci@v0.1.5
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
@@ -144,7 +144,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
       - name: wdl-ci
-        uses: dnastack/wdl-ci@0.1.4
+        uses: dnastack/wdl-ci@v0.1.5
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
@@ -337,18 +337,12 @@ Test params can be used to avoid repeating paths and values for test inputs and 
 }
 ```
 
-
-# Custom workflow linters
-
-Custom linters may be added to [src/wdlci/linters/custom_linters.py](src/wdlci/linters/custom_linters.py).
-
-
 # WDL-based tests
 
 Tests are defined in the [src/wdlci/wdl_tests](src/wdlci/wdl_tests) directory.
 
 - Tests are written in WDL
-- Test files must be named `${test_name}.wdl`
+- Test files must be named `<test_name>.wdl`
 - In the test WDL file, before the task declaration, add a short description of what the purpose of this test is and what input type is expected, e.g.:
 
 ```wdl
@@ -358,17 +352,21 @@ version 1.0
 # Input type: String
 
 task compare_string {
+  input {
+    String current_run_output
+    String validated_output
+  }
   ...
 ```
 
-- Each test file should contain a single test task, named `${test_name}`
+- Each test file should contain a single test task, named `<test_name>`
 - Tests must specify two inputs:
-  - `${input_type} current_run_output`
-  - `${input_type} validated_output`
+  - `<input_type> current_run_output`
+  - `<input_type> validated_output`
 - The `current_run_output` and `validated_output` will be passed to the test task automatically; it is up to the test writer to implement the desired comparison
 
 
-Tests can be selected and applied to input sets by including the `${test_name}` as part of the `workflows.${workflow}.tasks.${task}.tests.[],test_tasks` array. For example, to run the `compare` test, which compares various output types, the `test_tasks` section should be set to `["compare"]`. Additional test tasks may be added for the same input set by adding test names to the `test_tasks` array for that set of inputs.
+Tests can be selected and applied to task outputs by including the `<test_name>` as part of the `test_tasks` array in [the output tests block](#output_tests). For example, to run the `compare_string` test, the `test_tasks` section for the output to be tested should be set to `["compare_string"]`.
 
 ## Array comparison
 
