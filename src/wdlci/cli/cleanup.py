@@ -1,3 +1,4 @@
+import jsonpickle
 import os
 import sys
 from wdlci.auth.refresh_token_auth import RefreshTokenAuth
@@ -40,9 +41,9 @@ def cleanup_handler(kwargs):
         )
         workflow_service_client = WorkflowServiceClient(workflow_service_auth)
 
-        # purge all custom workflows in the namespace
-        # TODO maybe add option here to purge all custom workflows, or only those registered in state file
-        workflow_service_client.purge_custom_workflows()
+        submission_state = jsonpickle.decode(open(SUBMISSION_JSON, "r").read())
+        for workflow in submission_state.workflows.values():
+            workflow_service_client.delete_custom_workflow(workflow)
 
         print("Cleanup complete. Custom workflows purged from namespace")
 
