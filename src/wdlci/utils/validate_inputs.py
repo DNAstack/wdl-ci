@@ -6,7 +6,7 @@ def validate_inputs(test_key, task, input_dict):
 
     # Confirm that all required inputs have been set
     non_optional_task_inputs = [
-        task.name for task in task.inputs if not task.type._optional
+        task.name for task in task.inputs if not task.type._optional and not task.expr
     ]
     missing_inputs = [
         task_input
