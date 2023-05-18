@@ -116,12 +116,17 @@ def submit_handler(kwargs):
                             )
                             sys.exit(e.exit_code)
 
-                        workflow_id = workflow_service_client.register_workflow(
+                        (
+                            workflow_id,
+                            workflow_etag,
+                        ) = workflow_service_client.register_workflow(
                             test_key,
                             workflow_config,
                             transient=True,
                         )
-                        submission_state.add_workflow(test_key, workflow_id)
+                        submission_state.add_workflow(
+                            test_key, workflow_id, workflow_etag
+                        )
 
                         tasks_to_test[test_key] = {
                             "task": task,

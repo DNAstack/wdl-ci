@@ -43,8 +43,31 @@ class WorkflowServiceClient(object):
                 f"Could not register workflow [{workflow_key}] on Workbench", 1
             )
 
-        return response.json()["id"]
+        workflow_id = response.json()["id"]
+        workflow_etag = response.headers.get("Etag").strip('"')
+        return workflow_id, workflow_etag
 
+    # Delete individual custom workflows
+    def delete_custom_workflow(self, workflow):
+        env = Config.instance().env
+        base_url, namespace = (
+            env.workbench_workflow_service_url,
+            env.workbench_namespace,
+        )
+        url = f"{base_url}/{namespace}/workflows/{workflow.workflow_id}"
+        headers = {
+            "Authorization": "Bearer " + self.workflow_service_auth.access_token,
+            "If-Match": workflow.workflow_etag,
+        }
+
+        response = requests.delete(url, headers=headers)
+        if response.status_code != 204:
+            raise WdlTestCliExitException(
+                f"Error when deleting custom workflow {workflow.workflow_key} ({workflow.workflow_id})",
+                1,
+            )
+
+    # Purge all custom workflows
     def purge_custom_workflows(self):
         env = Config.instance().env
         base_url, namespace = (

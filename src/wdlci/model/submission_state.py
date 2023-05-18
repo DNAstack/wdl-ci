@@ -7,9 +7,9 @@ class SubmissionState(object):
         self.engines = {}
         self.workflow_runs = []
 
-    def add_workflow(self, workflow_key, workflow_id):
+    def add_workflow(self, workflow_key, workflow_id, workflow_etag):
         self.workflows[workflow_key] = SubmissionStateWorkflow(
-            workflow_key, workflow_id
+            workflow_key, workflow_id, workflow_etag
         )
 
     def add_engine(self, engine_id, engine_json):
@@ -31,9 +31,10 @@ class SubmissionState(object):
 
 
 class SubmissionStateWorkflow(object):
-    def __init__(self, workflow_key, workflow_id):
+    def __init__(self, workflow_key, workflow_id, workflow_etag):
         self._workflow_key = workflow_key
         self._workflow_id = workflow_id
+        self._workflow_etag = workflow_etag
 
     @property
     def workflow_key(self):
@@ -50,6 +51,14 @@ class SubmissionStateWorkflow(object):
     @workflow_id.setter
     def workflow_id(self, workflow_id):
         self._workflow_id = workflow_id
+
+    @property
+    def workflow_etag(self):
+        return self._workflow_etag
+
+    @workflow_etag.setter
+    def workflow_etag(self, workflow_etag):
+        return self._workflow_etag
 
 
 class SubmissionStateWorkflowRun(object):
