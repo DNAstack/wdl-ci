@@ -26,8 +26,9 @@ task count_columns {
 			current_run_output_column_count=$(sed 's;,;\t;g' ~{current_run_output} | awk '{print NF}' | sort -nu | tail -n 1)
 			validated_output_column_count=$(sed 's;,;\t;g' ~{validated_output} | awk '{print NF}' | sort -nu | tail -n 1)
 		else
-			current_run_output_column_count=$(awk '{print NF}' ~{current_run_output} | sort -nu | tail -n 1)
-			validated_output_column_count=$(awk '{print NF}' ~{validated_output} | sort -nu | tail -n 1)
+			# Disregard headers starting with `#`
+			current_run_output_column_count=$(sed '/^#/d' ~{current_run_output} | awk '{print NF}' | sort -nu | tail -n 1)
+			validated_output_column_count=$(sed '/^#/d' ~{validated_output} | awk '{print NF}' | sort -nu | tail -n 1)
 		fi
 
 		if [[ "$current_run_output_column_count" != "$validated_output_column_count" ]]; then
