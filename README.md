@@ -15,7 +15,7 @@ If any step of the action fails, the check will fail; however if some task tests
 # GitHub action usage
 
 ```yaml
-- uses: dnastack/wdl-ci@v0.1.7
+- uses: dnastack/wdl-ci@v0.1.8
   with:
     # Configuration file where tests can be found
     # Default: wdl-ci.config.json
@@ -86,7 +86,7 @@ jobs:
         with:
           submodules: true
       - name: wdl-ci
-        uses: dnastack/wdl-ci@v0.1.7
+        uses: dnastack/wdl-ci@v0.1.8
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
@@ -114,7 +114,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
       - name: wdl-ci
-        uses: dnastack/wdl-ci@v0.1.7
+        uses: dnastack/wdl-ci@v0.1.8
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
@@ -144,7 +144,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
       - name: wdl-ci
-        uses: dnastack/wdl-ci@v0.1.7
+        uses: dnastack/wdl-ci@v0.1.8
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
