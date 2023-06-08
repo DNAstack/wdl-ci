@@ -28,11 +28,12 @@ task check_tab_delimited {
 		# Validated dir path in input block vs. command block is different
 		validated_dir_path=$(dirname ~{validated_output})
 
-		if ! awk '{exit !/\t/}' "${validated_dir_path}/$(basename ~{validated_output} .gz)"; then
+		# Disregard headers starting with `#`
+		if ! sed '/^#/d' "${validated_dir_path}/$(basename ~{validated_output} .gz)" | awk '{exit !/\t/}'; then
 			err "Validated file: [~{basename(validated_output)}] is not tab-delimited"
 			exit 1
 		else
-			if awk '{exit !/\t/}' ~{current_run_output_unzipped}; then
+			if sed '/^#/d' ~{current_run_output_unzipped} | awk '{exit !/\t/}'; then
 				echo "Current run file: [~{basename(current_run_output)}] is tab-delimited"
 			else
 				err "Current run file: [~{basename(current_run_output)}] is not tab-delimited"
