@@ -50,19 +50,19 @@ runs:
           echo "WDL_CI_CUSTOM_TEST_WDL_DIR"=${{ inputs.wdl_ci_custom_test_wdl_dir }} >> $GITHUB_ENV
         fi
     - name: lint
-      uses: docker://dnastack/wdl-ci:v0.1.8
+      uses: docker://dnastack/wdl-ci:v0.1.9
       with:
         args: lint
     - name: detect-changes
-      uses: docker://dnastack/wdl-ci:v0.1.8
+      uses: docker://dnastack/wdl-ci:v0.1.9
       with:
         args: detect-changes
     - name: submit
-      uses: docker://dnastack/wdl-ci:v0.1.8
+      uses: docker://dnastack/wdl-ci:v0.1.9
       with:
         args: submit
     - name: monitor
-      uses: docker://dnastack/wdl-ci:v0.1.8
+      uses: docker://dnastack/wdl-ci:v0.1.9
       with:
         args: monitor --update-digests
       # If a test fails, still update task digests for any tests that succeeded
@@ -76,6 +76,6 @@ runs:
         default_author: github_actions
     - name: cleanup
       if: always()
-      uses: docker://dnastack/wdl-ci:v0.1.8
+      uses: docker://dnastack/wdl-ci:v0.1.9
       with:
         args: cleanup
