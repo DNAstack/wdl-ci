@@ -10,7 +10,6 @@ task check_tab_delimited {
 	}
 
 	Int disk_size = ceil(size(current_run_output, "GB") + size(validated_output, "GB") + 50)
-	String current_run_output_unzipped = sub(current_run_output, "\\.gz$", "")
 
 	command <<<
 		set -euo pipefail
@@ -25,15 +24,16 @@ task check_tab_delimited {
 			gzip -d ~{current_run_output} ~{validated_output}
 		fi
 
-		# Validated dir path in input block vs. command block is different
+		# Dir path in input block vs. command block is different
 		validated_dir_path=$(dirname ~{validated_output})
+		current_dir_path=$(dirname ~{current_run_output})
 
 		# Disregard headers starting with `#`
-		if ! sed '/^#/d' "${validated_dir_path}/$(basename ~{validated_output} .gz)" | awk '{exit !/\t/}'; then
+		if ! sed '/^#/d' "${validated_dir_path}/$(basename ~{validated_output} .gz)" | awk -F'\t' '{if(NF<2) exit 1}'; then
 			err "Validated file: [~{basename(validated_output)}] is not tab-delimited"
 			exit 1
 		else
-			if sed '/^#/d' ~{current_run_output_unzipped} | awk '{exit !/\t/}'; then
+			if sed '/^#/d' "${current_dir_path}/$(basename ~{current_run_output} .gz)" | awk -F'\t' '{if(NF<2) exit 1}'; then
 				echo "Current run file: [~{basename(current_run_output)}] is tab-delimited"
 			else
 				err "Current run file: [~{basename(current_run_output)}] is not tab-delimited"
