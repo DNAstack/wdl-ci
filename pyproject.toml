@@ -1,7 +1,7 @@
 [project]
 name = "wdl-testing-cli"
 description = "DNAstack WDL testing CLI"
-version = "v0.2.0"
+version = "v0.1.9"
 authors = [
     { name = "DNAstack", email = "devs@dnastack.com" }
 ]
