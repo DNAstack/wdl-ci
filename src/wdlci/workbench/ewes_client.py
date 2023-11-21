@@ -34,7 +34,7 @@ class EwesClient(object):
         }
 
         form_data = {
-            "workflow_url": f"{env.workbench_workflow_service_url}/{env.workbench_namespace}/workflows/{workflow_run._workflow_id}/versions/v1_0_0/descriptor",
+            "workflow_url": workflow_run._workflow_id,
             "workflow_type": "WDL",
             "workflow_type_version": "1.0",
             "workflow_params": {**workflow_run._inputs, **output_test_task_params},
