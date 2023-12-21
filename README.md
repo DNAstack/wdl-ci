@@ -275,7 +275,7 @@ If an input is a file, the value should be the path to the file on the filesyste
 Outputs from the task to be tested. Not all outputs must be defined or tested. This field is an object containing one entry per output to be tested, where the object key is the name of the output and the value is an object with keys:
 
 - `value`: Validated output of the task from a previous run.
-- `test_tasks`: This specifies the array of tests that should be applied to a specific output. See [WDL-based tests](#WDL-based-tests) for information on defining and using test tasks on ourputs.
+- `test_tasks`: This specifies the array of tests that should be applied to a specific output. See [WDL-based tests](#WDL-based-tests) for information on defining and using test tasks on outputs.
 
 
 ```json
