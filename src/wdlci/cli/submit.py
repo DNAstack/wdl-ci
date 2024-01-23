@@ -152,7 +152,7 @@ def submit_handler(kwargs):
 
                     source_params = {
                         **config.file.test_params.global_params,
-                        **config.file.test_params.engine_params[engine_id],
+                        **config.file.test_params.engine_params.get(engine_id, {}),
                     }
                     inputs_hydrated = HydrateParams.hydrate(
                         source_params,
