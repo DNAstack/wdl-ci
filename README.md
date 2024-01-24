@@ -331,10 +331,11 @@ Multiple engines can be configured. Tests will be submitted to all enabled engin
 Test params can be used to avoid repeating paths and values for test inputs and outputs.
 
 - Parameters defined here can be used in inputs and outputs for task tests in the format `${param_name}`; these will be replaced with the `<param_value>` for workflow submission
+- For parameters whose value is an object, object members can be accessed using `.`s: `"reference_index": ${reference.fasta.data_index}`
 - Global params will replace values for all engines
 - Engine params will replace values only when submitting to a particular engine; useful if for example input sets exist across multiple environments and are prefixed with different paths
-- Objects and arrays can be used for parameters; if you are using a complex parameter as an input or output value, this parameter must be the only content of the value, e.g. `"my_input": "${complex_param}"`, not `"my_input": "${complex_param}.some_key"`
-- Complex parameters can themselves use parameters, and will be substituted appropriately
+- Objects and arrays can be used for parameters; if you are using a complex parameter as an input or output value, this parameter must be the only content of the value, e.g. `"my_input": "${complex_param}"`, not `"my_input": "gs://my_bucket/${complex_param}"`
+- The values of complex parameters can themselves use parameters, and will be substituted appropriately
 
 ```json
 "test_params": {
