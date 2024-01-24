@@ -291,6 +291,30 @@ Each test task will be passed the validated output as well as the output from th
 
 Output values can use parameters defined in [test_params](#test_params).
 
+##### Testing struct member outputs
+
+Primitive structs members may be individually tested by referring to their path, e.g. `struct.member`. For example, for the following struct:
+
+```wdl
+struct Sample {
+  String sample_id
+  File summary_file
+}
+```
+
+For the case where the output of a task is `Sample my_sample`, the `sample_id` field can be tested as follows:
+
+```json
+"output_tests": {
+  "my_sample.sample_id": {
+    "value": "NA12878",
+    "test_tasks": [
+      "compare_string"
+    ]
+  }
+}
+```
+
 ### `engines`
 
 **Do not configure an engine that has access to protected health information, even if that data is not being used in tests.** Ideally a workflow engine that is used only for testing and has access only to non-protected test input files should be used.

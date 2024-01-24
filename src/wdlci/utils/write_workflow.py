@@ -62,6 +62,18 @@ def _order_structs(struct_typedefs):
     return ordered_struct_defs
 
 
+def _get_output_type(main_task_output_types, output_key):
+    if output_key in main_task_output_types:
+        return main_task_output_types[output_key]
+    # output is a struct
+    else:
+        main_output_key = output_key.split(".")[0]
+        sub_output_key = ".".join(output_key.split(".")[1:])
+        struct_def = main_task_output_types[main_output_key]
+        struct_member_types = struct_def.members
+        return _get_output_type(struct_member_types, sub_output_key)
+
+
 def write_workflow(
     workflow_name,
     main_task,
@@ -105,12 +117,14 @@ def write_workflow(
         for task_input in main_task.inputs:
             f.write(f"\t\t{task_input}\n")
         f.write("\n")
+
         for output_key in output_tests:
-            test_output_type = main_task_output_types[output_key]
+            test_output_type = _get_output_type(main_task_output_types, output_key)
+
             # If a task output is optional, write the validated input as required (remove '?' from type); if the validated
             # output was provided, it means we expect an output from the task as well
             f.write(
-                f"\t\t{str(test_output_type).replace('?', '')} TEST_OUTPUT_{output_key}\n"
+                f"\t\t{str(test_output_type).replace('?', '')} TEST_OUTPUT_{output_key.replace('.', '_')}\n"
             )
         f.write("\t}\n")
         f.write("\n")
@@ -128,18 +142,18 @@ def write_workflow(
         ## Call to test tasks
         test_tasks = dict()
         for output_key, output_value in output_tests.items():
-            output_type = str(main_task_output_types[output_key])
+            output_type = str(_get_output_type(main_task_output_types, output_key))
             scatter_indent = ""
             scatter_index = ""
             if output_type.startswith("Array"):
                 f.write(
-                    f"\tscatter (index in range(length(TEST_OUTPUT_{output_key}))) {{\n"
+                    f"\tscatter (index in range(length(TEST_OUTPUT_{output_key.replace('.', '_')}))) {{\n"
                 )
                 scatter_indent = "\t"
                 scatter_index = "[index]"
 
             for test_task in output_value["test_tasks"]:
-                test_task_key = f"{test_task}_{output_key}"
+                test_task_key = f"{test_task}_{output_key.replace('.', '_')}"
 
                 # Try to find a user-defined test wdl
                 test_wdl = None
@@ -173,7 +187,7 @@ def write_workflow(
                         f"{scatter_indent}\t\t\tcurrent_run_output = {main_task.name}.{output_key}{scatter_index},\n"
                     )
                 f.write(
-                    f"{scatter_indent}\t\t\tvalidated_output = TEST_OUTPUT_{output_key}{scatter_index}\n"
+                    f"{scatter_indent}\t\t\tvalidated_output = TEST_OUTPUT_{output_key.replace('.', '_')}{scatter_index}\n"
                 )
                 f.write(f"{scatter_indent}\t}}\n")
 
