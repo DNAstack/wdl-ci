@@ -29,7 +29,7 @@ inputs:
   workbench-workflow-service-refresh-token:
     description: Workbench Workflow Service Refresh Token
     required: true
-  wdl_ci_custom_test_wdl_dir:
+  wdl-ci-custom-test-wdl-dir:
     description: Directory to find custom test WDLs in
     required: false
   suppress-lint-errors:
@@ -49,8 +49,8 @@ runs:
         echo "WORKBENCH_WORKFLOW_SERVICE_URL=${{ inputs.workbench-workflow-service-url }}" >> $GITHUB_ENV
         echo "WORKBENCH_EWES_REFRESH_TOKEN=${{ inputs.workbench-ewes-refresh-token }}" >> $GITHUB_ENV
         echo "WORKBENCH_WORKFLOW_SERVICE_REFRESH_TOKEN=${{ inputs.workbench-workflow-service-refresh-token }}" >> $GITHUB_ENV
-        if [[ -n "${{ inputs.wdl_ci_custom_test_wdl_dir }}" ]]; then
-          echo "WDL_CI_CUSTOM_TEST_WDL_DIR"=${{ inputs.wdl_ci_custom_test_wdl_dir }} >> $GITHUB_ENV
+        if [[ -n "${{ inputs.wdl-ci-custom-test-wdl-dir }}" ]]; then
+          echo "WDL_CI_CUSTOM_TEST_WDL_DIR"=${{ inputs.wdl-ci-custom-test-wdl-dir }} >> $GITHUB_ENV
         fi
     - name: lint
       uses: docker://dnastack/wdl-ci:v1.0.0
