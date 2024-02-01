@@ -32,6 +32,9 @@ inputs:
   wdl_ci_custom_test_wdl_dir:
     description: Directory to find custom test WDLs in
     required: false
+  suppress-lint-errors:
+    description: Continue upon encountering a linting warning or error
+    default: false
 runs:
   using: 'composite'
   steps:
@@ -52,7 +55,7 @@ runs:
     - name: lint
       uses: docker://dnastack/wdl-ci:v1.0.0
       with:
-        args: lint
+        args: lint ${{ inputs.suppress_lint_errors && '--suppress-lint-errors' || '' }}
     - name: detect-changes
       uses: docker://dnastack/wdl-ci:v1.0.0
       with:
