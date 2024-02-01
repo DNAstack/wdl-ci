@@ -59,6 +59,11 @@ If any step of the action fails, the check will fail; however if some task tests
     # WDL test files specified as tests in the config-file prior to searching through tests
     # defined in src/wdlci/wdl_tests
     wdl_ci_custom_test_wdl_dir: ''
+
+    # Suppress lint warnings and errors
+    # Useful if you're setting up tests for external workflows that you do not have the ability to fix errors for
+    # Default: false (fail the action on unsuppressed warning or error)
+    suppress-lint-errors: false
 ```
 
 # Scenarios
