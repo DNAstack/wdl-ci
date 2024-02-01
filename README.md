@@ -58,7 +58,7 @@ If any step of the action fails, the check will fail; however if some task tests
     # Directory containing custom test WDLs. If defined, this directory will be searched for
     # WDL test files specified as tests in the config-file prior to searching through tests
     # defined in src/wdlci/wdl_tests
-    wdl_ci_custom_test_wdl_dir: ''
+    wdl-ci-custom-test-wdl-dir: ''
 
     # Suppress lint warnings and errors
     # Useful if you're setting up tests for external workflows that you do not have the ability to fix errors for
@@ -133,7 +133,7 @@ jobs:
 
 ## Extend the tests available to wdl-ci
 
-Define the `wdl_ci_custom_test_wdl_dir` to specify a directory containing custom WDL-based tests; these test tasks may then be used to test workflow tasks. See [WDL-based tests](#wdl-based-tests) for more information on writing custom test tasks. The `wdl_ci_custom_test_wdl_dir` should refer to a directory that exists in the target repository.
+Define the `wdl-ci-custom-test-wdl-dir` to specify a directory containing custom WDL-based tests; these test tasks may then be used to test workflow tasks. See [WDL-based tests](#wdl-based-tests) for more information on writing custom test tasks. The `wdl-ci-custom-test-wdl-dir` should refer to a directory that exists in the target repository.
 
 ```yaml
 name: Lint and test workflows
@@ -159,7 +159,7 @@ jobs:
           workbench-workflow-service-url:  ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_URL }}
           workbench-ewes-refresh-token: ${{ secrets.WORKBENCH_EWES_REFRESH_TOKEN }}
           workbench-workflow-service-refresh-token: ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_REFRESH_TOKEN }}
-          wdl_ci_custom_test_wdl_dir: my-custom-test-dir
+          wdl-ci-custom-test-wdl-dir: my-custom-test-dir
 ```
 
 # Configuring and installing the GitHub action
@@ -406,7 +406,7 @@ It is not necessary to test every item in the current run output array, but keep
 
 ## Custom tests
 
-Custom test WDLs may be defined in a directory located in the target repository. To allow `wdl-ci` access to custom tests, the `WDL_CI_CUSTOM_TEST_WDL_DIR` environment variable must be set (GitHub action: [run with `wdl_ci_custom_test_wdl_dir` set](#extend-the-tests-available-to-wdl-ci)).
+Custom test WDLs may be defined in a directory located in the target repository. To allow `wdl-ci` access to custom tests, the `WDL_CI_CUSTOM_TEST_WDL_DIR` environment variable must be set (GitHub action: [run with `wdl-ci-custom-test-wdl-dir` set](#extend-the-tests-available-to-wdl-ci)).
 
 
 # Local installation
