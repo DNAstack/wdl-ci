@@ -10,6 +10,9 @@ from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
 
 def lint_handler(kwargs):
+    suppress_lint_errors = kwargs["suppress_lint_errors"]
+    print(f"Suppress lint errors: {suppress_lint_errors}")
+
     try:
         Config.load(kwargs)
         config = Config.instance()
@@ -43,10 +46,13 @@ def lint_handler(kwargs):
             print()
 
         if len(lint_failed_workflows) > 0:
-            raise WdlTestCliExitException(
-                f"Unsuppressed warnings or errors in workflows {lint_failed_workflows}",
-                1,
-            )
+            if suppress_lint_errors:
+                print(f"[WARN] Suppressing lint errors in {lint_failed_workflows}")
+            else:
+                raise WdlTestCliExitException(
+                    f"Unsuppressed warnings or errors in workflows {lint_failed_workflows}",
+                    1,
+                )
 
     except WdlTestCliExitException as e:
         print(f"exiting with code {e.exit_code}, message: {e.message}")

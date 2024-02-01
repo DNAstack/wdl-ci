@@ -152,7 +152,7 @@ def submit_handler(kwargs):
 
                     source_params = {
                         **config.file.test_params.global_params,
-                        **config.file.test_params.engine_params[engine_id],
+                        **config.file.test_params.engine_params.get(engine_id, {}),
                     }
                     inputs_hydrated = HydrateParams.hydrate(
                         source_params,
@@ -166,7 +166,7 @@ def submit_handler(kwargs):
                         output_test_key,
                         output_test_val,
                     ) in test_case.output_tests.items():
-                        output_test_key_hydrated = f"{task_config['workflow_name']}.TEST_OUTPUT_{output_test_key}"
+                        output_test_key_hydrated = f"{task_config['workflow_name']}.TEST_OUTPUT_{output_test_key.replace('.', '_')}"
                         output_test_val_hydrated = HydrateParams.hydrate(
                             source_params, output_test_val, update_key=False
                         )

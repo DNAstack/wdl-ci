@@ -15,7 +15,7 @@ If any step of the action fails, the check will fail; however if some task tests
 # GitHub action usage
 
 ```yaml
-- uses: dnastack/wdl-ci@v1.0.0
+- uses: dnastack/wdl-ci@v2.0.0
   with:
     # Configuration file where tests can be found
     # Default: wdl-ci.config.json
@@ -58,7 +58,12 @@ If any step of the action fails, the check will fail; however if some task tests
     # Directory containing custom test WDLs. If defined, this directory will be searched for
     # WDL test files specified as tests in the config-file prior to searching through tests
     # defined in src/wdlci/wdl_tests
-    wdl_ci_custom_test_wdl_dir: ''
+    wdl-ci-custom-test-wdl-dir: ''
+
+    # Suppress lint warnings and errors
+    # Useful if you're setting up tests for external workflows that you do not have the ability to fix errors for
+    # Default: false (fail the action on unsuppressed warning or error)
+    suppress-lint-errors: false
 ```
 
 # Scenarios
@@ -86,7 +91,7 @@ jobs:
         with:
           submodules: true
       - name: wdl-ci
-        uses: dnastack/wdl-ci@v1.0.0
+        uses: dnastack/wdl-ci@v2.0.0
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
@@ -114,7 +119,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
       - name: wdl-ci
-        uses: dnastack/wdl-ci@v1.0.0
+        uses: dnastack/wdl-ci@v2.0.0
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
@@ -128,7 +133,7 @@ jobs:
 
 ## Extend the tests available to wdl-ci
 
-Define the `wdl_ci_custom_test_wdl_dir` to specify a directory containing custom WDL-based tests; these test tasks may then be used to test workflow tasks. See [WDL-based tests](#wdl-based-tests) for more information on writing custom test tasks. The `wdl_ci_custom_test_wdl_dir` should refer to a directory that exists in the target repository.
+Define the `wdl-ci-custom-test-wdl-dir` to specify a directory containing custom WDL-based tests; these test tasks may then be used to test workflow tasks. See [WDL-based tests](#wdl-based-tests) for more information on writing custom test tasks. The `wdl-ci-custom-test-wdl-dir` should refer to a directory that exists in the target repository.
 
 ```yaml
 name: Lint and test workflows
@@ -144,7 +149,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
       - name: wdl-ci
-        uses: dnastack/wdl-ci@v1.0.0
+        uses: dnastack/wdl-ci@v2.0.0
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
@@ -154,7 +159,7 @@ jobs:
           workbench-workflow-service-url:  ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_URL }}
           workbench-ewes-refresh-token: ${{ secrets.WORKBENCH_EWES_REFRESH_TOKEN }}
           workbench-workflow-service-refresh-token: ${{ secrets.WORKBENCH_WORKFLOW_SERVICE_REFRESH_TOKEN }}
-          wdl_ci_custom_test_wdl_dir: my-custom-test-dir
+          wdl-ci-custom-test-wdl-dir: my-custom-test-dir
 ```
 
 # Configuring and installing the GitHub action
@@ -275,7 +280,7 @@ If an input is a file, the value should be the path to the file on the filesyste
 Outputs from the task to be tested. Not all outputs must be defined or tested. This field is an object containing one entry per output to be tested, where the object key is the name of the output and the value is an object with keys:
 
 - `value`: Validated output of the task from a previous run.
-- `test_tasks`: This specifies the array of tests that should be applied to a specific output. See [WDL-based tests](#WDL-based-tests) for information on defining and using test tasks on ourputs.
+- `test_tasks`: This specifies the array of tests that should be applied to a specific output. See [WDL-based tests](#WDL-based-tests) for information on defining and using test tasks on outputs.
 
 
 ```json
@@ -290,6 +295,30 @@ Outputs from the task to be tested. Not all outputs must be defined or tested. T
 Each test task will be passed the validated output as well as the output from the current test run of the task, and they will be compared as defined in the test task WDL.
 
 Output values can use parameters defined in [test_params](#test_params).
+
+##### Testing struct member outputs
+
+Primitive structs members may be individually tested by referring to their path, e.g. `struct.member`. For example, for the following struct:
+
+```wdl
+struct Sample {
+  String sample_id
+  File summary_file
+}
+```
+
+For the case where the output of a task is `Sample my_sample`, the `sample_id` field can be tested as follows:
+
+```json
+"output_tests": {
+  "my_sample.sample_id": {
+    "value": "NA12878",
+    "test_tasks": [
+      "compare_string"
+    ]
+  }
+}
+```
 
 ### `engines`
 
@@ -307,10 +336,11 @@ Multiple engines can be configured. Tests will be submitted to all enabled engin
 Test params can be used to avoid repeating paths and values for test inputs and outputs.
 
 - Parameters defined here can be used in inputs and outputs for task tests in the format `${param_name}`; these will be replaced with the `<param_value>` for workflow submission
+- For parameters whose value is an object, object members can be accessed using `.`s: `"reference_index": ${reference.fasta.data_index}`
 - Global params will replace values for all engines
 - Engine params will replace values only when submitting to a particular engine; useful if for example input sets exist across multiple environments and are prefixed with different paths
-- Objects and arrays can be used for parameters; if you are using a complex parameter as an input or output value, this parameter must be the only content of the value, e.g. `"my_input": "${complex_param}"`, not `"my_input": "${complex_param}.some_key"`
-- Complex parameters can themselves use parameters, and will be substituted appropriately
+- Objects and arrays can be used for parameters; if you are using a complex parameter as an input or output value, this parameter must be the only content of the value, e.g. `"my_input": "${complex_param}"`, not `"my_input": "gs://my_bucket/${complex_param}"`
+- The values of complex parameters can themselves use parameters, and will be substituted appropriately
 
 ```json
 "test_params": {
@@ -376,7 +406,7 @@ It is not necessary to test every item in the current run output array, but keep
 
 ## Custom tests
 
-Custom test WDLs may be defined in a directory located in the target repository. To allow `wdl-ci` access to custom tests, the `WDL_CI_CUSTOM_TEST_WDL_DIR` environment variable must be set (GitHub action: [run with `wdl_ci_custom_test_wdl_dir` set](#extend-the-tests-available-to-wdl-ci)).
+Custom test WDLs may be defined in a directory located in the target repository. To allow `wdl-ci` access to custom tests, the `WDL_CI_CUSTOM_TEST_WDL_DIR` environment variable must be set (GitHub action: [run with `wdl-ci-custom-test-wdl-dir` set](#extend-the-tests-available-to-wdl-ci)).
 
 
 # Local installation

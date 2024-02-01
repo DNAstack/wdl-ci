@@ -25,6 +25,15 @@ update_digests_option = click.option(
     help="Update the task digests for tasks that completed their tests successfully",
 )
 
+suppress_lint_errors_option = click.option(
+    "--suppress-lint-errors",
+    "-s",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Do not exit upon encountering a linting warning or error",
+)
+
 
 @click.group(cls=OrderedGroup)
 def main():
@@ -43,6 +52,7 @@ def generate_config(**kwargs):
 
 
 @main.command
+@suppress_lint_errors_option
 def lint(**kwargs):
     """Lint a WDL workflow"""
 

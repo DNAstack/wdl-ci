@@ -10,7 +10,6 @@ task check_comma_separated {
 	}
 
 	Int disk_size = ceil(size(current_run_output, "GB") + size(validated_output, "GB") + 50)
-	String current_run_output_unzipped = sub(current_run_output, "\\.gz$", "")
 
 	command <<<
 		set -euo pipefail
@@ -27,12 +26,13 @@ task check_comma_separated {
 
 		# Validated dir path in input block vs. command block is different
 		validated_dir_path=$(dirname ~{validated_output})
+		current_dir_path=$(dirname ~{current_run_output})
 
 		if ! awk '{exit !/,/}' "${validated_dir_path}/$(basename ~{validated_output} .gz)"; then
 			err "Validated file: [~{basename(validated_output)}] is not comma-separated"
 			exit 1
 		else
-			if awk '{exit !/,/}' ~{current_run_output_unzipped}; then
+			if awk '{exit !/,/}' "${current_dir_path}/$(basename ~{current_run_output} .gz)"; then
 				echo "Current run file: [~{basename(current_run_output)}] is comma-separated"
 			else
 				err "Current run file: [~{basename(current_run_output)}] is not comma-separated"
