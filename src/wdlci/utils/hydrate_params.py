@@ -86,7 +86,11 @@ class HydrateParams(object):
                     return substituted_value
                 else:
                     return substituted_dict
-            elif type(target_value) is int or type(target_value) is bool:
+            elif (
+                type(target_value) is int
+                or type(target_value) is bool
+                or type(target_value) is float
+            ):
                 return target_value
             else:
                 raise WdlTestCliExitException(
