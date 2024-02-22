@@ -1,12 +1,13 @@
 import base64
 import datetime
 import requests
+import jwt
+import sys
 from wdlci.config import Config
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
 
 class RefreshTokenAuth(object):
-
     REFRESH_EVERY = 2700.0
 
     def __init__(self, refresh_token, scopes):
@@ -14,6 +15,7 @@ class RefreshTokenAuth(object):
         self.scopes = scopes
         self._access_token = None
         self._access_token_issued_at = None
+        self.check_refresh_token_expiry()
 
     @property
     def access_token(self):
@@ -26,6 +28,25 @@ class RefreshTokenAuth(object):
             self.__obtain_access_token()
 
         return self._access_token
+
+    def check_refresh_token_expiry(self):
+        token = self.refresh_token
+
+        try:
+            decoded = jwt.decode(
+                self.refresh_token, options={"verify_signature": False}
+            )
+        except jwt.ExpiredSignatureError as e:
+            expiry = datetime.datetime.fromtimestamp(decoded["exp"])
+            print(
+                f"The refresh token is expired as of {expiry}, message: {e}. The GitHub actions secrets will need to be updated with a new refresh token."
+            )
+            sys.exit(1)
+        except jwt.exceptions.InvalidTokenError as e:
+            print(
+                f"Error decoding token: {e}. Please ensure you are providing a valid refresh token."
+            )
+            sys.exit(1)
 
     def __obtain_access_token(self):
         env = Config.instance().env
