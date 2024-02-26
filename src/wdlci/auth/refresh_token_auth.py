@@ -63,7 +63,8 @@ class RefreshTokenAuth(object):
         response = requests.post(url, params=params, headers=headers)
         if response.status_code != 200:
             raise WdlTestCliExitException(
-                "could not obtain access token from refresh token", 1
+                "The refresh token is not expired, but still could not obtain access token from refresh token. Please ensure the refresh token provided as a Github action secret is valid",
+                1,
             )
 
         response_json = response.json()
