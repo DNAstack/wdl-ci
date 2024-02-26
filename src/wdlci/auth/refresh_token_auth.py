@@ -30,25 +30,18 @@ class RefreshTokenAuth(object):
         return self._access_token
 
     def check_refresh_token_expiry(self):
-        try:
-            decoded = jwt.decode(
-                self.refresh_token, options={"verify_signature": False}
-            )
-            expiry = datetime.datetime.fromtimestamp(decoded["exp"])
-            print(f"The refresh token expires as of {expiry}")
-        except jwt.exceptions.ExpiredSignatureError as e:
-            expiry = datetime.datetime.fromtimestamp(decoded["exp"])
-            print(f"The refresh token is expired as of {expiry}, message: {e}.")
+        decoded = jwt.decode(self.refresh_token, options={"verify_signature": False})
+        expiry = datetime.datetime.fromtimestamp(decoded["exp"])
+        now = datetime.datetime.now()
+
+        if expiry < now:
+            print(f"The refresh token is expired as of {expiry}")
             raise WdlTestCliExitException(
                 "The refresh token is expired, the GitHub actions secrets will need to be updated with a new refresh token.",
                 1,
             )
-        except jwt.exceptions.InvalidTokenError as e:
-            print(f"Error decoding token: {e}.")
-            raise WdlTestCliExitException(
-                "Please ensure you are providing a valid refresh token.",
-                1,
-            )
+        else:
+            print(f"The refresh token is valid, but will expire as of {expiry}")
 
     def __obtain_access_token(self):
         env = Config.instance().env
