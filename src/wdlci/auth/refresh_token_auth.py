@@ -30,12 +30,12 @@ class RefreshTokenAuth(object):
         return self._access_token
 
     def check_refresh_token_expiry(self):
-        token = self.refresh_token
-
         try:
             decoded = jwt.decode(
                 self.refresh_token, options={"verify_signature": False}
             )
+            expiry = datetime.datetime.fromtimestamp(decoded["exp"])
+            print(expiry)
         except jwt.ExpiredSignatureError as e:
             expiry = datetime.datetime.fromtimestamp(decoded["exp"])
             print(
