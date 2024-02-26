@@ -38,15 +38,17 @@ class RefreshTokenAuth(object):
             print(f"The refresh token expires as of {expiry}")
         except jwt.exceptions.ExpiredSignatureError as e:
             expiry = datetime.datetime.fromtimestamp(decoded["exp"])
-            print(
-                f"The refresh token is expired as of {expiry}, message: {e}. The GitHub actions secrets will need to be updated with a new refresh token."
+            print(f"The refresh token is expired as of {expiry}, message: {e}.")
+            raise WdlTestCliExitException(
+                "The refresh token is expired, the GitHub actions secrets will need to be updated with a new refresh token.",
+                1,
             )
-            sys.exit(1)
         except jwt.exceptions.InvalidTokenError as e:
-            print(
-                f"Error decoding token: {e}. Please ensure you are providing a valid refresh token."
+            print(f"Error decoding token: {e}.")
+            raise WdlTestCliExitException(
+                "Please ensure you are providing a valid refresh token.",
+                1,
             )
-            sys.exit(1)
 
     def __obtain_access_token(self):
         env = Config.instance().env
