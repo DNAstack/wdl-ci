@@ -35,8 +35,8 @@ class RefreshTokenAuth(object):
                 self.refresh_token, options={"verify_signature": False}
             )
             expiry = datetime.datetime.fromtimestamp(decoded["exp"])
-            print(expiry)
-        except jwt.ExpiredSignatureError as e:
+            print(f"The refresh token expires as of {expiry}")
+        except jwt.exceptions.ExpiredSignatureError as e:
             expiry = datetime.datetime.fromtimestamp(decoded["exp"])
             print(
                 f"The refresh token is expired as of {expiry}, message: {e}. The GitHub actions secrets will need to be updated with a new refresh token."
