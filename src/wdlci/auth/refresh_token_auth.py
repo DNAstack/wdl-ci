@@ -2,7 +2,6 @@ import base64
 import datetime
 import requests
 import jwt
-import sys
 from wdlci.config import Config
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
