@@ -8,6 +8,7 @@ from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
 class RefreshTokenAuth(object):
     REFRESH_EVERY = 2700.0
+    TOKEN_EXPIRY_THRESHOLD = 1209600.0
 
     def __init__(self, refresh_token, scopes):
         self.refresh_token = refresh_token
@@ -31,15 +32,18 @@ class RefreshTokenAuth(object):
         decoded = jwt.decode(self.refresh_token, options={"verify_signature": False})
         expiry = datetime.datetime.fromtimestamp(decoded["exp"])
         now = datetime.datetime.now()
+        time_diff = (expiry - now).total_seconds()
 
         if expiry < now:
-            print(f"The refresh token is expired as of {expiry}")
+            print(f"The refresh token is expired as of {expiry} (UTC).")
             raise WdlTestCliExitException(
                 "The refresh token is expired, the GitHub actions secrets will need to be updated with a new refresh token.",
                 1,
             )
-        else:
-            print(f"The refresh token is valid, but will expire as of {expiry}")
+        elif time_diff < self.__class__.TOKEN_EXPIRY_THRESHOLD:
+            print(
+                f"Warning: the refresh token is valid, but is within two weeks of expiry. It will expire as of {expiry} UTC; please update the refresh token."
+            )
 
     def __obtain_access_token(self):
         env = Config.instance().env
