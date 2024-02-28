@@ -14,7 +14,6 @@ class RefreshTokenAuth(object):
         self.scopes = scopes
         self._access_token = None
         self._access_token_issued_at = None
-        self.check_refresh_token_expiry()
 
     @property
     def access_token(self):
@@ -44,6 +43,8 @@ class RefreshTokenAuth(object):
 
     def __obtain_access_token(self):
         env = Config.instance().env
+
+        self.check_refresh_token_expiry()
 
         url = f"{env.wallet_url}/oauth/token"
         params = {
