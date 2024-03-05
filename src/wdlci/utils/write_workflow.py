@@ -248,10 +248,8 @@ def _write_task(doc_task, output_file):
         ## Command
         f.write("\tcommand <<<\n")
         original_command = str(doc_task.command)
-
-        # Use a generator expression to iterate over doc_task.command children and
-        # check if any contain newline characters and a specified separator and
-        # ensure the separator precedes '\n'
+        # Create list of task children and check if there is an instance
+        # of a newline character being used as a separator that will be interpreted literally
         newline_children = [
             c
             for c in doc_task.command.children
@@ -265,8 +263,8 @@ def _write_task(doc_task, output_file):
                     "\nWarning: it looks like a literal newline was present as a separator in "
                     "your command and may need to be escaped."
                 )
-                child_str = str(child).replace("\n", "\\n")
-                modified_command = original_command.replace(str(child), child_str)
+                modified_child = str(child).replace("\n", "\\n")
+                modified_command = original_command.replace(str(child), modified_child)
                 print(
                     "The literal newline was escaped and replaced with the literal '\\n' as:\n "
                     f"{modified_command}\nIf this is not intended, escape the newline character in "
