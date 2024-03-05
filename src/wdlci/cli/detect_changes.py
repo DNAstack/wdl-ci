@@ -15,6 +15,8 @@ def detect_changes_handler(kwargs):
 
         changeset = Changeset()
 
+        tasks_without_tests = []
+
         for workflow, workflow_config in config.file.workflows.items():
             doc = WDL.load(workflow)
 
@@ -22,9 +24,15 @@ def detect_changes_handler(kwargs):
                 task_name = task.name
                 task_digest = task.digest
 
+                if not workflow_config.tasks[task_name].tests:
+                    tasks_without_tests.append(task_name)
+
                 if task_name in workflow_config.tasks:
                     previous_digest = workflow_config.tasks[task_name].digest
-                    if previous_digest != task_digest:
+                    if (
+                        previous_digest != task_digest
+                        and workflow_config.tasks[task_name].tests
+                    ):
                         print(f"Task change detected [{workflow} - {task_name}]")
                         workflow_change = changeset.add_workflow_change(workflow)
                         workflow_change.add_task_change(task_name)
@@ -32,6 +40,7 @@ def detect_changes_handler(kwargs):
                     print(f"New task detected [{workflow} - {task_name}]")
                     workflow_change = changeset.add_workflow_change(workflow)
                     workflow_change.add_task_change(task_name)
+        print(f"The following tasks have no tests: {', '.join(tasks_without_tests)}")
 
         if len(changeset.workflow_changes) == 0:
             print("No new or modified tasks detected")
