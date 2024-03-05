@@ -273,7 +273,6 @@ def _write_task(doc_task, output_file):
                 f.write(f"\t\t{modified_command}\n")
         else:
             f.write(f"\t\t{original_command}\n")
-        f.write(f"\t\t{doc_task.command}\n")
         f.write("\t>>>\n")
         f.write("\n")
 
