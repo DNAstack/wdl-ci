@@ -25,8 +25,6 @@ def detect_task_and_output_coverage_handler(kwargs):
                 # task_test_configs is a list of WorkflowTaskTestConfig objects,
                 # which contain inputs and output_tests as attributes
                 task_test_configs = workflow_config.tasks[task_name].tests
-                # TODO: this is actually telling us which WORKFLOWS don't have any tests,
-                # once I test with a larger wf, this may need to be adjusted
                 if not task_test_configs:
                     tasks_without_tests.append(task_name)
 
@@ -73,16 +71,16 @@ def detect_task_and_output_coverage_handler(kwargs):
 
         if tasks_without_tests and outputs_without_tests:
             print(
-                f"\nWARNING: The following tasks have no tests: {', '.join(tasks_without_tests)}"
-                + f" and the following outputs have no tests: {', '.join(outputs_without_tests)}.\n"
+                f"\nWARNING: The following tasks have no tests:\n\n{', '.join(tasks_without_tests)}\n\n"
+                + f"Additionally, the following outputs have no tests:\n\n{', '.join(outputs_without_tests)}\n\n"
             )
         elif tasks_without_tests:
             print(
-                f"\nWARNING: The following tasks have no tests: {', '.join(tasks_without_tests)}.\n"
+                f"\nWARNING: The following tasks have no tests:\n\n{', '.join(tasks_without_tests)}\n\n"
             )
         elif outputs_without_tests:
             print(
-                f"\nWARNING: The following outputs have no tests: {', '.join(outputs_without_tests)}.\n"
+                f"\nWARNING: The following outputs have no tests:\n\n{', '.join(outputs_without_tests)}\n\n"
             )
 
     except WdlTestCliExitException as e:
