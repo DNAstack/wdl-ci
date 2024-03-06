@@ -55,9 +55,9 @@ def detect_task_and_output_coverage_handler(kwargs):
 
         print("Task Coverage:")
         for task_name, tests_count in task_coverage.items():
-            print(f"\t{task_name}: {tests_count}\n")
+            print(f"\t{task_name}: {tests_count}")
 
-        print("Output coverage:")
+        print("\nOutput coverage:")
         for task_name, output_tests_dict in output_coverage.items():
             print(f"\tTask name: {task_name}")
             for output_name, tests_count in output_tests_dict.items():
@@ -67,16 +67,16 @@ def detect_task_and_output_coverage_handler(kwargs):
 
         if tasks_without_tests and outputs_without_tests:
             print(
-                f"\nWARNING: The following tasks have no tests:\n\n{', '.join(tasks_without_tests)}\n\n"
-                + f"Additionally, the following outputs have no tests:\n\n{', '.join(outputs_without_tests)}\n\n"
+                f"\nWARNING: The following tasks have no tests:\n{', '.join(tasks_without_tests)}\n\n"
+                + f"Additionally, the following outputs have no tests:\n{', '.join(outputs_without_tests)}\n\n"
             )
         elif tasks_without_tests:
             print(
-                f"\nWARNING: The following tasks have no tests:\n\n{', '.join(tasks_without_tests)}\n\n"
+                f"\nWARNING: The following tasks have no tests:\n{', '.join(tasks_without_tests)}\n\n"
             )
         elif outputs_without_tests:
             print(
-                f"\nWARNING: The following outputs have no tests:\n\n{', '.join(outputs_without_tests)}\n\n"
+                f"\nWARNING: The following outputs have no tests:\n{', '.join(outputs_without_tests)}\n\n"
             )
 
     except WdlTestCliExitException as e:
