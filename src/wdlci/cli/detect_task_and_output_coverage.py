@@ -21,31 +21,26 @@ def detect_task_and_output_coverage_handler(kwargs):
 
             for task in doc.tasks:
                 task_name = task.name
-
                 # task_test_configs is a list of WorkflowTaskTestConfig objects,
                 # which contain inputs and output_tests as attributes
                 task_test_configs = workflow_config.tasks[task_name].tests
+
                 if not task_test_configs:
                     tasks_without_tests.append(task_name)
 
                 task_coverage_count = 0
 
                 for task_test_config in task_test_configs:
-                    # Create a dictionary of output tests
                     output_tests_dict = task_test_config.output_tests
-                    # Also created a nested dictionary of output coverage, which will
-                    # store a task name as the parent key
                     output_coverage[task_name] = {}
-                    # For each key and value in a given output test dict
+
                     for output_key, output_value in output_tests_dict.items():
-                        # Ensure output value is a dict with the key test_tasks present
                         if (
                             isinstance(output_value, dict)
                             and "test_tasks" in output_value
                         ):
-                            # Create a list of test tasks for each output
                             output_tests_list = output_value["test_tasks"]
-                            # Assign the number of test tasks to the key associated with a
+                            # Assign the length of test tasks to the key associated with a
                             # given output in a nested structure, where each task has a
                             # dictionary of outputs and their task counts
                             output_coverage[task_name][output_key] = len(
@@ -53,8 +48,9 @@ def detect_task_and_output_coverage_handler(kwargs):
                             )
                             task_coverage_count += len(output_tests_list)
 
-                            if len(output_tests_list) == 0:
+                            if not output_tests_list:
                                 outputs_without_tests.append(output_key)
+
                     task_coverage[task_name] = task_coverage_count
 
         print("Task Coverage:")
