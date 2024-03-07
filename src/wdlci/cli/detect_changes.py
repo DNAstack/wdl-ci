@@ -15,8 +15,6 @@ def detect_changes_handler(kwargs):
 
         changeset = Changeset()
 
-        tasks_without_tests = []
-
         for workflow, workflow_config in config.file.workflows.items():
             doc = WDL.load(workflow)
 
