@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 from importlib.resources import files
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
+from wdlci.config.config_file import WorkflowTaskConfig, WorkflowTaskTestConfig
 
 
 def _order_structs(struct_typedefs):
@@ -117,6 +118,10 @@ def write_workflow(
         for task_input in main_task.inputs:
             f.write(f"\t\t{task_input}\n")
         f.write("\n")
+
+        ## TODO
+        # Issue: When removing an output from a task, if the wdl-ci.config.json file is not also updated to remove that output, the github action will fail with a KeyError when it tries to write the workflow for that changed task.
+        # Fix: We should check the config file and the outputs from the updated task and compare them, outputting a more useful error like "Expected output <> not found in task <>; has this output been removed?" and/or advice to remove this output from the wdl-ci.config.json.
 
         for output_key in output_tests:
             test_output_type = _get_output_type(main_task_output_types, output_key)
