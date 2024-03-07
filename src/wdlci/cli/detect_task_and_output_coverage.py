@@ -67,16 +67,16 @@ def detect_task_and_output_coverage_handler(kwargs):
 
         if tasks_without_tests and outputs_without_tests:
             print(
-                f"\nWARNING: The following tasks have no tests:\n{', '.join(tasks_without_tests)}\n\n"
+                f"[WARN]: The following tasks have no tests:\n{', '.join(tasks_without_tests)}\n\n"
                 + f"Additionally, the following outputs have no tests:\n{', '.join(outputs_without_tests)}\n\n"
             )
         elif tasks_without_tests:
             print(
-                f"\nWARNING: The following tasks have no tests:\n{', '.join(tasks_without_tests)}\n\n"
+                f"[WARN]: The following tasks have no tests:\n{', '.join(tasks_without_tests)}\n\n"
             )
         elif outputs_without_tests:
             print(
-                f"\nWARNING: The following outputs have no tests:\n{', '.join(outputs_without_tests)}\n\n"
+                f"[WARN]: The following outputs have no tests:\n{', '.join(outputs_without_tests)}\n\n"
             )
 
     except WdlTestCliExitException as e:
