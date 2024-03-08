@@ -7,6 +7,7 @@ from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 from wdlci.config import Config
 from wdlci.config.config_file import WorkflowTaskConfig, WorkflowTaskTestConfig
 
+
 def _order_structs(struct_typedefs):
     """
     Order struct_typedefs such that structs that are dependencies of other structs are written first
@@ -135,16 +136,19 @@ def write_workflow(
             f.write(f"\t\t{task_input}\n")
         f.write("\n")
 
-        filtered_output_tests = {key: output_tests[key] for key in output_tests if key in all_outputs}
+        filtered_output_tests = {
+            key: output_tests[key] for key in output_tests if key in all_outputs
+        }
 
         for output_key in output_tests.keys():
             if output_key not in filtered_output_tests.keys():
                 raise WdlTestCliExitException(
-                    f"Expected output {output_key} not found in task {main_task.name}; has this output been removed?\nIf so, you >
+                    f"Expected output {output_key} not found in task {main_task.name}; has this output been removed?\nIf so, you ill need to remove this output from the wdl-ci.config.json before proceeding.",
+                    1,
                 )
         # This is just a catch for now; can likely be removed once testing has been completed.
         for output_key in filtered_output_tests.keys():
-            print (f"{output_key} found in wdl-ci.config.json and {main_task.name}.")
+            print(f"{output_key} found in wdl-ci.config.json and {main_task.name}.")
 
         for output_key in output_tests:
             test_output_type = _get_output_type(main_task_output_types, output_key)
