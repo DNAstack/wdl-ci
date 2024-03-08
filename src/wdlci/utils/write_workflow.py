@@ -1,10 +1,11 @@
 import WDL
 import subprocess
+import re
 from pathlib import Path
 from importlib.resources import files
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
+from wdlci.config import Config
 from wdlci.config.config_file import WorkflowTaskConfig, WorkflowTaskTestConfig
-
 
 def _order_structs(struct_typedefs):
     """
@@ -95,6 +96,21 @@ def write_workflow(
         struct_typedefs ([WDL.Env.Binding]): structs imported by the main workflow; these will be available to the test task
         custom_test_dir (str): Path to a directory containing test WDL tasks; this directory will be checked for test tasks first
     """
+
+    # Create an instance of the config and create a list of all the outputs
+    config = Config.instance()
+    all_outputs = []
+    for workflow, workflow_config in config.file.workflows.items():
+        doc = WDL.load(workflow)
+        for task in doc.tasks:
+            task_outputs = task.outputs
+            file_name_pattern = r"\b\w+\s+(\S+)\s+="
+            for output in task_outputs:
+                output_str = str(output)
+                match = re.search(file_name_pattern, output_str)
+                if match:
+                    all_outputs.append(match.group(1))
+
     wdl_version = main_task.effective_wdl_version
 
     main_task_output_types = {output.name: output.type for output in main_task.outputs}
@@ -119,9 +135,16 @@ def write_workflow(
             f.write(f"\t\t{task_input}\n")
         f.write("\n")
 
-        ## TODO
-        # Issue: When removing an output from a task, if the wdl-ci.config.json file is not also updated to remove that output, the github action will fail with a KeyError when it tries to write the workflow for that changed task.
-        # Fix: We should check the config file and the outputs from the updated task and compare them, outputting a more useful error like "Expected output <> not found in task <>; has this output been removed?" and/or advice to remove this output from the wdl-ci.config.json.
+        filtered_output_tests = {key: output_tests[key] for key in output_tests if key in all_outputs}
+
+        for output_key in output_tests.keys():
+            if output_key not in filtered_output_tests.keys():
+                raise WdlTestCliExitException(
+                    f"Expected output {output_key} not found in task {main_task.name}; has this output been removed?\nIf so, you >
+                )
+        # This is just a catch for now; can likely be removed once testing has been completed.
+        for output_key in filtered_output_tests.keys():
+            print (f"{output_key} found in wdl-ci.config.json and {main_task.name}.")
 
         for output_key in output_tests:
             test_output_type = _get_output_type(main_task_output_types, output_key)
