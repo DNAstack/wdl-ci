@@ -98,25 +98,25 @@ def write_workflow(
         custom_test_dir (str): Path to a directory containing test WDL tasks; this directory will be checked for test tasks first
     """
 
-    # Create an instance of the config and create a list of all the outputs
+    # Create an instance of the config and create a list of all the missing outputs
     config = Config.instance()
     all_outputs = []
     output_file_name_pattern = re.compile(r"\b\w+\s+(\S+)\s+=")
+    missing_outputs_list = []
 
     for workflow, workflow_config in config.file.workflows.items():
         doc = WDL.load(workflow)
         for task in doc.tasks:
             task_outputs = task.outputs
-            output_filenames = [
+            all_outputs = [
                 match.group(1)
                 for output in task_outputs
                 if (match := output_file_name_pattern.search(str(output)))
             ]
-            all_outputs.append(output_filenames)
 
-    # Create a dictionary of outputs present in both the workflow and config file
-    filtered_output_tests = {
-        key: output_tests[key] for key in output_tests if key in all_outputs
+    # Create a dictionary of outputs absent from the workflow but present in the config JSON
+    missing_outputs_dict = {
+        key: output_tests[key] for key in output_tests if key not in all_outputs
     }
 
     wdl_version = main_task.effective_wdl_version
@@ -143,15 +143,14 @@ def write_workflow(
             f.write(f"\t\t{task_input}\n")
         f.write("\n")
 
-        for output_key in output_tests.keys():
-            if output_key not in filtered_output_tests.keys():
-                raise WdlTestCliExitException(
-                    f"Expected output {output_key} not found in task {main_task.name}; has this output been removed from the workflow?\nIf so, you will need to remove this output from the wdl-ci.config.json before proceeding.",
-                    1,
-                )
-        # This is just a catch for now; can likely be removed once testing has been completed.
-        for output_key in filtered_output_tests.keys():
-            print(f"{output_key} found in wdl-ci.config.json and {main_task.name}.")
+        for output_key in missing_outputs_dict.keys():
+            missing_outputs_list.append(output_key)
+
+        if missing_outputs_list:
+            raise WdlTestCliExitException(
+                f"Expected output(s): [{', '.join(missing_outputs_list)}] not found in task: {main_task.name}; has this output been removed from the workflow?\nIf so, you will need to remove this output from the wdl-ci.config.json before proceeding.",
+                1,
+            )
 
         for output_key in output_tests:
             test_output_type = _get_output_type(main_task_output_types, output_key)
