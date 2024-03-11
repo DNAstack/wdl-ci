@@ -101,16 +101,23 @@ def write_workflow(
     # Create an instance of the config and create a list of all the outputs
     config = Config.instance()
     all_outputs = []
+    output_file_name_pattern = re.compile(r"\b\w+\s+(\S+)\s+=")
+
     for workflow, workflow_config in config.file.workflows.items():
         doc = WDL.load(workflow)
         for task in doc.tasks:
             task_outputs = task.outputs
-            file_name_pattern = r"\b\w+\s+(\S+)\s+="
-            for output in task_outputs:
-                output_str = str(output)
-                match = re.search(file_name_pattern, output_str)
-                if match:
-                    all_outputs.append(match.group(1))
+            output_filenames = [
+                match.group(1)
+                for output in task_outputs
+                if (match := output_file_name_pattern.search(str(output)))
+            ]
+            all_outputs.append(output_filenames)
+
+    # Create a dictionary of outputs present in both the workflow and config file
+    filtered_output_tests = {
+        key: output_tests[key] for key in output_tests if key in all_outputs
+    }
 
     wdl_version = main_task.effective_wdl_version
 
@@ -136,14 +143,10 @@ def write_workflow(
             f.write(f"\t\t{task_input}\n")
         f.write("\n")
 
-        filtered_output_tests = {
-            key: output_tests[key] for key in output_tests if key in all_outputs
-        }
-
         for output_key in output_tests.keys():
             if output_key not in filtered_output_tests.keys():
                 raise WdlTestCliExitException(
-                    f"Expected output {output_key} not found in task {main_task.name}; has this output been removed?\nIf so, you ill need to remove this output from the wdl-ci.config.json before proceeding.",
+                    f"Expected output {output_key} not found in task {main_task.name}; has this output been removed from the workflow?\nIf so, you will need to remove this output from the wdl-ci.config.json before proceeding.",
                     1,
                 )
         # This is just a catch for now; can likely be removed once testing has been completed.
