@@ -108,11 +108,12 @@ def write_workflow(
         doc = WDL.load(workflow)
         for task in doc.tasks:
             task_outputs = task.outputs
-            all_outputs = [
+            outputs = [
                 match.group(1)
                 for output in task_outputs
                 if (match := output_file_name_pattern.search(str(output)))
             ]
+            all_outputs.extend(outputs)
 
     # Create a dictionary of outputs absent from the workflow but present in the config JSON
     missing_outputs_dict = {
