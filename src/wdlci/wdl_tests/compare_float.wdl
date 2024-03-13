@@ -15,10 +15,10 @@ task compare_float {
 			set -euo pipefail
 
 			err() {
-					message=$1
+				message=$1
 
-					echo -e "[ERROR] $message" >&2
-				}
+				echo -e "[ERROR] $message" >&2
+			}
 
 			if [[ "~{current_run_output}" != "~{validated_output}" ]]; then
 				err "Floats did not match:
