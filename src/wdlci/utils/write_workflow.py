@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 from importlib.resources import files
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
+import linecache
 
 
 def _order_structs(struct_typedefs):
@@ -246,10 +247,9 @@ def _write_task(doc_task, output_file):
         f.write("\n")
 
         ## Command
-        f.write("\tcommand <<<\n")
-        f.write(f"\t\t{doc_task.command}\n")
-        f.write("\t>>>\n")
-        f.write("\n")
+        command_pos = doc_task.command.pos
+        for line_no in range(command_pos.line, command_pos.end_line + 1):
+            f.write(linecache.getline(command_pos.abspath, line_no))
 
         ## Outputs
         f.write("\toutput {\n")
