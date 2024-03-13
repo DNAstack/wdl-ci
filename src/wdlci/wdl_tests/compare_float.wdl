@@ -3,31 +3,31 @@ version 1.0
 # Compare float values
 # Input type: Float
 
-task check_float {
+task compare_float {
 		input {
-				Float current_run_output
-				Float validated_output
+			Float current_run_output
+			Float validated_output
 		}
 
 		Int disk_size = 10
 
 		command <<<
-				set -euo pipefail
+			set -euo pipefail
 
-				err() {
-						message=$1
+			err() {
+					message=$1
 
-						echo -e "[ERROR] $message" >&2
+					echo -e "[ERROR] $message" >&2
 				}
 
-				if [[ "~{current_run_output}" != "~{validated_output}" ]]; then
-					err "Floats did not match:
-						Expected output: [~{validated_output}]
-						Current run output: [~{current_run_output}]"
-					exit 1
-				else
-					echo "Floats matched [~{validated_output}]"
-				fi
+			if [[ "~{current_run_output}" != "~{validated_output}" ]]; then
+				err "Floats did not match:
+					Expected output: [~{validated_output}]
+					Current run output: [~{current_run_output}]"
+				exit 1
+			else
+				echo "Floats matched [~{validated_output}]"
+			fi
 		>>>
 
 		output {
