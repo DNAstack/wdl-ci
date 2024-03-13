@@ -260,7 +260,7 @@ def _write_task(doc_task, output_file):
         if newline_children:
             for child in newline_children:
                 print(
-                    "\nWarning: it looks like a literal newline was present as a separator in "
+                    "\n[WARN]: it looks like a literal newline was present as a separator in "
                     "your command and may need to be escaped."
                 )
                 modified_child = str(child).replace("\n", "\\n")
