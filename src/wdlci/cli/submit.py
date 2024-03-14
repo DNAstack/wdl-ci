@@ -82,14 +82,14 @@ def submit_handler(kwargs):
                     # Register and create workflows for all tasks with tests
                     for test_index, test_input_set in enumerate(task.tests):
                         doc_main_task = doc_tasks[task_key]
-
+                        # Create list of workflow output names
                         for output in doc_main_task.outputs:
                             match = output_file_name_pattern.search(str(output))
                             if match:
                                 workflow_outputs.extend([match.group(1)])
 
                         output_tests = test_input_set.output_tests
-
+                        # Create dictionary of missing outputs
                         missing_outputs_dict = {
                             key: output_tests[key]
                             for key in output_tests
