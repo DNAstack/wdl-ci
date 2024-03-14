@@ -6,6 +6,7 @@ from importlib.resources import files
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 from wdlci.config import Config
 from wdlci.config.config_file import WorkflowTaskConfig, WorkflowTaskTestConfig
+import linecache
 
 
 def _order_structs(struct_typedefs):
@@ -281,35 +282,9 @@ def _write_task(doc_task, output_file):
         f.write("\n")
 
         ## Command
-        f.write("\tcommand <<<\n")
-        original_command = str(doc_task.command)
-        # Create list of task children and check if there is an instance
-        # of a newline character being used as a separator that will be interpreted literally
-        newline_children = [
-            c
-            for c in doc_task.command.children
-            if "\n" in str(c)
-            and "sep=" in str(c)
-            and str(c).index("sep=") < str(c).index("\n")
-        ]
-        if newline_children:
-            for child in newline_children:
-                print(
-                    "\nWarning: it looks like a literal newline was present as a separator in "
-                    "your command and may need to be escaped."
-                )
-                modified_child = str(child).replace("\n", "\\n")
-                modified_command = original_command.replace(str(child), modified_child)
-                print(
-                    "The literal newline was escaped and replaced with the literal '\\n' as:\n "
-                    f"{modified_command}\nIf this is not intended, escape the newline character in "
-                    "your workflow manually.\n"
-                )
-                f.write(f"\t\t{modified_command}\n")
-        else:
-            f.write(f"\t\t{original_command}\n")
-        f.write("\t>>>\n")
-        f.write("\n")
+        command_pos = doc_task.command.pos
+        for line_no in range(command_pos.line, command_pos.end_line + 1):
+            f.write(linecache.getline(command_pos.abspath, line_no))
 
         ## Outputs
         f.write("\toutput {\n")
