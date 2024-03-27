@@ -459,6 +459,29 @@ If a configuration file already exists, this will add workflows or tasks that do
 
 `wdl-ci generate-config [--remove]`
 
+## Calculate coverage
+
+Calculates percent coverage for each task and workflow. Task coverage is computed as the sum of task outputs with at least one test divided by the number of task outputs, while workflow coverage is computed as the sum of task outputs across all tasks with at least one test divided by the number of task outputs across all tasks. If there are any tasks or outputs with no tests, a warning is provided to the user, listing the relevant tasks/outputs.
+
+As long as an output is covered by one task, it is considered to be 100% covered, while if 3/4 outputs for a task have at least one test, that task has 75% test coverage.
+
+Example output:
+
+```
+workflowNameA coverage: 84%
+  taskA coverage: 75%
+  taskB coverage: 63%
+  taskC coverage: 100%
+  taskD coverage: 100%
+workflowNameB coverage: 100%
+  taskA coverage: 100%
+  taskB coverage: 100%
+...
+Total coverage across outputs and tasks among all workflows: 89%
+```
+
+`wdl-ci coverage`
+
 ## Lint workflows
 
 `wdl-ci lint`
