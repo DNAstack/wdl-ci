@@ -5,9 +5,7 @@ from wdlci.cli.detect_changes import detect_changes_handler
 from wdlci.cli.submit import submit_handler
 from wdlci.cli.monitor import monitor_handler
 from wdlci.cli.cleanup import cleanup_handler
-from wdlci.cli.detect_task_and_output_coverage import (
-    detect_task_and_output_coverage_handler,
-)
+from wdlci.cli.coverage import coverage_handler
 from wdlci.utils.ordered_group import OrderedGroup
 
 remove_option = click.option(
@@ -106,7 +104,7 @@ def cleanup(**kwargs):
 
 
 @main.command
-def detect_task_and_output_coverage(**kwargs):
-    """Outputs how much coverage each task and output has, and which tasks/outputs have no associated tests"""
+def coverage(**kwargs):
+    """Outputs percent coverage for each task and output, and which tasks/outputs have no associated tests"""
 
-    detect_task_and_output_coverage_handler(kwargs)
+    coverage_handler(kwargs)
