@@ -4,7 +4,6 @@ import sys
 import re
 
 from wdlci.config import Config
-from wdlci.config.config_file import WorkflowTaskConfig, WorkflowTaskTestConfig
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
 
 output_file_name_pattern = re.compile(r"(\b\w+\b)\s*=")
@@ -41,9 +40,10 @@ def coverage_handler(kwargs):
                         os.path.relpath(os.path.join(root_path, filename), cwd)
                     )
 
-        # Initialize counters/lists for total coverage
+        # Initialize counters/lists
         all_outputs = 0
         all_tests = []
+        untested_tasks = {}
         # Create a set of keys for the output_tests dictionary for faster lookup
         output_tests_keys = set(output_tests.keys())
 
@@ -76,21 +76,32 @@ def coverage_handler(kwargs):
                         task_tests.append(output.name)
                         workflow_tests.append(output.name)
                         all_tests.append(output.name)
-                # Check if task_outputs is non-zero
-                if task.outputs:
+                # Print task coverage for tasks with outputs and tests
+                if task.outputs and task_tests:
                     # Calculate and print the task coverage
                     task_coverage = (len(task_tests) / len(task.outputs)) * 100
-                    print(f"\ttask.{task.name}: {task_coverage:.2f}%")
-                if missing_config_outputs:
+                    print(f"task.{task.name}: {task_coverage:.2f}%")
+                # If there are outputs but no tests for the entire task, add the task to the untested_tasks list
+                elif task.outputs and not task_tests:
+                    if wdl_filename not in untested_tasks:
+                        untested_tasks[wdl_filename] = []
+                    untested_tasks[wdl_filename].append(task.name)
+                if missing_config_outputs and task_tests:
                     print(
                         f"\t[WARN]: Missing tests in wdl-ci.config.json for {missing_config_outputs} in task {task.name}"
                     )
+            # Print workflow coverage for tasks with outputs and tests
             if workflow_tests and workflow_outputs:
                 workflow_coverage = (len(workflow_tests) / workflow_outputs) * 100
+                print("-" * 75)
                 print(f"workflow: {wdl_filename}: {workflow_coverage:.2f}%\n")
-
+        # Warn the user about tasks that have no associated tests
+        for workflow, tasks in untested_tasks.items():
+            print(f"For {workflow}, these tasks are untested:")
+            for task in tasks:
+                print(f"\ttask")
         # Calculate and print the total coverage
-        if all_outputs:
+        if all_tests and all_outputs:
             total_coverage = (len(all_tests) / all_outputs) * 100
             print(f"\nTotal coverage: {total_coverage:.2f}%")
 
