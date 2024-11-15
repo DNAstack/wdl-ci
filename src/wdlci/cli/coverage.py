@@ -99,7 +99,7 @@ def coverage_handler(kwargs):
         for workflow, tasks in untested_tasks.items():
             print(f"For {workflow}, these tasks are untested:")
             for task in tasks:
-                print(f"\ttask")
+                print(f"\t{task}")
         # Calculate and print the total coverage
         if all_tests and all_outputs:
             total_coverage = (len(all_tests) / all_outputs) * 100
