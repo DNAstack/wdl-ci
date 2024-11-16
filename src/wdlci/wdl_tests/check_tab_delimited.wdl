@@ -21,7 +21,7 @@ task check_tab_delimited {
 		}
 
 		if gzip -t ~{current_run_output}; then
-			gzip -d ~{current_run_output} ~{validated_output}
+			gzip -d -f ~{current_run_output} ~{validated_output}
 		fi
 
 		# Dir path in input block vs. command block is different
