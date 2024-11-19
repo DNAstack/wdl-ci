@@ -15,7 +15,7 @@ If any step of the action fails, the check will fail; however if some task tests
 # GitHub action usage
 
 ```yaml
-- uses: dnastack/wdl-ci@v2.0.2
+- uses: dnastack/wdl-ci@v2.0.3
   with:
     # Configuration file where tests can be found
     # Default: wdl-ci.config.json
@@ -87,11 +87,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
       - name: wdl-ci
-        uses: dnastack/wdl-ci@v2.0.2
+        uses: dnastack/wdl-ci@v2.0.3
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
@@ -113,13 +113,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
       - name: wdl-ci
-        uses: dnastack/wdl-ci@v2.0.2
+        uses: dnastack/wdl-ci@v2.0.3
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}
@@ -143,13 +143,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
       - name: wdl-ci
-        uses: dnastack/wdl-ci@v2.0.2
+        uses: dnastack/wdl-ci@v2.0.3
         with:
           wallet-url: ${{ secrets.WALLET_URL }}
           wallet-client-id: ${{ secrets.WALLET_CLIENT_ID }}

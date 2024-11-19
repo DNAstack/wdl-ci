@@ -53,19 +53,19 @@ runs:
           echo "WDL_CI_CUSTOM_TEST_WDL_DIR"=${{ inputs.wdl-ci-custom-test-wdl-dir }} >> $GITHUB_ENV
         fi
     - name: lint
-      uses: docker://dnastack/wdl-ci:v2.0.2
+      uses: docker://dnastack/wdl-ci:v2.0.3
       with:
         args: lint ${{ inputs.suppress-lint-errors && '--suppress-lint-errors' || '' }}
     - name: detect-changes
-      uses: docker://dnastack/wdl-ci:v2.0.2
+      uses: docker://dnastack/wdl-ci:v2.0.3
       with:
         args: detect-changes
     - name: submit
-      uses: docker://dnastack/wdl-ci:v2.0.2
+      uses: docker://dnastack/wdl-ci:v2.0.3
       with:
         args: submit
     - name: monitor
-      uses: docker://dnastack/wdl-ci:v2.0.2
+      uses: docker://dnastack/wdl-ci:v2.0.3
       with:
         args: monitor --update-digests
       # If a test fails, still update task digests for any tests that succeeded
@@ -77,8 +77,9 @@ runs:
         add: ${{ inputs.config-file }}
         message: "update wdl-ci config file after successful tests"
         default_author: github_actions
+        fetch: false
     - name: cleanup
       if: always()
-      uses: docker://dnastack/wdl-ci:v2.0.2
+      uses: docker://dnastack/wdl-ci:v2.0.3
       with:
         args: cleanup
