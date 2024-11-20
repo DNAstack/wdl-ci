@@ -36,6 +36,9 @@ suppress_lint_errors_option = click.option(
 
 
 @click.group(cls=OrderedGroup)
+@click.version_option(
+    package_name="wdl-testing-cli", message="%(prog)s version:%(version)s"
+)
 def main():
     """Validate and test WDL workflows"""
 
