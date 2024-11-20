@@ -104,6 +104,7 @@ def submit_handler(kwargs):
                         try:
                             write_workflow(
                                 workflow_name,
+                                doc,
                                 doc_main_task,
                                 output_tests,
                                 test_key,
@@ -170,9 +171,9 @@ def submit_handler(kwargs):
                         output_test_val_hydrated = HydrateParams.hydrate(
                             source_params, output_test_val, update_key=False
                         )
-                        output_tests_hydrated[
-                            output_test_key_hydrated
-                        ] = output_test_val_hydrated
+                        output_tests_hydrated[output_test_key_hydrated] = (
+                            output_test_val_hydrated
+                        )
 
                     workflow_id = submission_state.workflows[test_key]._workflow_id
 
