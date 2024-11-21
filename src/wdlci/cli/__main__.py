@@ -35,6 +35,24 @@ suppress_lint_errors_option = click.option(
     help="Do not exit upon encountering a linting warning or error",
 )
 
+coverage_threshold = click.option(
+    "--coverage-threshold",
+    "-t",
+    type=float,
+    default=None,
+    show_default=True,
+    help="Maximum coverage percent threshold; any tasks or workflows with coverage above this threshold will not be displayed",
+)
+
+workflow_name = click.option(
+    "--workflow-name",
+    "-w",
+    type=str,
+    default=None,
+    show_default=True,
+    help="Workflow name to filter coverage results",
+)
+
 
 @click.group(cls=OrderedGroup)
 @click.version_option(
@@ -104,6 +122,8 @@ def cleanup(**kwargs):
 
 
 @main.command
+@coverage_threshold
+@workflow_name
 def coverage(**kwargs):
     """Outputs percent coverage for each task and output, and which tasks/outputs have no associated tests"""
 
