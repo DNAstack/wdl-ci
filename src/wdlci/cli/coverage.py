@@ -11,16 +11,15 @@ output_file_name_pattern = re.compile(r"(\b\w+\b)\s*=")
 
 def coverage_handler(kwargs):
     try:
-        """ """
         # Load the config file
         Config.load(kwargs)
         # Get the config instance
         config = Config.instance()
         output_tests = {}
         # Iterate over each workflow in the config file
-        for workflow_name, workflow_config in config.file.workflows.items():
+        for _, workflow_config in config.file.workflows.items():
             # Iterate over each task in the workflow
-            for task_name, task_config in workflow_config.tasks.items():
+            for _, task_config in workflow_config.tasks.items():
                 # Iterate over each test in the task
                 for test_config in task_config.tests:
                     # Iterate over each output in the test
@@ -28,7 +27,9 @@ def coverage_handler(kwargs):
                         # Add the output to the dictionary if it is not already present
                         if output not in output_tests:
                             output_tests[output] = []
-                        output_tests[output].append(test["test_tasks"])
+                        # Check if 'test_tasks' key exists in the test dictionary and is not empty and append to output_tests if present and not empty
+                        if "test_tasks" in test and test["test_tasks"]:
+                            output_tests[output].append(test["test_tasks"])
 
         # Load all WDL files in the directory
         cwd = os.getcwd()
@@ -44,6 +45,7 @@ def coverage_handler(kwargs):
         all_outputs = 0
         all_tests = []
         untested_tasks = {}
+        untested_optional_outputs = []
         # Create a set of keys for the output_tests dictionary for faster lookup
         output_tests_keys = set(output_tests.keys())
 
@@ -60,10 +62,14 @@ def coverage_handler(kwargs):
             for task in doc.tasks:
                 task_tests = []
                 # Create a list of outputs that are present in the task/worfklow but not in the config JSON using the output_tests dictionary
-                missing_config_outputs = [
+                missing_outputs = [
                     output_file_name_pattern.search(str(output)).group(1)
                     for output in task.outputs
-                    if output.name not in output_tests
+                    if output.name not in output_tests_keys
+                    or (
+                        output.name in output_tests_keys
+                        and not output_tests[output.name]
+                    )
                 ]
 
                 # Count the number of outputs for the task
@@ -72,10 +78,22 @@ def coverage_handler(kwargs):
 
                 # Check if there are tests for each output
                 for output in task.outputs:
-                    if output.name in output_tests_keys:
+                    if (
+                        output.name in output_tests_keys
+                        and output_tests[output.name] != []
+                    ):
                         task_tests.append(output.name)
                         workflow_tests.append(output.name)
                         all_tests.append(output.name)
+                    if (
+                        output.type.optional
+                        and output.name not in output_tests_keys
+                        or (
+                            output.name in output_tests_keys
+                            and output_tests[output.name] == []
+                        )
+                    ):
+                        untested_optional_outputs.append(output.name)
                 # Print task coverage for tasks with outputs and tests
                 if task.outputs and task_tests:
                     # Calculate and print the task coverage
@@ -86,20 +104,30 @@ def coverage_handler(kwargs):
                     if wdl_filename not in untested_tasks:
                         untested_tasks[wdl_filename] = []
                     untested_tasks[wdl_filename].append(task.name)
-                if missing_config_outputs and task_tests:
+                if missing_outputs and task_tests:
                     print(
-                        f"\t[WARN]: Missing tests in wdl-ci.config.json for {missing_config_outputs} in task {task.name}"
+                        f"\t[WARN]: Missing tests in wdl-ci.config.json for {missing_outputs} in task {task.name}"
                     )
             # Print workflow coverage for tasks with outputs and tests
             if workflow_tests and workflow_outputs:
                 workflow_coverage = (len(workflow_tests) / workflow_outputs) * 100
-                print("-" * 75)
+                print("-" * 150)
                 print(f"workflow: {wdl_filename}: {workflow_coverage:.2f}%\n")
+                ## TODO: Implement cutoff check for workflow coverage (e..g, adding sub-command/arg/flag for threshold; output any workflows with <80% coverage (and maybe even block merge if below a certain threshold), --workflow_name and just show me this one for example)
         # Warn the user about tasks that have no associated tests
+
+        print("-" * 150)
         for workflow, tasks in untested_tasks.items():
             print(f"For {workflow}, these tasks are untested:")
             for task in tasks:
                 print(f"\t{task}")
+        # Warn the user about optional outputs that are not tested
+        if untested_optional_outputs:
+            print(
+                f"\n[WARN]: These optional outputs are not tested: {untested_optional_outputs}"
+            )
+        else:
+            print("\n✓ All optional outputs are tested")
         # Calculate and print the total coverage
         if all_tests and all_outputs:
             total_coverage = (len(all_tests) / all_outputs) * 100
