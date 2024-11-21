@@ -10,6 +10,10 @@ output_file_name_pattern = re.compile(r"(\b\w+\b)\s*=")
 
 
 def coverage_handler(kwargs):
+    threshold = kwargs["coverage_threshold"]
+    workflow_name_filter = kwargs["workflow_name"]
+    print(f"Coverage threshold: ", threshold)
+    print(f"Workflow name filter: ", workflow_name_filter + "\n")
     try:
         # Load the config file
         Config.load(kwargs)
@@ -46,6 +50,11 @@ def coverage_handler(kwargs):
         all_tests = []
         untested_tasks = {}
         untested_optional_outputs = []
+        # Flags to track if any tasks/workflows are below the threshold and if any workflows match the filter
+        tasks_below_threshold = False
+        workflows_below_threshold = False
+        workflow_found = False
+
         # Create a set of keys for the output_tests dictionary for faster lookup
         output_tests_keys = set(output_tests.keys())
 
@@ -57,6 +66,11 @@ def coverage_handler(kwargs):
             wdl_filename = wdl_file.split("/")[-1]
             # Load the WDL document
             doc = WDL.load(wdl_file)
+
+            # If workflow_name_filter is provided, skip all other workflows
+            if workflow_name_filter and workflow_name_filter not in wdl_filename:
+                continue
+            workflow_found = True
 
             # Iterate over each task in the WDL document
             for task in doc.tasks:
@@ -98,7 +112,9 @@ def coverage_handler(kwargs):
                 if task.outputs and task_tests:
                     # Calculate and print the task coverage
                     task_coverage = (len(task_tests) / len(task.outputs)) * 100
-                    print(f"task.{task.name}: {task_coverage:.2f}%")
+                    if threshold is None or threshold and task_coverage < threshold:
+                        tasks_below_threshold = True
+                        print(f"task.{task.name}: {task_coverage:.2f}%")
                 # If there are outputs but no tests for the entire task, add the task to the untested_tasks list
                 elif task.outputs and not task_tests:
                     if wdl_filename not in untested_tasks:
@@ -111,12 +127,16 @@ def coverage_handler(kwargs):
             # Print workflow coverage for tasks with outputs and tests
             if workflow_tests and workflow_outputs:
                 workflow_coverage = (len(workflow_tests) / workflow_outputs) * 100
-                print("-" * 150)
-                print(f"workflow: {wdl_filename}: {workflow_coverage:.2f}%\n")
-                ## TODO: Implement cutoff check for workflow coverage (e..g, adding sub-command/arg/flag for threshold; output any workflows with <80% coverage (and maybe even block merge if below a certain threshold), --workflow_name and just show me this one for example)
+                if threshold is None or threshold and workflow_coverage < threshold:
+                    print("-" * 150)
+                    workflows_below_threshold = True
+                    print(f"workflow: {wdl_filename}: {workflow_coverage:.2f}%")
         # Warn the user about tasks that have no associated tests
-
         print("-" * 150)
+        # Inform the user if no workflows matched the filter
+        if workflow_name_filter and not workflow_found:
+            print(f"\nNo workflows found matching the filter: {workflow_name_filter}")
+            sys.exit(0)
         for workflow, tasks in untested_tasks.items():
             print(f"For {workflow}, these tasks are untested:")
             for task in tasks:
@@ -128,6 +148,13 @@ def coverage_handler(kwargs):
             )
         else:
             print("\n✓ All optional outputs are tested")
+
+        # Print a warning if any tasks or workflows are below the threshold
+        if not tasks_below_threshold:
+            print("\n✓ All tasks exceed the specified coverage threshold.")
+        if not workflows_below_threshold:
+            print("\n✓ All workflows exceed the specified coverage threshold.")
+
         # Calculate and print the total coverage
         if all_tests and all_outputs:
             total_coverage = (len(all_tests) / all_outputs) * 100
