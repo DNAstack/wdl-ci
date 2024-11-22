@@ -163,13 +163,14 @@ def coverage_handler(kwargs):
             )
         else:
             print("\n✓ All optional outputs are tested")
-        # Warn the user about optional inputs that are not tested
-        if untested_optional_inputs:
-            print(
-                f"\n[WARN]: These optional inputs are not used in any tests: {untested_optional_inputs}"
-            )
-        else:
-            print("\n✓ All optional inputs are tested")
+        ## TODO: We don't really care if optional inputs are used or not; what we need to measure is if there is a test that covered running that task with the optional input and without it
+        # # Warn the user about optional inputs that are not tested
+        # if untested_optional_inputs:
+        #     print(
+        #         f"\n[WARN]: These optional inputs are not used in any tests: {untested_optional_inputs}"
+        #     )
+        # else:
+        #     print("\n✓ All optional inputs are tested")
         # Print a warning if any tasks or workflows are below the threshold
         if not tasks_below_threshold:
             print("\n✓ All tasks exceed the specified coverage threshold.")
