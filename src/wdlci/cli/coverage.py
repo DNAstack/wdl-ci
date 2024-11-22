@@ -13,7 +13,10 @@ def coverage_handler(kwargs):
     threshold = kwargs["coverage_threshold"]
     workflow_name_filter = kwargs["workflow_name"]
     print(f"Coverage threshold: ", threshold)
-    print(f"Workflow name filter: ", workflow_name_filter + "\n")
+    if workflow_name_filter:
+        print(f"Workflow name filter: {workflow_name_filter}\n")
+    else:
+        print("Workflow name filter: None\n")
     try:
         # Load the config file
         Config.load(kwargs)
@@ -131,12 +134,12 @@ def coverage_handler(kwargs):
                     print("-" * 150)
                     workflows_below_threshold = True
                     print(f"workflow: {wdl_filename}: {workflow_coverage:.2f}%")
-        # Warn the user about tasks that have no associated tests
-        print("-" * 150)
+                    print("-" * 150 + "\n")
         # Inform the user if no workflows matched the filter
         if workflow_name_filter and not workflow_found:
             print(f"\nNo workflows found matching the filter: {workflow_name_filter}")
             sys.exit(0)
+        # Warn the user about tasks that have no associated tests
         for workflow, tasks in untested_tasks.items():
             print(f"For {workflow}, these tasks are untested:")
             for task in tasks:
