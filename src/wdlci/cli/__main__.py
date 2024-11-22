@@ -5,6 +5,7 @@ from wdlci.cli.detect_changes import detect_changes_handler
 from wdlci.cli.submit import submit_handler
 from wdlci.cli.monitor import monitor_handler
 from wdlci.cli.cleanup import cleanup_handler
+from wdlci.cli.coverage import coverage_handler
 from wdlci.utils.ordered_group import OrderedGroup
 
 remove_option = click.option(
@@ -34,8 +35,29 @@ suppress_lint_errors_option = click.option(
     help="Do not exit upon encountering a linting warning or error",
 )
 
+coverage_threshold = click.option(
+    "--coverage-threshold",
+    "-t",
+    type=float,
+    default=None,
+    show_default=True,
+    help="Maximum coverage percent threshold; any tasks or workflows with coverage above this threshold will not be displayed",
+)
+
+workflow_name = click.option(
+    "--workflow-name",
+    "-w",
+    type=str,
+    default=None,
+    show_default=True,
+    help="Workflow name to filter coverage results",
+)
+
 
 @click.group(cls=OrderedGroup)
+@click.version_option(
+    package_name="wdl-testing-cli", message="%(prog)s version:%(version)s"
+)
 def main():
     """Validate and test WDL workflows"""
 
@@ -97,3 +119,12 @@ def cleanup(**kwargs):
     """Clean Workbench namespace of transient artifacts"""
 
     cleanup_handler(kwargs)
+
+
+@main.command
+@coverage_threshold
+@workflow_name
+def coverage(**kwargs):
+    """Outputs percent coverage for each task and output, and which tasks/outputs have no associated tests"""
+
+    coverage_handler(kwargs)

@@ -24,7 +24,10 @@ def detect_changes_handler(kwargs):
 
                 if task_name in workflow_config.tasks:
                     previous_digest = workflow_config.tasks[task_name].digest
-                    if previous_digest != task_digest:
+                    if (
+                        previous_digest != task_digest
+                        and workflow_config.tasks[task_name].tests
+                    ):
                         print(f"Task change detected [{workflow} - {task_name}]")
                         workflow_change = changeset.add_workflow_change(workflow)
                         workflow_change.add_task_change(task_name)
