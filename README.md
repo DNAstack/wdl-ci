@@ -462,7 +462,7 @@ If a configuration file already exists, this will add workflows or tasks that do
 
 ## Calculate coverage
 
-Calculates percent coverage for each task and workflow. Task coverage is computed as the sum of task outputs with at least one test divided by the number of task outputs, while workflow coverage is computed as the sum of task outputs across all tasks with at least one test divided by the number of task outputs across all tasks. If there are any tasks or outputs with no tests, a warning is provided to the user, listing the relevant tasks/outputs.
+Calculates percent coverage for each task and workflow. Task coverage is computed as the sum of task outputs with at least one test divided by the number of task outputs, while workflow coverage is computed as the sum of task outputs across all tasks with at least one test divided by the number of task outputs across all tasks within a given workflow. Total coverage is also computed, as the total number of outputs with tests defined divided by the number of total outputs across all workflows. If there are any tasks or outputs with no tests, a warning is provided to the user, listing the relevant outputs and associated tasks.
 
 As long as an output is covered by one task, it is considered to be 100% covered, while if 3/4 outputs for a task have at least one test, that task has 75% test coverage.
 
@@ -481,9 +481,7 @@ workflowNameB coverage: 100%
 Total coverage across outputs and tasks among all workflows: 89%
 ```
 
-`wdl-ci coverage`
-
-`wdl-ci coverage` can be run with additional options to filter results and set thresholds. The `--workflow-name` option takes a float percent value and allows you to specify a workflow name to filter the results, showing only the coverage for that specific workflow. The `--coverage-threshold` option allows you to set a threshold percentage; only tasks and workflows with coverage below this threshold will be displayed. If no workflows match the specified filter, a message will be printed to inform the user. Additionally, if all optional outputs are tested, a confirmation message will be displayed.
+`wdl-ci coverage` can be run with additional options to filter results and set thresholds. The `--workflow-name` option allows the user to specify a workflow name to filter the results, showing only the coverage for that specific workflow. The `--coverage-threshold` option takes a float percent value and allows the user to set a threshold percentage; only tasks and workflows with coverage below this threshold will be displayed. If no tasks/workflows match the specified filter, a message will be printed to inform the user. Additionally, if all optional outputs are tested, a confirmation message will be displayed.
 
 `wdl-ci coverage --workflow-name <workflow_name> --coverage-threshold <threshold>`
 
