@@ -129,6 +129,7 @@ def submit_handler(kwargs):
                         try:
                             write_workflow(
                                 workflow_name,
+                                doc,
                                 doc_main_task,
                                 output_tests,
                                 test_key,

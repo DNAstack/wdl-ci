@@ -25,7 +25,7 @@ task count_bed_columns {
 		current_dir_path=$(dirname ~{current_run_output})
 
 		if gzip -t ~{current_run_output}; then
-			gzip -d ~{current_run_output} ~{validated_output}
+			gzip -d -f ~{current_run_output} ~{validated_output}
 			# Assuming header does not start with chr...
 			current_run_output_column_count=$(sed '/^chr/!d' "${current_dir_path}/$(basename ~{current_run_output} .gz)" | awk '{print NF}' | sort -nu | tail -n 1)
 			validated_output_column_count=$(sed '/^chr/!d' "${validated_dir_path}/$(basename ~{validated_output} .gz)" | awk '{print NF}' | sort -nu | tail -n 1)

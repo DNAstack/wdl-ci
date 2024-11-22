@@ -78,6 +78,7 @@ def _get_output_type(main_task_output_types, output_key):
 
 def write_workflow(
     workflow_name,
+    main_doc,
     main_task,
     output_tests,
     output_file,
@@ -88,6 +89,7 @@ def write_workflow(
     Write a workflow out to a file
     Args:
         workflow_name (str): Name of the test workflow being generated (workflow entrypoint)
+        main_doc (WDL.Tree.Document): Document from which the main task originated
         main_task (WDL.Tree.Task): Task to be tested
         output_tests ({output_name: {"value": output_value, "tasks": ["task0", "task1", "task2"]}}):
             Array of validated outputs and the test tasks to apply to them.
@@ -173,7 +175,7 @@ def write_workflow(
                 except:
                     subprocess.run(["miniwdl", "check", str(test_wdl)])
                     raise WdlTestCliExitException(f"Invalid test task [{test_wdl}]", 1)
-                test_tasks[test_task_key] = test_task_doc
+                test_tasks[test_task_key] = {"task": test_task_doc, "doc": test_doc}
 
                 f.write(
                     f"{scatter_indent}\tcall {test_task_doc.name} as {test_task_key} {{\n"
@@ -198,8 +200,8 @@ def write_workflow(
 
         ## Outputs
         f.write("\n\toutput {\n")
-        for test_task_key, test_task_doc in test_tasks.items():
-            for task_output in test_task_doc.outputs:
+        for test_task_key, task_info in test_tasks.items():
+            for task_output in task_info["task"].outputs:
                 f.write(
                     f"\t\t{task_output.type} {test_task_key}_{task_output.name} = {test_task_key}.{task_output.name}\n"
                 )
@@ -209,12 +211,14 @@ def write_workflow(
         f.write("}\n")
         f.write("\n")
 
-    _write_task(main_task, output_file)
+    _write_task(main_doc, main_task, output_file)
     tasks_written = list()
-    for test_task_doc in test_tasks.values():
-        if test_task_doc.name not in tasks_written:
-            _write_task(test_task_doc, output_file)
-            tasks_written.append(test_task_doc.name)
+    for task_info in test_tasks.values():
+        test_doc = task_info["doc"]
+        test_task = task_info["task"]
+        if test_task.name not in tasks_written:
+            _write_task(test_doc, test_task, output_file)
+            tasks_written.append(test_task.name)
 
     # Ensure the workflow is valid
     try:
@@ -225,43 +229,48 @@ def write_workflow(
         )
 
 
-def _write_task(doc_task, output_file):
+def _write_task(doc, task, output_file):
     """
     Write a task out to a file
     Args:
-        doc_task (WDL.Tree.Task): task to write
+        doc (WDL.Tree.Document): Document containing task to write
+        task (WDL.Tree.Task): task to write
         output_file (str): Path to file to write task to
     """
     with open(output_file, "a") as f:
-        f.write(f"task {doc_task.name} {{\n")
+        f.write(f"task {task.name} {{\n")
 
         ## Inputs
         f.write("\tinput " + "{\n")
-        for task_input in doc_task.inputs:
+        for task_input in task.inputs:
             f.write(f"\t\t{task_input}\n")
         f.write("\t}\n")
         f.write("\n")
 
         ## Post inputs
-        for post_input in doc_task.postinputs:
+        for post_input in task.postinputs:
             f.write(f"\t{post_input}\n")
         f.write("\n")
 
         ## Command
-        command_pos = doc_task.command.pos
-        for line_no in range(command_pos.line, command_pos.end_line + 1):
-            f.write(linecache.getline(command_pos.abspath, line_no))
+        f.write("\tcommand <<<\n")
+        task_cmd_start = task.command.pos.line
+        task_cmd_end = task.command.pos.end_line - 1
+        for line in doc.source_lines[task_cmd_start:task_cmd_end]:
+            f.write(f"{line}\n")
+        f.write("\t>>>\n")
+        f.write("\n")
 
         ## Outputs
         f.write("\toutput {\n")
-        for task_output in doc_task.outputs:
+        for task_output in task.outputs:
             f.write(f"\t\t{task_output}\n")
         f.write("\t}\n")
         f.write("\n")
 
         ## Runtime
         f.write("\truntime {\n")
-        for runtime_key, runtime_value in doc_task.runtime.items():
+        for runtime_key, runtime_value in task.runtime.items():
             f.write(f"\t\t{runtime_key}: {runtime_value}\n")
         f.write("\t}\n")
 
