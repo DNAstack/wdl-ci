@@ -1,6 +1,6 @@
 version 1.0
 
-# Validate and compare input Array[Array[String]] types
+# Check if two arrays of arrays of strings are identical by comparing the flattened arrays
 # Input type: Array[Array[String]]
 
 task validate_and_compare_pbsv_splits {
