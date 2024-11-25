@@ -23,17 +23,12 @@ def coverage_handler(kwargs):
         # Get the config instance
         config = Config.instance()
         output_tests = {}
-        covered_inputs = set()
         # Iterate over each workflow in the config file
         for _, workflow_config in config.file.workflows.items():
             # Iterate over each task in the workflow
             for _, task_config in workflow_config.tasks.items():
                 # Iterate over each test in the task
                 for test_config in task_config.tests:
-                    # Iterate over each input in the test
-                    for input in test_config.inputs:
-                        # Add the input to the set
-                        covered_inputs.add(input)
                     # Iterate over each output in the test
                     for output, test in test_config.output_tests.items():
                         # Add the output to the dictionary if it is not already present
@@ -57,7 +52,6 @@ def coverage_handler(kwargs):
         all_outputs = 0
         all_tests = []
         untested_tasks = {}
-        untested_optional_inputs = set()
         # Use a set to avoid duplicate entries
         untested_optional_outputs = []
         # Flags to track if any tasks/workflows are below the threshold and if any workflows match the filter
@@ -134,10 +128,6 @@ def coverage_handler(kwargs):
                     print(
                         f"\t[WARN]: Missing tests in wdl-ci.config.json for {missing_outputs} in task {task.name}"
                     )
-                # Check if all optional inputs are covered
-                for input in task.inputs:
-                    if input.type.optional and input.name not in covered_inputs:
-                        untested_optional_inputs.add(input.name)
 
             # Print workflow coverage for tasks with outputs and tests
             if workflow_tests and workflow_outputs:
@@ -163,7 +153,7 @@ def coverage_handler(kwargs):
             )
         else:
             print("\n✓ All optional outputs are tested")
-        ## TODO: We don't really care if optional inputs are used or not; what we need to measure is if there is a test that covered running that task with the optional input and without it
+        ## TODO: Measure is if there is a test that covered running that task with the optional input and without it
         # # Warn the user about optional inputs that are not tested
         # if untested_optional_inputs:
         #     print(
