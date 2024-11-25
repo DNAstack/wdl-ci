@@ -7,7 +7,6 @@ RUN apt-get -qq update \
 		xz-utils \
 		gcc
 
-# Set all ENV variables
 ENV SHELLCHECK_VERSION=v0.10.0 \
   PIP_VERSION=24.3.1 \
   CLICK_VERSION=8.1.7 \
