@@ -481,9 +481,9 @@ workflowNameB coverage: 100%
 Total coverage across outputs and tasks among all workflows: 89%
 ```
 
-`wdl-ci coverage` can be run with additional options to filter results and set thresholds. The `--workflow-name` option allows the user to specify a workflow name to filter the results, showing only the coverage for that specific workflow. The `--coverage-threshold` option takes a float percent value and allows the user to set a threshold percentage; only tasks and workflows with coverage below this threshold will be displayed. If no tasks/workflows match the specified filter, a message will be printed to inform the user. Additionally, if all optional outputs are tested, a confirmation message will be displayed.
+`wdl-ci coverage` can be run with additional options to filter results and set thresholds. The `--workflow-name` option allows the user to specify a workflow name to filter the results, showing only the coverage for that specific workflow. The `--target-coverage` option takes a float percent value and allows the user to set a threshold percentage; only tasks and workflows with coverage below this threshold will be displayed. If no tasks/workflows match the specified filter, a message will be printed to inform the user. Additionally, if all optional outputs are tested, a confirmation message will be displayed.
 
-`wdl-ci coverage --workflow-name <workflow_name> --coverage-threshold <threshold>`
+`wdl-ci coverage --workflow-name <workflow_name> --target-coverage <threshold>`
 
 ## Lint workflows
 
