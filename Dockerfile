@@ -19,8 +19,6 @@ COPY pyproject.toml pyproject.toml
 COPY src src
 
 RUN python -m pip install --upgrade pip
-RUN python -m pip install --upgrade psutil
-RUN python -m pip install --upgrade click dnastack-client-library jsonpickle miniwdl requests
 RUN python -m pip install .
 
 WORKDIR /usr/test
