@@ -10,9 +10,9 @@ output_file_name_pattern = re.compile(r"(\b\w+\b)\s*=")
 
 
 def coverage_handler(kwargs):
-    threshold = kwargs["coverage_threshold"]
+    threshold = kwargs["target_coverage"]
     workflow_name_filter = kwargs["workflow_name"]
-    print(f"Coverage threshold: ", threshold)
+    print(f"Target coverage threshold: ", threshold)
     if workflow_name_filter:
         print(f"Workflow name filter: {workflow_name_filter}\n")
     else:
