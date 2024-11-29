@@ -3,8 +3,6 @@ import subprocess
 from pathlib import Path
 from importlib.resources import files
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
-from wdlci.config.config_file import WorkflowTaskConfig, WorkflowTaskTestConfig
-import linecache
 
 
 def _order_structs(struct_typedefs):
