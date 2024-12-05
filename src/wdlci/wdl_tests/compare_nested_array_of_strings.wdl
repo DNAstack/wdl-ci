@@ -1,6 +1,6 @@
 version 1.0
 
-# Check if two arrays of arrays of strings are identical by writing a TSV file of the data structure
+# Check if two nested arrays of strings are identical by writing a TSV file of the data structure
 # Input type: Array[Array[String]]
 
 task compare_array_array_strings {
