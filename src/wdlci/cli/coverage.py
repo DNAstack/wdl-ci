@@ -112,7 +112,7 @@ def coverage_handler(kwargs):
                 if len(task.outputs) > 0 and len(task_tests) > 0:
                     # Calculate and print the task coverage
                     task_coverage = (len(task_tests) / len(task.outputs)) * 100
-                    if threshold is None and task_coverage < threshold:
+                    if threshold is None or task_coverage < threshold:
                         tasks_below_threshold = True
                         print(f"task.{task.name}: {task_coverage:.2f}%")
                 # If there are outputs but no tests for the entire task, add the task to the untested_tasks list
@@ -128,7 +128,7 @@ def coverage_handler(kwargs):
             # Print workflow coverage for tasks with outputs and tests
             if len(workflow_tests) > 0 and len(workflow_outputs) > 0:
                 workflow_coverage = (len(workflow_tests) / workflow_outputs) * 100
-                if threshold is None and workflow_coverage < threshold:
+                if threshold is None or workflow_coverage < threshold:
                     print("-" * 150)
                     workflows_below_threshold = True
                     print(f"workflow: {wdl_filename}: {workflow_coverage:.2f}%")
