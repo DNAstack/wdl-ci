@@ -112,29 +112,29 @@ def coverage_handler(kwargs):
                 if len(task.outputs) > 0 and len(task_tests) > 0:
                     # Calculate and print the task coverage
                     task_coverage = (len(task_tests) / len(task.outputs)) * 100
-                    if threshold is None or threshold and task_coverage < threshold:
+                    if threshold is None and task_coverage < threshold:
                         tasks_below_threshold = True
                         print(f"task.{task.name}: {task_coverage:.2f}%")
                 # If there are outputs but no tests for the entire task, add the task to the untested_tasks list
-                elif task.outputs and not task_tests:
+                elif len(task.outputs) > 0 and not task_tests:
                     if wdl_filename not in untested_tasks:
                         untested_tasks[wdl_filename] = []
                     untested_tasks[wdl_filename].append(task.name)
-                if missing_outputs and task_tests:
+                if len(missing_outputs) > 0 and len(task_tests) > 0:
                     print(
                         f"\t[WARN]: Missing tests in wdl-ci.config.json for {missing_outputs} in task {task.name}"
                     )
 
             # Print workflow coverage for tasks with outputs and tests
-            if workflow_tests and workflow_outputs:
+            if len(workflow_tests) > 0 and len(workflow_outputs) > 0:
                 workflow_coverage = (len(workflow_tests) / workflow_outputs) * 100
-                if threshold is None or threshold and workflow_coverage < threshold:
+                if threshold is None and workflow_coverage < threshold:
                     print("-" * 150)
                     workflows_below_threshold = True
                     print(f"workflow: {wdl_filename}: {workflow_coverage:.2f}%")
                     print("-" * 150 + "\n")
         # Inform the user if no workflows matched the filter
-        if workflow_name_filter and not workflow_found:
+        if workflow_name_filter is not None and not workflow_found:
             print(f"\nNo workflows found matching the filter: {workflow_name_filter}")
             sys.exit(0)
         # Warn the user about tasks that have no associated tests
@@ -143,7 +143,7 @@ def coverage_handler(kwargs):
             for task in tasks:
                 print(f"\t{task}")
         # Warn the user about optional outputs that are not tested
-        if untested_optional_outputs:
+        if len(untested_optional_outputs) > 0:
             print(
                 f"\n[WARN]: These optional outputs are not tested: {untested_optional_outputs}"
             )
@@ -164,7 +164,7 @@ def coverage_handler(kwargs):
             print("\n✓ All workflows exceed the specified coverage threshold.")
 
         # Calculate and print the total coverage
-        if all_tests and all_outputs:
+        if len(all_tests) > 0 and len(all_outputs) > 0:
             total_coverage = (len(all_tests) / all_outputs) * 100
             print(f"\nTotal coverage: {total_coverage:.2f}%")
 
