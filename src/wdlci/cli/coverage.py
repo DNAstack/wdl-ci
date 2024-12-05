@@ -52,15 +52,11 @@ def coverage_handler(kwargs):
         all_outputs = 0
         all_tests = []
         untested_tasks = {}
-        # Use a set to avoid duplicate entries
         untested_optional_outputs = []
         # Flags to track if any tasks/workflows are below the threshold and if any workflows match the filter
         tasks_below_threshold = False
         workflows_below_threshold = False
         workflow_found = False
-
-        # Create a set of keys for the output_tests dictionary for faster lookup
-        output_tests_keys = set(output_tests.keys())
 
         # Iterate over each WDL file
         for wdl_file in wdl_files:
@@ -83,9 +79,9 @@ def coverage_handler(kwargs):
                 missing_outputs = [
                     output_file_name_pattern.search(str(output)).group(1)
                     for output in task.outputs
-                    if output.name not in output_tests_keys
+                    if output.name not in output_tests.keys()
                     or (
-                        output.name in output_tests_keys
+                        output.name in output_tests.keys()
                         and not output_tests[output.name]
                     )
                 ]
@@ -97,7 +93,7 @@ def coverage_handler(kwargs):
                 # Check if there are tests for each output
                 for output in task.outputs:
                     if (
-                        output.name in output_tests_keys
+                        output.name in output_tests.keys()
                         and output_tests[output.name] != []
                     ):
                         task_tests.append(output.name)
@@ -105,15 +101,15 @@ def coverage_handler(kwargs):
                         all_tests.append(output.name)
                     if (
                         output.type.optional
-                        and output.name not in output_tests_keys
+                        and output.name not in output_tests.keys()
                         or (
-                            output.name in output_tests_keys
+                            output.name in output_tests.keys()
                             and output_tests[output.name] == []
                         )
                     ):
                         untested_optional_outputs.append(output.name)
                 # Print task coverage for tasks with outputs and tests
-                if task.outputs and task_tests:
+                if len(task.outputs) > 0 and len(task_tests) > 0:
                     # Calculate and print the task coverage
                     task_coverage = (len(task_tests) / len(task.outputs)) * 100
                     if threshold is None or threshold and task_coverage < threshold:
