@@ -1,21 +1,15 @@
 version 1.0
 
-# Check if two arrays of arrays of strings are identical by comparing the flattened arrays
+# Check if two arrays of arrays of strings are identical by writing a TSV file of the data structure
 # Input type: Array[Array[String]]
 
-task validate_and_compare_pbsv_splits {
+task compare_array_array_strings {
     input {
         Array[Array[String]] current_run_output
         Array[Array[String]] validated_output
     }
 
     Int disk_size = 10
-
-    File current_lines_file = write_lines(flatten(current_run_output))
-    File validated_lines_file = write_lines(flatten(validated_output))
-
-    Array[String] current_lines = flatten(current_run_output)
-    Array[String] validated_lines = flatten(validated_output)
 
     command <<<
         set -euo pipefail
@@ -25,16 +19,12 @@ task validate_and_compare_pbsv_splits {
             echo -e "[ERROR] $message" >&2
         }
 
-        # Compare the flattened arrays
-        if ! diff -q "~{current_lines_file}" "~{validated_lines_file}"; then
-            err "Flattened arrays are not identical. Differences found:
-                    Expected output: [~{sep="," current_lines}]
-                    Current run output: [~{sep="," validated_lines}]"
-            exit 1
+        if diff -q ~{write_tsv(current_run_output)} ~{write_tsv(validated_output)}; then
+            echo "Nested array of strings are identical."
         else
-            echo "Flattened arrays matched: ~{sep="," validated_lines}"
+            err "Nested array of strings not identical."
+            exit 1
         fi
-
     >>>
 
     output {
