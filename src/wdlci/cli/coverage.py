@@ -41,7 +41,7 @@ def coverage_handler(kwargs):
         # Load all WDL files in the directory
         cwd = os.getcwd()
         wdl_files = []
-        for root_path, subfolders, filenames in os.walk(cwd):
+        for root_path, _, filenames in os.walk(cwd):
             for filename in filenames:
                 if filename.endswith(".wdl"):
                     wdl_files.append(
@@ -92,19 +92,18 @@ def coverage_handler(kwargs):
 
                 # Check if there are tests for each output
                 for output in task.outputs:
-                    if (
-                        output.name in output_tests.keys()
-                        and output_tests[output.name] != []
+                    if output.name in output_tests.keys() and len(
+                        output_tests[output.name] > 0
                     ):
                         task_tests.append(output.name)
                         workflow_tests.append(output.name)
                         all_tests.append(output.name)
-                    if (
+                    elif (
                         output.type.optional
                         and output.name not in output_tests.keys()
                         or (
                             output.name in output_tests.keys()
-                            and output_tests[output.name] == []
+                            and len(output_tests[output.name]) == 0
                         )
                     ):
                         untested_optional_outputs.append(output.name)
@@ -116,7 +115,9 @@ def coverage_handler(kwargs):
                         tasks_below_threshold = True
                         print(f"task.{task.name}: {task_coverage:.2f}%")
                 # If there are outputs but no tests for the entire task, add the task to the untested_tasks list
-                elif len(task.outputs) > 0 and not task_tests:
+                elif (
+                    len(task.outputs) > 0 and not task_tests
+                ):  # Consider building this into the above so that we can incorporate untested tasks into the threshold check/statement returned to user
                     if wdl_filename not in untested_tasks:
                         untested_tasks[wdl_filename] = []
                     untested_tasks[wdl_filename].append(task.name)
@@ -158,9 +159,11 @@ def coverage_handler(kwargs):
         # else:
         #     print("\n✓ All optional inputs are tested")
         # Print a warning if any tasks or workflows are below the threshold
-        if not tasks_below_threshold:
-            print("\n✓ All tasks exceed the specified coverage threshold.")
-        if not workflows_below_threshold:
+        if tasks_below_threshold is False:
+            print(
+                "\n✓ All tasks with a non-zero number of tests exceed the specified coverage threshold."
+            )  ## TODO: Decide if we prefer here to specify in the print statement that untested tasks are not included, or add to the if statement to include untested tasks. expect to return if any tasks are completely untested - do see if any test has 0 coverage but also include an option to SKIP COMPLETELY UNTESTED. First step here is that untested tests DO NOT Meet the threshold --> include those in the output
+        if workflows_below_threshold is False:
             print("\n✓ All workflows exceed the specified coverage threshold.")
 
         # Calculate and print the total coverage
