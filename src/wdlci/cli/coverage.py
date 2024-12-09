@@ -4,6 +4,7 @@ import sys
 
 from wdlci.config import Config
 from wdlci.exception.wdl_test_cli_exit_exception import WdlTestCliExitException
+from wdlci.utils.initialize_worklows_and_tasks import find_wdl_files
 
 # TODO: add structure of all dicts as comments for clarity once dev is complete e.g., # {wdl_file_name: [task_name]}
 
@@ -74,15 +75,7 @@ def coverage_handler(kwargs):
                             )
 
         # Load all WDL files in the directory
-        ## TODO: Since this is used in generate_config, let's make it a function that both coverage and generate_config import and use to discover wdl files in a directory (a good place to store it is in utils).
-        cwd = os.getcwd()
-        wdl_files = []
-        for root_path, _, filenames in os.walk(cwd):
-            for filename in filenames:
-                if filename.endswith(".wdl"):
-                    wdl_files.append(
-                        os.path.relpath(os.path.join(root_path, filename), cwd)
-                    )
+        wdl_files = find_wdl_files()
         # Initialize counters/lists
         # total_output_count = 0
         # all_tests = []
