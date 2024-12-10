@@ -50,7 +50,7 @@ workflow_name = click.option(
     type=str,
     default=None,
     show_default=True,
-    help="Workflow file name to filter coverage results",
+    help="Name of the workflow to filter coverage results (not file name)",
 )
 
 
