@@ -5,6 +5,7 @@ from wdlci.cli.detect_changes import detect_changes_handler
 from wdlci.cli.submit import submit_handler
 from wdlci.cli.monitor import monitor_handler
 from wdlci.cli.cleanup import cleanup_handler
+from wdlci.cli.coverage import coverage_handler
 from wdlci.utils.ordered_group import OrderedGroup
 
 remove_option = click.option(
@@ -32,6 +33,24 @@ suppress_lint_errors_option = click.option(
     default=False,
     show_default=True,
     help="Do not exit upon encountering a linting warning or error",
+)
+
+target_coverage = click.option(
+    "--target-coverage",
+    "-t",
+    type=float,
+    default=None,
+    show_default=True,
+    help="Target coverage (%); only output tasks or workflows with test coverage below this threshold",
+)
+
+workflow_name = click.option(
+    "--workflow-name",
+    "-w",
+    type=str,
+    default=None,
+    show_default=True,
+    help="Name of the workflow to filter coverage results (not file name)",
 )
 
 
@@ -100,3 +119,12 @@ def cleanup(**kwargs):
     """Clean Workbench namespace of transient artifacts"""
 
     cleanup_handler(kwargs)
+
+
+@main.command
+@target_coverage
+@workflow_name
+def coverage(**kwargs):
+    """Outputs percent coverage for each task and output, and which tasks/outputs have no associated tests"""
+
+    coverage_handler(kwargs)
