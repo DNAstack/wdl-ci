@@ -22,25 +22,6 @@ def coverage_handler(kwargs):
         Config.load(kwargs)
         config = Config.instance()
 
-        # print(config.__dict__)
-        # print(config._file)
-        # print(config._file.__dict__.keys())
-        # print(config._file.workflows.keys())
-        # for workflow in config.file.workflows.keys():
-        #     print(f"Workflow: {workflow}")
-        #     doc = WDL.load(workflow)
-        #     task = doc.tasks[0]
-        #     print(f"Task: {task.__dict__.keys()}")
-        #     print(f"Task: {task.name}")
-        #     output = task.outputs[0]
-        #     print(output.__dict__.keys())
-        #     print(f"Output: {output.name}")
-        #     tests = config.file.workflows[workflow].tasks[task.name].tests
-        #     for test in tests:
-        #         print(test)
-
-        #     raise SystemExit()
-
         # Initialize dictionary with necessary variables to help compute coverage
         coverage_state = {
             "untested_workflows": [],
@@ -100,13 +81,7 @@ def coverage_handler(kwargs):
             workflow_output_count = 0
             # Load the WDL document
             doc = WDL.load(wdl_file)
-            # print(doc.workflow)
-            ## if doc.workflow or len(doc.tasks) > 0:
-            # if len(doc.tasks) > 0:
-            #     print(f"Tasks in {wdl_file}")
-            #     print(task.__dict__ for task in doc.tasks)
-            # else:
-            #     print(f"{wdl_file} has no tasks")
+
             # Check if the WDL document has >0 tasks or a workflow attribute exists; structs might be part of the config and do not have tasks nor do they have outputs to test. Additionally, just checking for tasks >0 misses parent workflows that just import and call other tasks/workflows. TBD if we want to include this, but ultimately, if there are no tasks or a workflow at all, we skip the WDL file
             if len(doc.tasks) > 0 or doc.workflow:
                 # If workflow_name_filter is provided, skip all other workflows
@@ -129,7 +104,6 @@ def coverage_handler(kwargs):
                         )
 
                         # We are reducing the set of tested_outputs (output names) across input sets for the same task, ie if the same output is tested multiple times with different inputs, we'll count it as tested
-                        # TODO: consider that different behaviour may be desired (eg for tasks with optional inputs (and/or outputs?), we probably want to confirm that there are at least 2 tests for each output: one where the optional input is defined, one where it isn't
 
                         # Create a list of all the outputs that are tested in the config file and found in the task output_tests dictionary; duplicates are removed
                         tested_outputs = list(
