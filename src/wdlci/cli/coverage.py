@@ -134,16 +134,6 @@ def coverage_handler(kwargs):
                             output_names=missing_outputs,
                         )
 
-                        # if workflow_name not in coverage_summary["untested_outputs"]:
-                        #     coverage_summary["untested_outputs"][workflow_name] = {}
-                        # if (
-                        #     task.name
-                        #     not in coverage_summary["untested_outputs"][workflow_name]
-                        # ):
-                        #     coverage_summary["untested_outputs"][workflow_name][
-                        #         task.name
-                        #     ] = missing_outputs
-
                         # Check for optional inputs and check if there is a test that covers running that task with the optional input and without it
                         optional_inputs = [
                             input.name for input in task.inputs if input.type.optional
@@ -170,13 +160,6 @@ def coverage_handler(kwargs):
                                         task.name,
                                         output_names=outputs_where_optional_inputs_not_dually_tested,
                                     )
-                                    # if (workflow_name not in coverage_summary["untested_outputs_with_optional_inputs"]
-                                    # ):
-                                    #     coverage_summary["untested_outputs_with_optional_inputs"][workflow_name] = {}
-                                    # if (task.name not in coverage_summary["untested_outputs_with_optional_inputs"][workflow_name]
-                                    # ):
-                                    #     coverage_summary["untested_outputs_with_optional_inputs"][workflow_name][task.name] = []
-                                    #     coverage_summary["untested_outputs_with_optional_inputs"][workflow_name][task.name].append(output_name)
 
                     # Catch the case where tasks are completely absent from the config
                     except KeyError:
@@ -184,29 +167,14 @@ def coverage_handler(kwargs):
                         _update_coverage_summary(
                             "untested_tasks", workflow_name, task.name
                         )
-                        # if workflow_name not in coverage_summary["untested_tasks"]:
-                        #     coverage_summary["untested_tasks"][workflow_name] = []
-                        # # Create a list of tasks associated with the respective workflow that are not present in the config file
-                        # coverage_summary["untested_tasks"][workflow_name].append(
-                        #     task.name
-                        # )
 
                     # If there are outputs but no tests, add the task to the untested_tasks list. If there are outputs and tests, calculate the task coverage
                     if len(task.outputs) > 0:
+                        # Handle the case where the task is in the config but has no associated tests
                         if len(task_tests_list) == 0:
                             _update_coverage_summary(
                                 "untested_tasks", workflow_name, task.name
                             )
-                            # # Handle the case where the task is in the config but has no associated tests
-                            # if workflow_name not in coverage_summary["untested_tasks"]:
-                            #     coverage_summary["untested_tasks"][workflow_name] = []
-                            # if (
-                            #     task.name
-                            #     not in coverage_summary["untested_tasks"][workflow_name]
-                            # ):
-                            #     coverage_summary["untested_tasks"][workflow_name].append(
-                            #         task.name
-                            #     )
                         else:
                             # Calculate and print the task coverage
                             task_coverage = (
@@ -280,13 +248,11 @@ def coverage_handler(kwargs):
         print("┕━━━━━━━━━━━━━┙")
         if _check_threshold(tasks_below_threshold, total_untested_outputs, threshold):
             print("\n✓ All outputs exceed the specified coverage threshold.")
+
         if total_untested_outputs > 0:
             print("\n" + "\033[31m[WARN]: The following outputs have no tests:\033[0m")
             _print_untested_items(coverage_summary, "untested_outputs")
-            # for workflow, tasks in coverage_summary["untested_outputs"].items():
-            #     for task, outputs in tasks.items():
-            #         if len(outputs) > 0:
-            #             print(f"\t{workflow}.{task}: {outputs}")
+
         if total_untested_outputs_with_optional_inputs > 0:
             # TODO: Would it be a requirement to report what input is optional here?
             print(
@@ -296,12 +262,6 @@ def coverage_handler(kwargs):
             _print_untested_items(
                 coverage_summary, "untested_outputs_with_optional_inputs"
             )
-            # for workflow, tasks in coverage_summary[
-            #     "untested_outputs_with_optional_inputs"
-            # ].items():
-            #     for task, outputs in tasks.items():
-            #         if len(outputs) > 0:
-            #             print(f"\t{workflow}.{task}: {outputs}")
 
         # Warn the user if any workflows were skipped
         if len(coverage_summary["skipped_workflows"]) > 0:
