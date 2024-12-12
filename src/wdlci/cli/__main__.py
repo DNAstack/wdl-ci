@@ -124,6 +124,12 @@ def cleanup(**kwargs):
 @main.command
 @target_coverage
 @workflow_name
+# TODO: Add options for minimalist output; e.g., maybe hide warning output for:
+#    tests that don't have tests both excluding and including optional inputs
+#    list of outputs that are not tested for each task
+#    skipped workflows
+#    workflows that have outputs but no tests
+# TODO: Add option to consider totally untested tasks/outputs as 0% coverage or ignore them
 def coverage(**kwargs):
     """Outputs percent coverage for each task and output, and which tasks/outputs have no associated tests"""
 
