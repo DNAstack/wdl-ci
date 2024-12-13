@@ -28,7 +28,7 @@ def coverage_handler(kwargs):
     threshold = kwargs["target_coverage"]
     workflow_name_filter = kwargs["workflow_name"]
     print(f"Target coverage threshold: ", threshold)
-    if workflow_name_filter:
+    if workflow_name_filter is not None:
         print(f"Workflow name filter: {workflow_name_filter}\n")
     else:
         print("Workflow name filter: None\n")
@@ -60,14 +60,14 @@ def coverage_handler(kwargs):
             # Now that we know the WDL file is in the configuration, we can set the workflow name from the WDL.Tree.Document workflow attribute if it exists, otherwise we can grab the workflow name from the key from the configuration file as single task WDL files do not have a workflow attribute and some workflows have no tasks. This also helps organize the coverage output when we have a WDL file with >1 task but no workflow block (e.g., https://github.com/PacificBiosciences/wdl-common/blob/main/wdl/tasks/samtools.wdl), so that each task from the WDL file is grouped under the WDL file name regardless if it's defined as a workflow or not
             workflow_name = (
                 doc.workflow.name
-                if doc.workflow
+                if doc.workflow is not None
                 else os.path.basename(config._file.workflows[wdl_file].key).replace(
                     ".wdl", ""
                 )
             )
 
             # Check if the WDL document has > 0 tasks or a workflow attribute exists; structs might be part of the config and do not have tasks nor do they have outputs to test. Additionally, just checking for > 0 tasks misses parent workflows that just import and call other tasks/workflows. TBD if we want to include these 'parent' workflows, but ultimately, if there are no tasks or a workflow attribute, we skip the WDL file and print a warning
-            if len(doc.tasks) > 0 or doc.workflow:
+            if len(doc.tasks) > 0 or doc.workflow is not None:
                 # If workflow_name_filter is provided and the target workflow is not the current workflow, skip the current workflow
                 if (
                     workflow_name_filter is not None
@@ -234,7 +234,7 @@ def coverage_handler(kwargs):
             print("\n" + f"\033[33mTotal coverage: {total_coverage:.2f}%\033[0m")
 
         # Inform the user if no workflows matched the filter and exit
-        if workflow_name_filter and not workflow_found:
+        if workflow_name_filter is not None and not workflow_found:
             print(
                 f"\nNo workflows found matching the filter: [{workflow_name_filter}] or the workflow you searched for has no tasks or workflow attribute"
             )
