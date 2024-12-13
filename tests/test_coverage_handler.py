@@ -192,6 +192,8 @@ class TestCoverageHandler(unittest.TestCase):
     #         self.assertEqual(len(coverage_summary["untested_tasks_dict"]), 2)
 
     #### Additional tests I'd like to add ####
+    # Test workflows with >1 tasks
+    # Test WDL files with >1 tasks but no 'workflow' block
     # Providing a value to command to --target-coverage where all outputs/tasks/workflows are above the thresold
     # Providing a value to --target-coverage where only some outputs/tasks/workflows are above the threshold
     # Providing a value to --target-coverage where none of the above are above the threshold
