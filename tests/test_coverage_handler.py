@@ -103,14 +103,14 @@ class TestCoverageHandler(unittest.TestCase):
             json.dump(config, f, indent=2)
 
     def reset_coverage_summary(self):
-        coverage_summary["untested_workflows"] = []
-        coverage_summary["untested_tasks"] = {}
-        coverage_summary["untested_outputs"] = {}
-        coverage_summary["untested_outputs_with_optional_inputs"] = {}
+        coverage_summary["untested_workflows_list"] = []
+        coverage_summary["untested_tasks_dict"] = {}
+        coverage_summary["untested_outputs_dict"] = {}
+        coverage_summary["untested_outputs_with_optional_inputs_dict"] = {}
         coverage_summary["tested_outputs_dict"] = {}
         coverage_summary["total_output_count"] = 0
         coverage_summary["all_tests_list"] = []
-        coverage_summary["skipped_workflows"] = []
+        coverage_summary["skipped_workflows_list"] = []
 
     def test_identical_output_names(self):
         # Reset the coverage_summary
