@@ -60,7 +60,6 @@ class TestCoverageHandler(unittest.TestCase):
 """
 
     def setUp(self):
-        # Suppress the ResourceWarning complaining about the config_file json.load not being closed
         # Create the WDL files with different workflow names
         wdl_workflow_1 = self.EXAMPLE_WDL_WORKFLOW.replace(
             "call_variants", "call_variants_1"
@@ -116,57 +115,53 @@ class TestCoverageHandler(unittest.TestCase):
     def test_identical_output_names(self):
         # Reset the coverage_summary
         self.reset_coverage_summary()
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", ResourceWarning)
 
-            # Update the "tests" list for specific workflows
-            test_cases = [
-                {
-                    "inputs": {
-                        "bam": "test.bam",
-                        "ref": {"fasta": "test.fasta", "organism": "test_organism"},
-                    },
-                    "output_tests": {
-                        "vcf": {
-                            "value": "test.vcf",
-                            "test_tasks": ["compare_file_basename"],
-                        }
-                    },
-                }
-            ]
-            self.update_config_with_tests(
-                wdl_1_tests=test_cases, wdl_2_tests=test_cases
-            )
+        # Suppress the ResourceWarning complaining about the config_file json.load not being closed
+        # with warnings.catch_warnings():
+        #     warnings.simplefilter("ignore", ResourceWarning)
 
-            # Call the coverage_handler function
-            kwargs = {"target_coverage": None, "workflow_name": None}
-            coverage_handler(kwargs)
+        # Update the "tests" list for specific workflows
+        test_cases = [
+            {
+                "inputs": {
+                    "bam": "test.bam",
+                    "ref": {"fasta": "test.fasta", "organism": "test_organism"},
+                },
+                "output_tests": {
+                    "vcf": {
+                        "value": "test.vcf",
+                        "test_tasks": ["compare_file_basename"],
+                    }
+                },
+            }
+        ]
+        self.update_config_with_tests(wdl_1_tests=test_cases, wdl_2_tests=test_cases)
 
-            # Assert both workflows are not in the untested workflows list
-            self.assertNotIn(
-                "call_variants_1", coverage_summary["untested_workflows_list"]
-            )
-            self.assertNotIn(
-                "call_variants_2", coverage_summary["untested_workflows_list"]
-            )
-            # Assert that the corresponding task is not in the untested tasks dictionary
-            self.assertNotIn("freebayes", coverage_summary["untested_tasks_dict"])
-            # Assert that "vcf" is found in both sets of {workflow: {task: [tested_outputs]}} in the parent untested_outputs_with_optional_inputs_dict
-            self.assertIn(
-                "vcf",
-                coverage_summary["untested_outputs_with_optional_inputs_dict"][
-                    "call_variants_1"
-                ]["freebayes"],
-            )
-            # Assert that "vcf" is found in both sets of {workflow: {task: [tested_outputs]}} in the parent tested_output_dict
-            self.assertIn(
-                "vcf",
-                coverage_summary["tested_outputs_dict"]["call_variants_1"]["freebayes"],
-            )
-            self.assertIn(
-                "vcf",
-                coverage_summary["tested_outputs_dict"]["call_variants_2"]["freebayes"],
-            )
+        # Call the coverage_handler function
+        kwargs = {"target_coverage": None, "workflow_name": None}
+        coverage_handler(kwargs)
+
+        # Assert both workflows are not in the untested workflows list
+        self.assertNotIn("call_variants_1", coverage_summary["untested_workflows_list"])
+        self.assertNotIn("call_variants_2", coverage_summary["untested_workflows_list"])
+        # Assert that the corresponding task is not in the untested tasks dictionary
+        self.assertNotIn("freebayes", coverage_summary["untested_tasks_dict"])
+        # Assert that "vcf" is found in both sets of {workflow: {task: [tested_outputs]}} in the parent untested_outputs_with_optional_inputs_dict
+        self.assertIn(
+            "vcf",
+            coverage_summary["untested_outputs_with_optional_inputs_dict"][
+                "call_variants_1"
+            ]["freebayes"],
+        )
+        # Assert that "vcf" is found in both sets of {workflow: {task: [tested_outputs]}} in the parent tested_output_dict
+        self.assertIn(
+            "vcf",
+            coverage_summary["tested_outputs_dict"]["call_variants_1"]["freebayes"],
+        )
+        self.assertIn(
+            "vcf",
+            coverage_summary["tested_outputs_dict"]["call_variants_2"]["freebayes"],
+        )
 
     # def test_no_tasks_in_workflow(self):
     #     self.reset_coverage_summary()
