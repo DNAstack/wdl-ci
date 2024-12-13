@@ -4,7 +4,6 @@ import subprocess
 import json
 
 from src.wdlci.cli.coverage import coverage_handler, coverage_summary
-from src.wdlci.config import Config
 
 
 class TestCoverageHandler(unittest.TestCase):
@@ -141,13 +140,13 @@ task freebayes {
         coverage_handler(kwargs)
 
         # Assertions
-        self.assertIn("compare_float", coverage_summary["untested_workflows"])
-        self.assertNotIn("call_variants_1", coverage_summary["untested_workflows"])
-        self.assertNotIn("call_variants_2", coverage_summary["untested_workflows"])
-        self.assertNotIn("freebayes", coverage_summary["untested_tasks"])
+        self.assertIn("compare_float", coverage_summary["untested_workflows_list"])
+        self.assertNotIn("call_variants_1", coverage_summary["untested_workflows_list"])
+        self.assertNotIn("call_variants_2", coverage_summary["untested_workflows_list"])
+        self.assertNotIn("freebayes", coverage_summary["untested_tasks_dict"])
         self.assertIn(
             "vcf",
-            coverage_summary["untested_outputs_with_optional_inputs"][
+            coverage_summary["untested_outputs_with_optional_inputs_dict"][
                 "call_variants_1"
             ]["freebayes"],
         )
@@ -161,12 +160,19 @@ task freebayes {
         )
 
     # def test_no_tasks_in_workflow(self):
+    #     self.reset_coverage_summary()
     #     # Update the "tests" list for specific workflows
     #     test_cases = []
     #     self.update_config_with_tests(wdl_1_tests=test_cases, wdl_2_tests=test_cases)
     #     # Call the coverage_handler function
     #     kwargs = {"target_coverage": None, "workflow_name": None}
     #     coverage_handler(kwargs)
+    #     # Assertions
+    #     self.assertNotEqual(len(coverage_summary["untested_outputs_dict"]), 0)
+    #     self.assertEqual(
+    #         len(coverage_summary["untested_outputs_with_optional_inputs_dict"]), 2
+    #     )
+    #     self.assertEqual(len(coverage_summary["untested_tasks_dict"]), 2)
 
 
 if __name__ == "__main__":
