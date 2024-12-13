@@ -15,7 +15,7 @@ coverage_summary = {
     "untested_outputs": {},
     # {workflow_name: {task_name: [output_name]}}
     "untested_outputs_with_optional_inputs": {},
-    ## TODO: TBD if the tested_outputs nested dict is necessary - maybe some nuance with the calculations I'm missing right now; specifically case where outputs in different workflows or tasks that share a name (e.g. vcf as an output from glnexus and deepvariant
+    ## TODO: TBD if the tested_outputs nested dict is necessary - maybe some nuance with the calculations I'm missing right now; specifically case where outputs in different workflows or tasks that share a name (e.g. vcf as an output from glnexus and deepvariant. I think I'd like to return coverage from the dict so I can reference output names and the tasks they belong to
     # {workflow_name: {task_name: [output_name]}}
     "tested_outputs_dict": {},
     "total_output_count": 0,
