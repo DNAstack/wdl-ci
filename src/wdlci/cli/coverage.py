@@ -67,7 +67,7 @@ def coverage_handler(kwargs):
 
             # Check if the WDL document has > 0 tasks or a workflow attribute exists; structs might be part of the config and do not have tasks nor do they have outputs to test. Additionally, just checking for > 0 tasks misses parent workflows that just import and call other tasks/workflows. TBD if we want to include these 'parent' workflows, but ultimately, if there are no tasks or a workflow attribute, we skip the WDL file and print a warning
             if len(doc.tasks) > 0 or doc.workflow:
-                # If workflow_name_filter is provided, skip all other workflows
+                # If workflow_name_filter is provided and the target workflow is not the current workflow, skip the current workflow
                 if (
                     workflow_name_filter is not None
                     and workflow_name_filter not in workflow_name

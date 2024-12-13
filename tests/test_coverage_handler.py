@@ -112,7 +112,7 @@ class TestCoverageHandler(unittest.TestCase):
         coverage_summary["all_tests_list"] = []
         coverage_summary["skipped_workflows_list"] = []
 
-    def test_identical_output_names(self):
+    def test_identical_output_names_with_threshold(self):
         # Reset the coverage_summary
         self.reset_coverage_summary()
 
