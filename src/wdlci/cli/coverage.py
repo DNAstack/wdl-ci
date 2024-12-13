@@ -8,19 +8,19 @@ from wdlci.utils.initialize_worklows_and_tasks import find_wdl_files
 
 # Initialize dictionary with necessary variables to compute coverage
 coverage_summary = {
-    "untested_workflows": [],
+    "untested_workflows_list": [],
     # {workflow_name: [task_name]}
-    "untested_tasks": {},
+    "untested_tasks_dict": {},
     # {workflow_name: {task_name: [output_name]}}
-    "untested_outputs": {},
+    "untested_outputs_dict": {},
     # {workflow_name: {task_name: [output_name]}}
-    "untested_outputs_with_optional_inputs": {},
-    ## TODO: TBD if the tested_outputs nested dict is necessary - maybe some nuance with the calculations I'm missing right now; specifically case where outputs in different workflows or tasks that share a name (e.g. vcf as an output from glnexus and deepvariant. I think I'd like to return coverage from the dict so I can reference output names and the tasks they belong to
+    "untested_outputs_with_optional_inputs_dict": {},
+    ## TODO: TBD if the tested_outputs nested dict is necessary - maybe some nuance with the calculations I'm missing right now; specifically case where outputs in different workflows or tasks that share a name -- might be preferable to return coverage from the dict so we can reference output names and the tasks they belong to. Currentlt, the tested_outputs_dict is updated but not used to calculate coverage. It might only be useful if we want to report the outputs that are tested for a given workflow or task.
     # {workflow_name: {task_name: [output_name]}}
     "tested_outputs_dict": {},
     "total_output_count": 0,
     "all_tests_list": [],
-    "skipped_workflows": [],
+    "skipped_workflows_list": [],
 }
 
 
@@ -43,11 +43,6 @@ def coverage_handler(kwargs):
         # Load all WDL files in the directory
         wdl_files = find_wdl_files()
 
-        # Flags to track if any tasks/workflows are below the threshold and if any workflows match the filter
-        tasks_below_threshold = False
-        workflow_found = False
-        workflows_below_threshold = False
-
         # Iterate over each WDL file
         for wdl_file in wdl_files:
             workflow_tests_list = []
@@ -58,7 +53,7 @@ def coverage_handler(kwargs):
 
             # Handle the case where the WDL file is not in the configuration but is present in the directory
             if wdl_file not in config._file.workflows:
-                coverage_summary["skipped_workflows"].append(wdl_file)
+                coverage_summary["skipped_workflows_list"].append(wdl_file)
                 continue
 
             # Now that we know the WDL file is in the configuration, we can set the workflow name from the WDL.Tree.Document workflow attribute if it exists, otherwise we can grab the workflow name from the key from the configuration file as single task WDL files do not have a workflow attribute and some workflows have no tasks. This also helps organize the coverage output when we have a WDL file with >1 task but no workflow block (e.g., https://github.com/PacificBiosciences/wdl-common/blob/main/wdl/tasks/samtools.wdl), so that each task from the WDL file is grouped under the WDL file name regardless if it's defined as a workflow or not
@@ -129,7 +124,7 @@ def coverage_handler(kwargs):
 
                         # Add missing outputs to the coverage_summary[untested_outputs] dictionary
                         _update_coverage_summary(
-                            "untested_outputs",
+                            "untested_outputs_dict",
                             workflow_name,
                             task.name,
                             output_names=missing_outputs,
@@ -156,7 +151,7 @@ def coverage_handler(kwargs):
                                         output_name
                                     )
                                     _update_coverage_summary(
-                                        "untested_outputs_with_optional_inputs",
+                                        "untested_outputs_with_optional_inputs_dict",
                                         workflow_name,
                                         task.name,
                                         output_names=outputs_where_optional_inputs_not_dually_tested,
@@ -166,7 +161,7 @@ def coverage_handler(kwargs):
                     except KeyError:
                         # Initialize workflow in coverage state[untested_tasks] dict if there is a workflow in the WDL file but no tests in the config file
                         _update_coverage_summary(
-                            "untested_tasks", workflow_name, task.name
+                            "untested_tasks_dict", workflow_name, task.name
                         )
 
                     # If there are outputs but no tests, add the task to the untested_tasks list. If there are outputs and tests, calculate the task coverage
@@ -174,7 +169,7 @@ def coverage_handler(kwargs):
                         # Handle the case where the task is in the config but has no associated tests
                         if len(task_tests_list) == 0:
                             _update_coverage_summary(
-                                "untested_tasks", workflow_name, task.name
+                                "untested_tasks_dict", workflow_name, task.name
                             )
                         else:
                             # Calculate and print the task coverage
@@ -185,6 +180,7 @@ def coverage_handler(kwargs):
                                 tasks_below_threshold = True
                                 print(f"\ntask.{task.name}: {task_coverage:.2f}%")
                             else:
+                                tasks_below_threshold = False
                                 print(f"\ntask.{task.name}: {task_coverage:.2f}%")
 
                 # Calculate workflow coverage; only calculate if there are outputs and tests for the workflow. If there are no outputs or tests but there is a workflow block and name, add the workflow to the untested_workflows list
@@ -195,14 +191,13 @@ def coverage_handler(kwargs):
                     ) * 100
                     if threshold is not None and workflow_coverage < threshold:
                         workflows_below_threshold = True
-                        # print("-" * 150)
                         print(
                             f"\n"
                             + f"\033[34mWorkflow: {workflow_name}: {workflow_coverage:.2f}%\033[0m"
                         )
                         print("-" * 150)
                     else:
-                        # print("-" * 150)
+                        workflows_below_threshold = False
                         print(
                             f"\n"
                             + f"\033[34mWorkflow: {workflow_name}: {workflow_coverage:.2f}%\033[0m"
@@ -213,12 +208,15 @@ def coverage_handler(kwargs):
                     or len(workflow_tests_list) == 0
                     and workflow_name
                 ):
-                    if workflow_name not in coverage_summary["untested_workflows"]:
-                        coverage_summary["untested_workflows"].append(workflow_name)
+                    if workflow_name not in coverage_summary["untested_workflows_list"]:
+                        coverage_summary["untested_workflows_list"].append(
+                            workflow_name
+                        )
 
             # Append the workflow to the skipped_workflows list if there are no tasks or workflow blocks
             else:
-                coverage_summary["skipped_workflows"].append(wdl_file)
+                coverage_summary["skipped_workflows_list"].append(wdl_file)
+                workflow_found = False
         # Calculate and print the total coverage
         if (
             len(coverage_summary["all_tests_list"]) > 0
@@ -237,9 +235,9 @@ def coverage_handler(kwargs):
             sys.exit(0)
 
         # Sum the total number of untested outputs and untested outputs with optional inputs where there is not a test for the output with and without the optional input
-        total_untested_outputs = _sum_outputs(coverage_summary, "untested_outputs")
+        total_untested_outputs = _sum_outputs(coverage_summary, "untested_outputs_dict")
         total_untested_outputs_with_optional_inputs = _sum_outputs(
-            coverage_summary, "untested_outputs_with_optional_inputs"
+            coverage_summary, "untested_outputs_with_optional_inputs_dict"
         )
 
         # Check if any outputs are below the threshold and there are no untested outputs; if so return to the user that all outputs exceed the threshold
@@ -251,42 +249,44 @@ def coverage_handler(kwargs):
 
         if total_untested_outputs > 0:
             print("\n" + "\033[31m[WARN]: The following outputs have no tests:\033[0m")
-            _print_untested_items(coverage_summary, "untested_outputs")
+            _print_untested_items(coverage_summary, "untested_outputs_dict")
 
         if total_untested_outputs_with_optional_inputs > 0:
-            # TODO: Would it be a requirement to report what input is optional here?
+            # TODO: Would it be a requirement to report the specific input that is optional here?
             print(
                 "\n"
                 + "\033[31m[WARN]: The following outputs are not covered by tests that include and exclude optional inputs:\033[0m"
             )
             _print_untested_items(
-                coverage_summary, "untested_outputs_with_optional_inputs"
+                coverage_summary, "untested_outputs_with_optional_inputs_dict"
             )
 
         # Warn the user if any workflows were skipped
-        if len(coverage_summary["skipped_workflows"]) > 0:
+        if len(coverage_summary["skipped_workflows_list"]) > 0:
             print(
                 "\n"
                 + "\033[31m[WARN]: The following workflows were skipped as they were not found in the wdl-ci.config.json but are present in the directory or they were present in the config JSON had no tasks or workflow blocks:\033[0m"
             )
-            for workflow in coverage_summary["skipped_workflows"]:
+            for workflow in coverage_summary["skipped_workflows_list"]:
                 print(f"\t{workflow}")
 
         # Check if any tasks are below the threshold and there are no untested tasks; if so return to the user that all tasks exceed the threshold
         if _check_threshold(
-            tasks_below_threshold, len(coverage_summary["untested_tasks"]), threshold
+            tasks_below_threshold,
+            len(coverage_summary["untested_tasks_dict"]),
+            threshold,
         ):
             print("\n✓ All tasks exceed the specified coverage threshold.")
-        if len(coverage_summary["untested_tasks"]) > 0:
+        if len(coverage_summary["untested_tasks_dict"]) > 0:
             print("\n" + "\033[31m[WARN]: The following tasks have no tests:\033[0m")
-            for workflow, tasks in coverage_summary["untested_tasks"].items():
+            for workflow, tasks in coverage_summary["untested_tasks_dict"].items():
                 for task in tasks:
                     print(f"\t{workflow}.{task}")
 
         # Check if any workflows are below the threshold and there are no untested workflows; if so return to the user that all workflows exceed the threshold
         if _check_threshold(
             workflows_below_threshold,
-            len(coverage_summary["untested_workflows"]),
+            len(coverage_summary["untested_workflows_list"]),
             threshold,
         ):
             print("\n✓ All workflows exceed the specified coverage threshold.")
@@ -294,15 +294,15 @@ def coverage_handler(kwargs):
         # If there are any workflows that are below the threshold, warn the user. Include a check for the workflow_name_filter to ensure that only the specified workflow is printed if a filter is provided
         else:
             if (
-                workflow_name_filter in coverage_summary["untested_workflows"]
+                workflow_name_filter in coverage_summary["untested_workflows_list"]
                 or workflow_name_filter is None
-                and len(coverage_summary["untested_workflows"]) > 0
+                and len(coverage_summary["untested_workflows_list"]) > 0
             ):
                 print(
                     "\n"
                     + "\033[31m[WARN]: The following workflows have outputs but no tests:\033[0m"
                 )
-                for workflow in coverage_summary["untested_workflows"]:
+                for workflow in coverage_summary["untested_workflows_list"]:
                     print(f"\t{workflow}")
 
     except WdlTestCliExitException as e:
