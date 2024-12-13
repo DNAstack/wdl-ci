@@ -138,7 +138,7 @@ class TestCoverageHandler(unittest.TestCase):
         self.update_config_with_tests(wdl_1_tests=test_cases, wdl_2_tests=test_cases)
 
         # Call the coverage_handler function
-        kwargs = {"target_coverage": None, "workflow_name": None}
+        kwargs = {"target_coverage": 50, "workflow_name": None}
         coverage_handler(kwargs)
 
         # Assert both workflows are not in the untested workflows list
