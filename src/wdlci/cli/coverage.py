@@ -182,6 +182,8 @@ def coverage_handler(kwargs):
                             else:
                                 tasks_below_threshold = False
                                 print(f"\ntask.{task.name}: {task_coverage:.2f}%")
+                    else:
+                        tasks_below_threshold = False
 
                 # Calculate workflow coverage; only calculate if there are outputs and tests for the workflow. If there are no outputs or tests but there is a workflow block and name, add the workflow to the untested_workflows list
                 # Need to make sure there is a valid workflow and that the workflow has a name; avoids trying to calculate coverage for struct workflows
@@ -208,6 +210,7 @@ def coverage_handler(kwargs):
                     or len(workflow_tests_list) == 0
                     and workflow_name
                 ):
+                    workflows_below_threshold = False
                     if workflow_name not in coverage_summary["untested_workflows_list"]:
                         coverage_summary["untested_workflows_list"].append(
                             workflow_name
