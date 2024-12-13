@@ -19,7 +19,7 @@ coverage_summary = {
     # {workflow_name: {task_name: [output_name]}}
     "tested_outputs_dict": {},
     "total_output_count": 0,
-    "all_tests_list": [],
+    "all_outputs_list": [],
     "skipped_workflows_list": [],
 }
 
@@ -45,7 +45,8 @@ def coverage_handler(kwargs):
 
         # Iterate over each WDL file
         for wdl_file in wdl_files:
-            workflow_tests_list = []
+            # TODO: Integrate these with coverage_summary
+            workflow_tested_outputs_list = []
             workflow_output_count = 0
 
             # Load the WDL document
@@ -118,9 +119,9 @@ def coverage_handler(kwargs):
                             if output_name not in tested_outputs
                         ]
 
-                        # Add tested outputs to workflow_tests_list and all_tests_list
-                        workflow_tests_list.extend(tested_outputs)
-                        coverage_summary["all_tests_list"].extend(tested_outputs)
+                        # Add tested outputs to workflow_tested_outputs_list and all_outputs_list
+                        workflow_tested_outputs_list.extend(tested_outputs)
+                        coverage_summary["all_outputs_list"].extend(tested_outputs)
 
                         # Add missing outputs to the coverage_summary[untested_outputs] dictionary
                         _update_coverage_summary(
@@ -187,9 +188,9 @@ def coverage_handler(kwargs):
 
                 # Calculate workflow coverage; only calculate if there are outputs and tests for the workflow. If there are no outputs or tests but there is a workflow block and name, add the workflow to the untested_workflows list
                 # Need to make sure there is a valid workflow and that the workflow has a name; avoids trying to calculate coverage for struct workflows
-                if workflow_output_count > 0 and len(workflow_tests_list) > 0:
+                if workflow_output_count > 0 and len(workflow_tested_outputs_list) > 0:
                     workflow_coverage = (
-                        len(workflow_tests_list) / workflow_output_count
+                        len(workflow_tested_outputs_list) / workflow_output_count
                     ) * 100
                     if threshold is not None and workflow_coverage < threshold:
                         workflows_below_threshold = True
@@ -207,7 +208,7 @@ def coverage_handler(kwargs):
                         print("-" * 150)
                 elif (
                     workflow_output_count == 0
-                    or len(workflow_tests_list) == 0
+                    or len(workflow_tested_outputs_list) == 0
                     and workflow_name
                 ):
                     workflows_below_threshold = False
@@ -222,12 +223,12 @@ def coverage_handler(kwargs):
                 workflow_found = False
         # Calculate and print the total coverage
         if (
-            len(coverage_summary["all_tests_list"]) > 0
+            len(coverage_summary["all_outputs_list"]) > 0
             and coverage_summary["total_output_count"] > 0
             and not workflow_name_filter
         ):
             total_coverage = (
-                len(coverage_summary["all_tests_list"])
+                len(coverage_summary["all_outputs_list"])
                 / coverage_summary["total_output_count"]
             ) * 100
             print("\n" + f"\033[33mTotal coverage: {total_coverage:.2f}%\033[0m")
