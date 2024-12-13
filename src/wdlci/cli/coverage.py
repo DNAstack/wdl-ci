@@ -234,7 +234,9 @@ def coverage_handler(kwargs):
 
         # Inform the user if no workflows matched the filter and exit
         if workflow_name_filter and not workflow_found:
-            print(f"\nNo workflows found matching the filter: {workflow_name_filter}")
+            print(
+                f"\nNo workflows found matching the filter: [{workflow_name_filter}] or the workflow you searched for has no tasks or workflow attribute"
+            )
             sys.exit(0)
 
         # Sum the total number of untested outputs and untested outputs with optional inputs where there is not a test for the output with and without the optional input
@@ -242,6 +244,11 @@ def coverage_handler(kwargs):
         total_untested_outputs_with_optional_inputs = _sum_outputs(
             coverage_summary, "untested_outputs_with_optional_inputs_dict"
         )
+        # TODO: This might be a little overkill
+        total_tested_outputs = _sum_outputs(coverage_summary, "tested_outputs_dict")
+        if total_tested_outputs > 0:
+            print("\n The following outputs are tested:")
+            _print_untested_items(coverage_summary, "tested_outputs_dict")
 
         # Check if any outputs are below the threshold and there are no untested outputs; if so return to the user that all outputs exceed the threshold
         print("\n┍━━━━━━━━━━━━━┑")
@@ -258,20 +265,11 @@ def coverage_handler(kwargs):
             # TODO: Would it be a requirement to report the specific input that is optional here?
             print(
                 "\n"
-                + "\033[31m[WARN]: The following outputs are not covered by tests that include and exclude optional inputs:\033[0m"
+                + "\033[31m[WARN]: The following outputs are part of a task that contains an optional input and are not covered by at least two tests; they should be covered for both cases where the optional input is and is not provided:\033[0m"
             )
             _print_untested_items(
                 coverage_summary, "untested_outputs_with_optional_inputs_dict"
             )
-
-        # Warn the user if any workflows were skipped
-        if len(coverage_summary["skipped_workflows_list"]) > 0:
-            print(
-                "\n"
-                + "\033[31m[WARN]: The following workflows were skipped as they were not found in the wdl-ci.config.json but are present in the directory or they were present in the config JSON had no tasks or workflow blocks:\033[0m"
-            )
-            for workflow in coverage_summary["skipped_workflows_list"]:
-                print(f"\t{workflow}")
 
         # Check if any tasks are below the threshold and there are no untested tasks; if so return to the user that all tasks exceed the threshold
         if _check_threshold(
@@ -307,6 +305,15 @@ def coverage_handler(kwargs):
                 )
                 for workflow in coverage_summary["untested_workflows_list"]:
                     print(f"\t{workflow}")
+
+        # Warn the user if any workflows were skipped
+        if len(coverage_summary["skipped_workflows_list"]) > 0:
+            print(
+                "\n"
+                + "\033[31m[WARN]: The following workflows were skipped as they were not found in the wdl-ci.config.json but are present in the directory, or they were present in the config JSON had no tasks or workflow blocks:\033[0m"
+            )
+            for workflow in coverage_summary["skipped_workflows_list"]:
+                print(f"\t{workflow}")
 
     except WdlTestCliExitException as e:
         print(f"exiting with code {e.exit_code}, message: {e.message}")
