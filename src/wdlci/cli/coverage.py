@@ -188,7 +188,6 @@ def coverage_handler(kwargs):
 
                 # Calculate workflow coverage; only calculate if there are outputs and tests for the workflow. If there are no outputs or tests but there is a workflow block and name, add the workflow to the untested_workflows list
                 # Need to make sure there is a valid workflow and that the workflow has a name; avoids trying to calculate coverage for struct workflows
-                print(len(workflow_tests_list))
                 if workflow_output_count > 0 and len(workflow_tests_list) > 0:
                     workflow_coverage = (
                         len(workflow_tests_list) / workflow_output_count
