@@ -100,7 +100,8 @@ def coverage_handler(kwargs):
                                 [
                                     output_name
                                     for test in task_tests_list
-                                    for output_name in test.output_tests.keys()
+                                    for output_name, output_test in test.output_tests.items()
+                                    if len(output_test.get("test_tasks")) > 0
                                 ]
                             )
                         )
