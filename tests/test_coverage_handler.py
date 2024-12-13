@@ -109,7 +109,7 @@ class TestCoverageHandler(unittest.TestCase):
         coverage_summary["untested_outputs_with_optional_inputs_dict"] = {}
         coverage_summary["tested_outputs_dict"] = {}
         coverage_summary["total_output_count"] = 0
-        coverage_summary["all_tests_list"] = []
+        coverage_summary["all_outputs_list"] = []
         coverage_summary["skipped_workflows_list"] = []
 
     def test_identical_output_names_with_threshold(self):
