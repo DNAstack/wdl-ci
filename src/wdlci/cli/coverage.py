@@ -125,13 +125,14 @@ def coverage_handler(kwargs):
                         workflow_tested_outputs_list.extend(tested_outputs)
                         coverage_summary["all_outputs_list"].extend(tested_outputs)
 
-                        # Add missing outputs to the coverage_summary[untested_outputs] dictionary
-                        _update_coverage_summary(
-                            "untested_outputs_dict",
-                            workflow_name,
-                            task.name,
-                            output_names=missing_outputs,
-                        )
+                        # Add missing outputs to the coverage_summary[untested_outputs] dictionary if there are any missing outputs
+                        if len(missing_outputs) > 0:
+                            _update_coverage_summary(
+                                "untested_outputs_dict",
+                                workflow_name,
+                                task.name,
+                                output_names=missing_outputs,
+                            )
 
                         # Check for optional inputs and check if there is a test that covers running that task with the optional input and without it
                         optional_inputs = [
