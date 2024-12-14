@@ -21,16 +21,23 @@ class TestCoverageHandler(unittest.TestCase):
         input {
           File bam
           Reference ref
+          String input_str
         }
 
-        call freebayes {
+        call freebayes as freebayes_1 {
           input:
             bam=bam,
             ref=ref
         }
 
+        call hello_world {
+          input:
+            input_str = input_str
+        }
+
         output {
-          File vcf = freebayes.vcf
+          File vcf = freebayes_1.vcf
+          File greeting = hello_world.greeting
         }
       }
 
@@ -56,6 +63,24 @@ class TestCoverageHandler(unittest.TestCase):
 
         output {
           File vcf = "${prefix}.vcf"
+        }
+      }
+
+      task hello_world {
+        input {
+         String input_str
+        }
+
+        command <<<
+          echo ~{input_str} > output_str.txt
+        >>>
+
+        runtime {
+          docker: "ubuntu:xenial"
+        }
+
+        output {
+          File greeting = "output_str.txt"
         }
       }
 """
@@ -93,18 +118,14 @@ class TestCoverageHandler(unittest.TestCase):
             os.remove("wdl-ci.config.json")
         sys.stdout.close()
         sys.stdout = self._original_stdout
+        self.reset_coverage_summary()
 
-    def update_config_with_tests(self, wdl_1_tests, wdl_2_tests):
+    def update_config_with_tests(self, workflow_name, task_name, wdl_tests):
         # Read the existing config file
         with open("wdl-ci.config.json", "r") as f:
             config = json.load(f)
 
-        config["workflows"]["test_call-variants_1.wdl"]["tasks"]["freebayes"][
-            "tests"
-        ] = wdl_1_tests
-        config["workflows"]["test_call-variants_2.wdl"]["tasks"]["freebayes"][
-            "tests"
-        ] = wdl_2_tests
+        config["workflows"][workflow_name]["tasks"][task_name]["tests"] = wdl_tests
 
         # Write the updated config back to the file
         with open("wdl-ci.config.json", "w") as f:
@@ -121,9 +142,6 @@ class TestCoverageHandler(unittest.TestCase):
         coverage_summary["skipped_workflows_list"] = []
 
     def test_identical_output_names_with_threshold(self):
-        # Reset the coverage_summary
-        self.reset_coverage_summary()
-
         # Update the "tests" list for specific workflows
         test_cases = [
             {
@@ -139,7 +157,16 @@ class TestCoverageHandler(unittest.TestCase):
                 },
             }
         ]
-        self.update_config_with_tests(wdl_1_tests=test_cases, wdl_2_tests=test_cases)
+        self.update_config_with_tests(
+            workflow_name="test_call-variants_1.wdl",
+            task_name="freebayes",
+            wdl_tests=test_cases,
+        )
+        self.update_config_with_tests(
+            workflow_name="test_call-variants_2.wdl",
+            task_name="freebayes",
+            wdl_tests=test_cases,
+        )
 
         # Call the coverage_handler function
         kwargs = {"target_coverage": 50, "workflow_name": None}
@@ -157,6 +184,12 @@ class TestCoverageHandler(unittest.TestCase):
                 "call_variants_1"
             ]["freebayes"],
         )
+        self.assertIn(
+            "vcf",
+            coverage_summary["untested_outputs_with_optional_inputs_dict"][
+                "call_variants_2"
+            ]["freebayes"],
+        )
         # Assert that "vcf" is found in both sets of {workflow: {task: [tested_outputs]}} in the parent tested_output_dict
         self.assertIn(
             "vcf",
@@ -167,24 +200,104 @@ class TestCoverageHandler(unittest.TestCase):
             coverage_summary["tested_outputs_dict"]["call_variants_2"]["freebayes"],
         )
 
+    # Case where no tasks are tested at all
     def test_no_tasks_in_workflow(self):
-        self.reset_coverage_summary()
         # Update the "tests" list for specific workflows
         test_cases = []
-        self.update_config_with_tests(wdl_1_tests=test_cases, wdl_2_tests=test_cases)
+        self.update_config_with_tests(
+            workflow_name="test_call-variants_1.wdl",
+            task_name="freebayes",
+            wdl_tests=test_cases,
+        )
+        self.update_config_with_tests(
+            workflow_name="test_call-variants_2.wdl",
+            task_name="freebayes",
+            wdl_tests=test_cases,
+        )
         # Call the coverage_handler function
         kwargs = {
             "target_coverage": None,
             "workflow_name": None,
         }
         coverage_handler(kwargs)
+
         # Assertions
-        self.assertGreaterEqual(len(coverage_summary["untested_outputs_dict"]), 2)
+
+        # Assert all four outputs are untested
         self.assertEqual(
-            len(coverage_summary["untested_outputs_with_optional_inputs_dict"]), 2
+            sum(
+                len(tasks)
+                for tasks in coverage_summary["untested_outputs_dict"].values()
+            ),
+            4,
         )
-        self.assertEqual(len(coverage_summary["untested_tasks_dict"]), 2)
+
+        # Assert both outputs with optional inputs are not dually tested
+        self.assertEqual(
+            sum(
+                len(tasks)
+                for tasks in coverage_summary[
+                    "untested_outputs_with_optional_inputs_dict"
+                ].values()
+            ),
+            2,
+        )
+        # Assert all four tasks are untested
+        self.assertEqual(
+            sum(
+                len(tasks) for tasks in coverage_summary["untested_tasks_dict"].values()
+            ),
+            4,
+        )
+        # Assert both workflows are untested
         self.assertGreaterEqual(len(coverage_summary["untested_workflows_list"]), 2)
+
+    # Providing a valid workflow name to --workflow name where the workflow exists, but has no tests
+    def test_valid_workflow_name_with_no_tasks(self):
+        test_cases = [
+            # {
+            #     "inputs": {"input_str": "hello_world"},
+            #     "output_tests": {
+            #         "greeting": {
+            #             "value": "hello world",
+            #             "test_tasks": ["compare_string"],
+            #         }
+            #     },
+            # }
+        ]
+        # Update the workflow we are NOT filtering for
+        self.update_config_with_tests(
+            workflow_name="test_call-variants_1.wdl",
+            task_name="hello_world",
+            wdl_tests=test_cases,
+        )
+        kwargs = {"target_coverage": None, "workflow_name": "call_variants_2"}
+        coverage_handler(kwargs)
+
+        # Assertions
+
+        # Assert one workflow is untested (in reality both are, but we are filtering for one)
+        self.assertEqual(len(coverage_summary["untested_workflows_list"]), 1)
+
+        # Assert both tasks in the workflow we are filtering for are untested
+        self.assertEqual(
+            sum(
+                len(tasks) for tasks in coverage_summary["untested_tasks_dict"].values()
+            ),
+            2,
+        )
+
+    # Providing an invalid workflow name to --workflow-name
+    ## TODO: this doesn't work as the config doesn't get reset when the workflow exits with the No workflows found method -- adjust config reset to support
+    # def test_invalid_workflow_name(self):
+    #     kwargs = {"target_coverage": None, "workflow_name": "nonexistent_workflow"}
+
+    #     coverage_handler(kwargs)
+    #     output = sys.stdout
+
+    #     # Assert that the output contains the expected message
+    #     expected_message = f"No workflows found matching the filter: [{kwargs['workflow_name']}] or the workflow you searched for has no tasks or workflow attribute"
+    #     self.assertIn(expected_message, output)
 
     #### Additional tests I'd like to add ####
     # Test workflows with >1 tasks
@@ -192,12 +305,8 @@ class TestCoverageHandler(unittest.TestCase):
     # Providing a value to command to --target-coverage where all outputs/tasks/workflows are above the thresold
     # Providing a value to --target-coverage where only some outputs/tasks/workflows are above the threshold
     # Providing a value to --target-coverage where none of the above are above the threshold
-    # Providing any valid workflow name to --workflow-name
-    # Providing an invalid workflow name to --workflow-name
-    # Providing a valid workflow name to --workflow name where the workflow exists, but has no tasks
     # Providing an extremely large wdl-ci.config.json
     # Case where some tasks with optional inputs have outputs dually tested but others do not
-    # Case where no tasks are tested at all
 
 
 if __name__ == "__main__":
