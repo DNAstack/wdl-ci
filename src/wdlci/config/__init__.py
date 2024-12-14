@@ -37,6 +37,11 @@ class Config(object):
             raise WdlTestCliExitException("Config not loaded, use load() first")
         return cls._instance
 
+    @classmethod
+    def reset(cls):
+        cls._cli_kwargs = None
+        cls._instance = None
+
     def write(self):
         with open(CONFIG_JSON, "w") as f:
             json.dump(self.file, f, cls=ConfigEncoder, indent=2)
