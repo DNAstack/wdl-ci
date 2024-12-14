@@ -73,6 +73,7 @@ def coverage_handler(kwargs):
                     workflow_name_filter is not None
                     and workflow_name_filter not in workflow_name
                 ):
+                    # tasks_below_threshold = False
                     continue
                 # Initialize the workflow found flag to True if the prior condition is not met
                 workflow_found = True
