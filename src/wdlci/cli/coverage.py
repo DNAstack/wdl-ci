@@ -104,12 +104,13 @@ def coverage_handler(kwargs):
                             )
                         )
                         # Update coverage_summary with tested outputs for each task
-                        _update_coverage_summary(
-                            "tested_outputs_dict",
-                            workflow_name,
-                            task.name,
-                            output_names=tested_outputs,
-                        )
+                        if len(tested_outputs) > 0:
+                            _update_coverage_summary(
+                                "tested_outputs_dict",
+                                workflow_name,
+                                task.name,
+                                output_names=tested_outputs,
+                            )
 
                         # Create a list of all the outputs that are present in the task
                         all_task_outputs = [output.name for output in task.outputs]
