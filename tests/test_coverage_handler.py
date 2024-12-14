@@ -3,6 +3,7 @@ import os
 import subprocess
 import json
 import warnings
+import sys
 
 from src.wdlci.cli.coverage import coverage_handler, coverage_summary
 
@@ -60,6 +61,11 @@ class TestCoverageHandler(unittest.TestCase):
 """
 
     def setUp(self):
+        # Redirect stdout to hide the output of the coverage command and just see the test results
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, "w")
+        # Suppress the ResourceWarning complaining about the config_file json.load not being closed
+        warnings.simplefilter("ignore", ResourceWarning)
         # Create the WDL files with different workflow names
         wdl_workflow_1 = self.EXAMPLE_WDL_WORKFLOW.replace(
             "call_variants", "call_variants_1"
@@ -85,6 +91,8 @@ class TestCoverageHandler(unittest.TestCase):
             os.remove("test_call-variants_2.wdl")
         if os.path.exists("wdl-ci.config.json"):
             os.remove("wdl-ci.config.json")
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
     def update_config_with_tests(self, wdl_1_tests, wdl_2_tests):
         # Read the existing config file
@@ -115,10 +123,6 @@ class TestCoverageHandler(unittest.TestCase):
     def test_identical_output_names_with_threshold(self):
         # Reset the coverage_summary
         self.reset_coverage_summary()
-
-        # Suppress the ResourceWarning complaining about the config_file json.load not being closed
-        # with warnings.catch_warnings():
-        #     warnings.simplefilter("ignore", ResourceWarning)
 
         # Update the "tests" list for specific workflows
         test_cases = [
@@ -163,28 +167,24 @@ class TestCoverageHandler(unittest.TestCase):
             coverage_summary["tested_outputs_dict"]["call_variants_2"]["freebayes"],
         )
 
-    # def test_no_tasks_in_workflow(self):
-    #     self.reset_coverage_summary()
-    #     # Suppress the ResourceWarning complaining about the config_file json.load not being closed
-    #     with warnings.catch_warnings():
-    #         warnings.simplefilter("ignore", ResourceWarning)
-    #         # Update the "tests" list for specific workflows
-    #         test_cases = []
-    #         self.update_config_with_tests(
-    #             wdl_1_tests=test_cases, wdl_2_tests=test_cases
-    #         )
-    #         # Call the coverage_handler function
-    #         kwargs = {
-    #             "target_coverage": None,
-    #             "workflow_name": None,
-    #         }
-    #         coverage_handler(kwargs)
-    #         # Assertions
-    #         self.assertNotEqual(len(coverage_summary["untested_outputs_dict"]), 0)
-    #         self.assertEqual(
-    #             len(coverage_summary["untested_outputs_with_optional_inputs_dict"]), 2
-    #         )
-    #         self.assertEqual(len(coverage_summary["untested_tasks_dict"]), 2)
+    def test_no_tasks_in_workflow(self):
+        self.reset_coverage_summary()
+        # Update the "tests" list for specific workflows
+        test_cases = []
+        self.update_config_with_tests(wdl_1_tests=test_cases, wdl_2_tests=test_cases)
+        # Call the coverage_handler function
+        kwargs = {
+            "target_coverage": None,
+            "workflow_name": None,
+        }
+        coverage_handler(kwargs)
+        # Assertions
+        self.assertGreaterEqual(len(coverage_summary["untested_outputs_dict"]), 2)
+        self.assertEqual(
+            len(coverage_summary["untested_outputs_with_optional_inputs_dict"]), 2
+        )
+        self.assertEqual(len(coverage_summary["untested_tasks_dict"]), 2)
+        self.assertGreaterEqual(len(coverage_summary["untested_workflows_list"]), 2)
 
     #### Additional tests I'd like to add ####
     # Test workflows with >1 tasks
@@ -196,6 +196,8 @@ class TestCoverageHandler(unittest.TestCase):
     # Providing an invalid workflow name to --workflow-name
     # Providing a valid workflow name to --workflow name where the workflow exists, but has no tasks
     # Providing an extremely large wdl-ci.config.json
+    # Case where some tasks with optional inputs have outputs dually tested but others do not
+    # Case where no tasks are tested at all
 
 
 if __name__ == "__main__":
