@@ -29,6 +29,12 @@ task check_tar {
 				exit 1
 			else
 				echo "Current run file: [~{basename(current_run_output)}] passed tar check"
+				if ! diff <(tar tf ~{current_run_output} | sort) <(tar tf ~{validated_output} | sort); then
+					err "Current run file: [~{basename(current_run_output)}] and validated file: [~{basename(validated_output)}] do not have the same contents"
+					exit 1
+				else
+					echo "Current run file: [~{basename(current_run_output)}] and validated file: [~{basename(validated_output)}] have the same contents"
+				fi
 			fi
 		fi
 	>>>
