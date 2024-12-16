@@ -75,8 +75,9 @@ def coverage_handler(kwargs):
                 ):
                     tasks_below_threshold = False
                     continue
-                # Initialize the workflow found flag to True if the prior condition is not met
-                workflow_found = True
+                else:
+                    # Initialize the workflow found flag to True if the prior condition is not met
+                    workflow_found = True
 
                 # Iterate over each task in the WDL document
                 for task in doc.tasks:
