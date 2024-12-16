@@ -4,6 +4,8 @@ import subprocess
 import json
 import warnings
 import sys
+from io import StringIO
+from unittest.mock import patch
 
 from src.wdlci.cli.coverage import coverage_handler, coverage_summary
 
@@ -81,6 +83,7 @@ class TestCoverageHandler(unittest.TestCase):
 
         output {
           File greeting = "output_str.txt"
+          File unused_greeting = "unused_output_str.txt"
         }
       }
 """
@@ -142,7 +145,6 @@ class TestCoverageHandler(unittest.TestCase):
         coverage_summary["skipped_workflows_list"] = []
 
     def test_identical_output_names_with_threshold(self):
-        # Update the "tests" list for specific workflows
         test_cases = [
             {
                 "inputs": {
@@ -221,8 +223,6 @@ class TestCoverageHandler(unittest.TestCase):
         }
         coverage_handler(kwargs)
 
-        # Assertions
-
         # Assert all four outputs are untested
         self.assertEqual(
             sum(
@@ -254,17 +254,7 @@ class TestCoverageHandler(unittest.TestCase):
 
     # Providing a valid workflow name to --workflow name where the workflow exists, but has no tests
     def test_valid_workflow_name_with_no_tasks(self):
-        test_cases = [
-            # {
-            #     "inputs": {"input_str": "hello_world"},
-            #     "output_tests": {
-            #         "greeting": {
-            #             "value": "hello world",
-            #             "test_tasks": ["compare_string"],
-            #         }
-            #     },
-            # }
-        ]
+        test_cases = []
         # Update the workflow we are NOT filtering for
         self.update_config_with_tests(
             workflow_name="test_call-variants_1.wdl",
@@ -273,8 +263,6 @@ class TestCoverageHandler(unittest.TestCase):
         )
         kwargs = {"target_coverage": None, "workflow_name": "call_variants_2"}
         coverage_handler(kwargs)
-
-        # Assertions
 
         # Assert one workflow is untested (in reality both are, but we are filtering for one)
         self.assertEqual(len(coverage_summary["untested_workflows_list"]), 1)
@@ -287,8 +275,231 @@ class TestCoverageHandler(unittest.TestCase):
             2,
         )
 
+    # Case where some tasks with optional inputs have outputs dually tested but others do not
+    def test_handling_of_optional_inputs(self):
+        dually_tested_optional_input_test_cases = [
+            {
+                "inputs": {
+                    "bam": "test.bam",
+                    "ref": {"fasta": "test.fasta", "organism": "test_organism"},
+                    "min_alternate_fraction": 0.5,
+                },
+                "output_tests": {
+                    "vcf": {
+                        "value": "test.vcf",
+                        "test_tasks": ["compare_file_basename"],
+                    }
+                },
+            },
+            {
+                "inputs": {
+                    "bam": "test.bam",
+                    "ref": {"fasta": "test.fasta", "organism": "test_organism"},
+                },
+                "output_tests": {
+                    "vcf": {
+                        "value": "test.vcf",
+                        "test_tasks": ["compare_file_basename"],
+                    }
+                },
+            },
+        ]
+
+        untested_optionals_test_cases = [
+            {
+                "inputs": {
+                    "bam": "test.bam",
+                    "ref": {"fasta": "test.fasta", "organism": "test_organism"},
+                    "min_alternate_fraction": 0.5,
+                },
+                "output_tests": {
+                    "vcf": {
+                        "value": "test.vcf",
+                        "test_tasks": ["compare_file_basename"],
+                    }
+                },
+            }
+        ]
+
+        self.update_config_with_tests(
+            workflow_name="test_call-variants_1.wdl",
+            task_name="freebayes",
+            wdl_tests=dually_tested_optional_input_test_cases,
+        )
+        self.update_config_with_tests(
+            workflow_name="test_call-variants_2.wdl",
+            task_name="freebayes",
+            wdl_tests=untested_optionals_test_cases,
+        )
+        kwargs = {"target_coverage": None, "workflow_name": None}
+        coverage_handler(kwargs)
+
+        self.assertEqual(
+            sum(
+                len(outputs)
+                for outputs in coverage_summary[
+                    "untested_outputs_with_optional_inputs_dict"
+                ].values()
+            ),
+            1,
+        )
+        self.assertEqual(
+            list(coverage_summary["untested_outputs_with_optional_inputs_dict"].keys()),
+            ["call_variants_2"],
+        )
+
+    # Threshold testing cases
+    # Test case where workflow exceeds target coverage but outputs and tasks do not
+    def test_workflow_exceed_threshold(self):
+        workflow_threshold_pass_test_cases = [
+            {
+                "inputs": {
+                    "bam": "test.bam",
+                    "ref": {"fasta": "test.fasta", "organism": "test_organism"},
+                },
+                "output_tests": {
+                    "vcf": {
+                        "value": "test.vcf",
+                        "test_tasks": ["compare_file_basename"],
+                    }
+                },
+            }
+        ]
+
+        self.update_config_with_tests(
+            workflow_name="test_call-variants_1.wdl",
+            task_name="freebayes",
+            wdl_tests=workflow_threshold_pass_test_cases,
+        )
+        with patch("sys.stdout", new=StringIO()) as fake_out:
+            kwargs = {"target_coverage": 30, "workflow_name": "call_variants_1"}
+            coverage_handler(kwargs)
+            coverage_handler_stdout = fake_out.getvalue()
+
+        expected_workflow_pass_message = (
+            "All workflows exceed the specified coverage threshold"
+        )
+        self.assertIn(expected_workflow_pass_message, coverage_handler_stdout)
+
+    # Test case where workflow and tasks exceeds target coverage but outputs not
+    def test_workflow_and_tasks_exceed_threshold(self):
+        freebayes_workflow_and_task_threshold_pass_test_cases = [
+            {
+                "inputs": {
+                    "bam": "test.bam",
+                    "ref": {"fasta": "test.fasta", "organism": "test_organism"},
+                },
+                "output_tests": {
+                    "vcf": {
+                        "value": "test.vcf",
+                        "test_tasks": ["compare_file_basename"],
+                    }
+                },
+            }
+        ]
+        hello_world_workflow_and_task_threshold_pass_test_cases = [
+            {
+                "inputs": {"input_str": "test"},
+                "output_tests": {
+                    "greeting": {
+                        "value": "output_str_test.txt",
+                        "test_tasks": ["compare_file_basename"],
+                    }
+                },
+            },
+        ]
+
+        self.update_config_with_tests(
+            workflow_name="test_call-variants_2.wdl",
+            task_name="freebayes",
+            wdl_tests=freebayes_workflow_and_task_threshold_pass_test_cases,
+        )
+        self.update_config_with_tests(
+            workflow_name="test_call-variants_2.wdl",
+            task_name="hello_world",
+            wdl_tests=hello_world_workflow_and_task_threshold_pass_test_cases,
+        )
+        with patch("sys.stdout", new=StringIO()) as fake_out:
+            kwargs = {"target_coverage": 45, "workflow_name": "call_variants_2"}
+            coverage_handler(kwargs)
+            coverage_handler_stdout = fake_out.getvalue()
+
+        expected_workflow_pass_message = (
+            "All workflows exceed the specified coverage threshold"
+        )
+        self.assertIn(expected_workflow_pass_message, coverage_handler_stdout)
+        expected_task_pass_message = "All tasks exceed the specified coverage threshold"
+        self.assertIn(expected_task_pass_message, coverage_handler_stdout)
+
+    # Test case where workflow, tasks, and outputs exceeds target coverage
+    def test_workflow_and_tasks_and_outputs_exceed_threshold(self):
+        freebayes_workflow_and_task_threshold_pass_test_cases = [
+            {
+                "inputs": {
+                    "bam": "test.bam",
+                    "ref": {"fasta": "test.fasta", "organism": "test_organism"},
+                },
+                "output_tests": {
+                    "vcf": {
+                        "value": "test.vcf",
+                        "test_tasks": ["compare_file_basename"],
+                    }
+                },
+            }
+        ]
+        hello_world_workflow_and_task_threshold_pass_test_cases = [
+            {
+                "inputs": {"input_str": "test"},
+                "output_tests": {
+                    "greeting": {
+                        "value": "output_str_test.txt",
+                        "test_tasks": ["compare_file_basename"],
+                    }
+                },
+            },
+            {
+                "inputs": {"input_str": "test"},
+                "output_tests": {
+                    "unused_greeting": {
+                        "value": "output_str_test.txt",
+                        "test_tasks": ["compare_file_basename"],
+                    }
+                },
+            },
+        ]
+
+        self.update_config_with_tests(
+            workflow_name="test_call-variants_2.wdl",
+            task_name="freebayes",
+            wdl_tests=freebayes_workflow_and_task_threshold_pass_test_cases,
+        )
+        self.update_config_with_tests(
+            workflow_name="test_call-variants_2.wdl",
+            task_name="hello_world",
+            wdl_tests=hello_world_workflow_and_task_threshold_pass_test_cases,
+        )
+        with patch("sys.stdout", new=StringIO()) as fake_out:
+            kwargs = {"target_coverage": 45, "workflow_name": "call_variants_2"}
+            coverage_handler(kwargs)
+            coverage_handler_stdout = fake_out.getvalue()
+
+        expected_workflow_pass_message = (
+            "All workflows exceed the specified coverage threshold"
+        )
+        self.assertIn(expected_workflow_pass_message, coverage_handler_stdout)
+        expected_task_pass_message = "All tasks exceed the specified coverage threshold"
+        self.assertIn(expected_task_pass_message, coverage_handler_stdout)
+        expected_output_pass_message = (
+            "All outputs exceed the specified coverage threshold"
+        )
+        self.assertIn(expected_output_pass_message, coverage_handler_stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()
+
     # Providing an invalid workflow name to --workflow-name
-    ## TODO: this doesn't work as the config doesn't get reset when the workflow exits with the No workflows found method -- adjust config reset to support
+    # # TODO: this doesn't work as the config doesn't get reset when the workflow exits with the No workflows found method -- adjust config reset to support
     # def test_invalid_workflow_name(self):
     #     kwargs = {"target_coverage": None, "workflow_name": "nonexistent_workflow"}
 
@@ -302,12 +513,4 @@ class TestCoverageHandler(unittest.TestCase):
     #### Additional tests I'd like to add ####
     # Test workflows with >1 tasks
     # Test WDL files with >1 tasks but no 'workflow' block
-    # Providing a value to command to --target-coverage where all outputs/tasks/workflows are above the thresold
-    # Providing a value to --target-coverage where only some outputs/tasks/workflows are above the threshold
-    # Providing a value to --target-coverage where none of the above are above the threshold
     # Providing an extremely large wdl-ci.config.json
-    # Case where some tasks with optional inputs have outputs dually tested but others do not
-
-
-if __name__ == "__main__":
-    unittest.main()
