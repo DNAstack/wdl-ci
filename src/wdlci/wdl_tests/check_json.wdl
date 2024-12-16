@@ -20,11 +20,19 @@ task check_json {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if ! json_pp < ~{validated_output}; then
+		if gzip -t ~{current_run_output}; then
+			gzip -d -f ~{current_run_output} ~{validated_output}
+		fi
+
+		# Dir path in input block vs. command block is different
+		validated_dir_path=$(dirname ~{validated_output})
+		current_dir_path=$(dirname ~{current_run_output})
+
+		if ! json_pp < "${validated_dir_path}/$(basename ~{validated_output} .gz)"; then
 			err "Validated JSON: [~{basename(validated_output)}] is not valid; check schema"
 			exit 1
 		else
-			if ! json_pp < ~{current_run_output}; then
+			if ! json_pp < "${current_dir_path}/$(basename ~{current_run_output} .gz)"; then
 				err "Current run JSON: [~{basename(current_run_output)}] is not valid"
 				exit 1
 			else
