@@ -18,7 +18,7 @@ coverage_summary = {
     # {workflow_name: {task_name: [output_name]}}
     "tested_outputs_dict": {},
     "total_output_count": 0,
-    "all_output_tests_list": [],
+    "all_tested_outputs_list": [],
     "skipped_workflows_list": [],
 }
 
@@ -123,9 +123,11 @@ def coverage_handler(kwargs):
                             if output_name not in tested_outputs
                         ]
 
-                        # Add tested outputs to workflow_tested_outputs_list and all_output_tests_list
+                        # Add tested outputs to workflow_tested_outputs_list and all_tested_outputs_list
                         workflow_tested_outputs_list.extend(tested_outputs)
-                        coverage_summary["all_output_tests_list"].extend(tested_outputs)
+                        coverage_summary["all_tested_outputs_list"].extend(
+                            tested_outputs
+                        )
 
                         # Add missing outputs to the coverage_summary[untested_outputs] dictionary if there are any missing outputs
                         if len(missing_outputs) > 0:
@@ -235,12 +237,12 @@ def coverage_handler(kwargs):
                 workflow_found = False
         # Calculate and print the total coverage
         if (
-            len(coverage_summary["all_output_tests_list"]) > 0
+            len(coverage_summary["all_tested_outputs_list"]) > 0
             and coverage_summary["total_output_count"] > 0
             and not workflow_name_filter
         ):
             total_coverage = (
-                len(coverage_summary["all_output_tests_list"])
+                len(coverage_summary["all_tested_outputs_list"])
                 / coverage_summary["total_output_count"]
             ) * 100
             print("\n" + f"\033[33mTotal coverage: {total_coverage:.2f}%\033[0m")
