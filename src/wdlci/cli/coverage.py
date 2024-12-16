@@ -73,7 +73,7 @@ def coverage_handler(kwargs):
                     workflow_name_filter is not None
                     and workflow_name_filter not in workflow_name
                 ):
-                    # tasks_below_threshold = False
+                    tasks_below_threshold = False
                     continue
                 # Initialize the workflow found flag to True if the prior condition is not met
                 workflow_found = True
@@ -99,7 +99,7 @@ def coverage_handler(kwargs):
                                     output_name
                                     for test in task_tests_list
                                     for output_name, output_test in test.output_tests.items()
-                                    # Handle the case where  test_tasks exists but is an empty list
+                                    # Handle the case where test_tasks exists but is an empty list
                                     if len(output_test.get("test_tasks")) > 0
                                 ]
                             )
@@ -180,7 +180,12 @@ def coverage_handler(kwargs):
                         else:
                             # Calculate and print the task coverage
                             task_coverage = (
-                                len(tested_outputs) / len(task.outputs)
+                                len(
+                                    coverage_summary["tested_outputs_dict"][
+                                        workflow_name
+                                    ][task.name]
+                                )
+                                / len(task.outputs)
                             ) * 100
                             if threshold is not None and task_coverage < threshold:
                                 tasks_below_threshold = True
@@ -195,7 +200,9 @@ def coverage_handler(kwargs):
                 # Need to make sure there is a valid workflow and that the workflow has a name; avoids trying to calculate coverage for struct workflows
                 if workflow_output_count > 0 and len(workflow_tested_outputs_list) > 0:
                     workflow_coverage = (
-                        len(workflow_tested_outputs_list) / workflow_output_count
+                        ## TODO: Think about adding this to the coverage_summary dict/calculating as above, after figuring out if there's any added utility
+                        len(workflow_tested_outputs_list)
+                        / workflow_output_count
                     ) * 100
                     if threshold is not None and workflow_coverage < threshold:
                         workflows_below_threshold = True
