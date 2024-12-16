@@ -15,7 +15,7 @@ coverage_summary = {
     "untested_outputs_dict": {},
     # {workflow_name: {task_name: [output_name]}}
     "untested_outputs_with_optional_inputs_dict": {},
-    ## TODO: TBD if the tested_outputs nested dict is necessary - maybe some nuance with the calculations I'm missing right now; specifically case where outputs in different workflows or tasks that share a name -- might be preferable to return coverage from the dict so we can reference output names and the tasks they belong to. Currently, the tested_outputs_dict is updated but not used to calculate coverage. It might only be useful if we want to report the outputs that are tested for a given workflow or task.
+    ## TODO: TBD if the tested_outputs nested dict is necessary
     # {workflow_name: {task_name: [output_name]}}
     "tested_outputs_dict": {},
     "total_output_count": 0,
