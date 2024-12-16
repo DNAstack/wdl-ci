@@ -27,10 +27,8 @@ def coverage_handler(kwargs):
     threshold = kwargs["target_coverage"]
     workflow_name_filter = kwargs["workflow_name"]
     print(f"Target coverage threshold: ", threshold)
-    if workflow_name_filter is not None:
-        print(f"Workflow name filter: {workflow_name_filter}\n")
-    else:
-        print("Workflow name filter: None\n")
+    print(f"Workflow name filter: {workflow_name_filter}\n")
+
     print("┍━━━━━━━━━━━━━┑")
     print("│   Coverage  │")
     print("┕━━━━━━━━━━━━━┙")
@@ -239,7 +237,6 @@ def coverage_handler(kwargs):
         if (
             len(coverage_summary["all_tested_outputs_list"]) > 0
             and coverage_summary["total_output_count"] > 0
-            and not workflow_name_filter
         ):
             total_coverage = (
                 len(coverage_summary["all_tested_outputs_list"])
