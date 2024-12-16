@@ -45,7 +45,7 @@ def coverage_handler(kwargs):
 
         # Iterate over each WDL file
         for wdl_file in wdl_files:
-            # TODO: Integrate these with coverage_summary
+            # TODO: think about integrating these with coverage_summary
             workflow_tested_outputs_list = []
             workflow_output_count = 0
 
