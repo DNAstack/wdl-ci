@@ -298,7 +298,6 @@ def coverage_handler(kwargs):
 
         # Warn the user if any tasks have no tests
         if len(coverage_summary["untested_tasks_dict"]) > 0:
-            ## TODO: confirm if I need to add the same workflow_name_filter check as below - requires testing
             print("\n" + "\033[31m[WARN]: The following tasks have no tests:\033[0m")
             for workflow, tasks in coverage_summary["untested_tasks_dict"].items():
                 for task in tasks:
