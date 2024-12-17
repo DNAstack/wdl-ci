@@ -514,3 +514,4 @@ if __name__ == "__main__":
     # Test workflows with >1 tasks
     # Test WDL files with >1 tasks but no 'workflow' block
     # Providing an extremely large wdl-ci.config.json
+    # Test case where a WDL file is not in the configuration but is present in the directory and make sure it's appended to the skipped workflows list
