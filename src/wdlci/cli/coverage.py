@@ -165,7 +165,6 @@ def coverage_handler(kwargs):
 
                     # Catch the case where tasks are completely absent from the config
                     except KeyError:
-                        # Initialize workflow.task in coverage state[untested_tasks] dict if there is a workflow in the WDL file but no tests in the config file
                         _update_coverage_summary(
                             "untested_tasks_dict", workflow_name, task.name
                         )
@@ -221,7 +220,7 @@ def coverage_handler(kwargs):
                 elif (
                     workflow_output_count == 0
                     or len(workflow_tested_outputs_list) == 0
-                    and workflow_name
+                    and workflow_name is not None
                 ):
                     workflows_below_threshold = False
                     if workflow_name not in coverage_summary["untested_workflows_list"]:
@@ -262,7 +261,7 @@ def coverage_handler(kwargs):
         total_tested_outputs = _sum_outputs(coverage_summary, "tested_outputs_dict")
         if total_tested_outputs > 0:
             print("\n The following outputs are tested:")
-            _print_untested_items(coverage_summary, "tested_outputs_dict")
+            _print_coverage_items(coverage_summary, "tested_outputs_dict")
 
         print("\n┍━━━━━━━━━━━━━┑")
         print("│  Warning(s) │")
@@ -274,7 +273,7 @@ def coverage_handler(kwargs):
         # Warn the user if any outputs have no tests
         if total_untested_outputs > 0:
             print("\n" + "\033[31m[WARN]: The following outputs have no tests:\033[0m")
-            _print_untested_items(coverage_summary, "untested_outputs_dict")
+            _print_coverage_items(coverage_summary, "untested_outputs_dict")
 
         # Warn the user if any outputs are part of a task that contains an optional input and are not covered by at least two tests (one for each case where the optional input is and is not provided)
         if total_untested_outputs_with_optional_inputs > 0:
@@ -283,7 +282,7 @@ def coverage_handler(kwargs):
                 "\n"
                 + "\033[31m[WARN]: The following outputs are part of a task that contains an optional input and are not covered by at least two tests; they should be covered for both cases where the optional input is and is not provided:\033[0m"
             )
-            _print_untested_items(
+            _print_coverage_items(
                 coverage_summary, "untested_outputs_with_optional_inputs_dict"
             )
 
@@ -373,7 +372,7 @@ def _update_coverage_summary(key, workflow_name, task_name, **kwargs):
             coverage_summary[key][workflow_name][task_name] = []
 
 
-def _print_untested_items(coverage_summary, key):
+def _print_coverage_items(coverage_summary, key):
     for workflow, tasks in coverage_summary[key].items():
         for task, outputs in tasks.items():
             if len(outputs) > 0:
