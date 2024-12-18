@@ -3,7 +3,6 @@ import os
 import sys
 import itertools
 import WDL
-import re
 from importlib.resources import files
 from wdlci.auth.refresh_token_auth import RefreshTokenAuth
 from wdlci.config import Config
@@ -70,7 +69,6 @@ def submit_handler(kwargs):
         tasks_to_test = dict()
         workflow_outputs = []
         missing_outputs_list = []
-        output_file_name_pattern = re.compile(r"\b\w+\s+(\S+)\s+=")
 
         for workflow_key in changeset.get_workflow_keys():
             for task_key in changeset.get_tasks(workflow_key):
@@ -84,22 +82,15 @@ def submit_handler(kwargs):
                         doc_main_task = doc_tasks[task_key]
                         # Create list of workflow output names
                         for output in doc_main_task.outputs:
-                            match = output_file_name_pattern.search(str(output))
-                            if match:
-                                workflow_outputs.extend([match.group(1)])
+                            workflow_outputs.append(output.name)
 
                         output_tests = test_input_set.output_tests
-                        # Create dictionary of missing outputs
-                        missing_outputs_dict = {
-                            key: output_tests[key]
-                            for key in output_tests
-                            if key not in workflow_outputs
-                        }
 
-                        for output_key in missing_outputs_dict.keys():
-                            missing_outputs_list.append(output_key)
+                        missing_outputs_list = [
+                            key for key in output_tests if key not in workflow_outputs
+                        ]
 
-                        if missing_outputs_list:
+                        if len(missing_outputs_list) > 0:
                             raise WdlTestCliExitException(
                                 f"Expected output(s): [{', '.join(missing_outputs_list)}] not found in task: {doc_main_task.name}; has this output been removed from the workflow?\nIf so, you will need to remove this output from the wdl-ci.config.json before proceeding.",
                                 1,
@@ -196,9 +187,9 @@ def submit_handler(kwargs):
                         output_test_val_hydrated = HydrateParams.hydrate(
                             source_params, output_test_val, update_key=False
                         )
-                        output_tests_hydrated[
-                            output_test_key_hydrated
-                        ] = output_test_val_hydrated
+                        output_tests_hydrated[output_test_key_hydrated] = (
+                            output_test_val_hydrated
+                        )
 
                     workflow_id = submission_state.workflows[test_key]._workflow_id
 
