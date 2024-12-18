@@ -287,6 +287,7 @@ def coverage_handler(kwargs):
             )
 
         # Check if any tasks are below the threshold and there are no untested tasks; if so, return to the user that all tasks exceed the threshold
+        ## TODO: Not working as intended - needs fix
         if _check_threshold(
             tasks_below_threshold,
             len(coverage_summary["untested_tasks_dict"]),
