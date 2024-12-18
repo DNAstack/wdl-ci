@@ -271,7 +271,7 @@ def coverage_handler(kwargs):
             print("\n✓ All outputs exceed the specified coverage threshold.")
 
         # Warn the user if any outputs have no tests
-        if total_untested_outputs > 0:
+        elif total_untested_outputs > 0:
             print("\n" + "\033[31m[WARN]: The following outputs have no tests:\033[0m")
             _print_coverage_items(coverage_summary, "untested_outputs_dict")
 
