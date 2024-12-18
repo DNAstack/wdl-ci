@@ -331,11 +331,14 @@ def coverage_handler(kwargs):
             )
             for workflow in coverage_summary["skipped_workflows_list"]:
                 print(f"\t{workflow}")
-        config.reset()
 
     except WdlTestCliExitException as e:
         print(f"exiting with code {e.exit_code}, message: {e.message}")
         sys.exit(e.exit_code)
+
+    # Reset config regardless of try and except outcome
+    finally:
+        config.reset()
 
 
 # Helper functions
