@@ -47,10 +47,9 @@ target_coverage = click.option(
 workflow_name = click.option(
     "--workflow-name",
     "-w",
-    type=str,
-    default=None,
+    multiple=True,
     show_default=True,
-    help="Name of the workflow to filter coverage results (not file name)",
+    help="Set of workflows to filter by; should be the full path to this workflow (same as the key in the config file)",
 )
 
 
