@@ -5,6 +5,7 @@ from wdlci.cli.detect_changes import detect_changes_handler
 from wdlci.cli.submit import submit_handler
 from wdlci.cli.monitor import monitor_handler
 from wdlci.cli.cleanup import cleanup_handler
+from wdlci.cli.coverage import coverage_handler
 from wdlci.utils.ordered_group import OrderedGroup
 
 remove_option = click.option(
@@ -32,6 +33,23 @@ suppress_lint_errors_option = click.option(
     default=False,
     show_default=True,
     help="Do not exit upon encountering a linting warning or error",
+)
+
+target_coverage = click.option(
+    "--target-coverage",
+    "-t",
+    type=float,
+    default=None,
+    show_default=True,
+    help="Target coverage (%); only output tasks or workflows with test coverage below this threshold",
+)
+
+workflow_name = click.option(
+    "--workflow-name",
+    "-w",
+    multiple=True,
+    show_default=True,
+    help="Set of workflows to filter by; should be the full path to this workflow (same as the key in the config file)",
 )
 
 
@@ -100,3 +118,18 @@ def cleanup(**kwargs):
     """Clean Workbench namespace of transient artifacts"""
 
     cleanup_handler(kwargs)
+
+
+@main.command
+@target_coverage
+@workflow_name
+# TODO: Add options for minimalist output; e.g., maybe hide warning output for:
+#    tests that don't have tests both excluding and including optional inputs
+#    list of outputs that are not tested for each task
+#    skipped workflows
+#    workflows that have outputs but no tests
+# TODO: Add option to consider totally untested tasks/outputs as 0% coverage or ignore them
+def coverage(**kwargs):
+    """Outputs percent coverage for each task and output, and which tasks/outputs have no associated tests"""
+
+    coverage_handler(kwargs)
