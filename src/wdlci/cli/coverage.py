@@ -244,6 +244,7 @@ def coverage_handler(kwargs):
             or total_untested_outputs_with_optional_inputs > 0
             or len(coverage_summary["untested_tasks_dict"]) > 0
             or len(coverage_summary["untested_workflows_list"]) > 0
+            or len(coverage_summary["skipped_workflows_list"])
         ):
             print("┍━━━━━━━━━━━━━┑")
             print("│  Warning(s) │")
