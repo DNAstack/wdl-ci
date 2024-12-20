@@ -19,7 +19,7 @@ def coverage_handler(kwargs):
         "untested_outputs_with_optional_inputs_dict": {},
         # {workflow_name: {task_name: [output_name]}}
         "tested_outputs_dict": {},
-        "total_output_count": 0,
+        "all_outputs_list": [],
         "all_tested_outputs_list": [],
         "skipped_workflows_list": [],
     }
@@ -62,20 +62,45 @@ def coverage_handler(kwargs):
             workflow_tested_outputs_list = []
             workflow_output_count = 0
 
-            # Load the WDL document
-            doc = WDL.load(workflow_name)
-
             # Handle the case where the WDL file is not in the configuration but is present in the directory
             if workflow_name not in config._file.workflows:
                 coverage_summary["skipped_workflows_list"].append(workflow_name)
                 continue
 
-            # Check if the WDL document has > 0 tasks or a workflow attribute exists; structs might be part of the config and do not have tasks nor do they have outputs to test. Additionally, just checking for > 0 tasks misses parent workflows that just import and call other tasks/workflows. TBD if we want to include these 'parent' workflows, but ultimately, if there are no tasks or a workflow attribute, we skip the WDL file and print a warning
-            if len(doc.tasks) > 0 or doc.workflow is not None:
+            # Load the WDL document
+            doc = WDL.load(workflow_name)
+
+            # Create a list of workflow imports
+            workflow_imports = []
+            for wdl_import in doc.imports:
+                # This handles the case where the import has no tasks (e.g., structs) and also include imported workflows that have no tasks and only import as well (e.g., family.wdl imports upstream.wdl)
+                if len(wdl_import.doc.tasks) > 0 or wdl_import.doc.workflow is not None:
+                    workflow_imports.append(wdl_import)
+
+            # Flag to track if outputs have been added already and avoid double counting outputs that show up in imports
+            outputs_added_to_all_outputs = False
+
+            ## TODO: all_outputs_list is added to, but need to add to all_tested_outputs_list as well
+            if len(workflow_imports) > 0:
+                for workflow_import in workflow_imports:
+                    if not outputs_added_to_all_outputs:
+                        for imported_task in workflow_import.doc.tasks:
+                            workflow_output_count += len(imported_task.outputs)
+                            coverage_summary["all_outputs_list"].extend(
+                                [output.name for output in imported_task.outputs]
+                            )
+                outputs_added_to_all_outputs = True
+
+            # Check if the WDL document has > 0 tasks; structs might be part of the config and do not have tasks nor do they have outputs to test. As we're already handling workflows with imports above, we just check for > 0 tasks here.
+            ## TODO: Need to handle the case where there are tasks AND imports
+            if len(doc.tasks) > 0:
                 # Iterate over each task in the WDL document
                 for task in doc.tasks:
-                    # Add to counters for total output count and workflow output count
-                    coverage_summary["total_output_count"] += len(task.outputs)
+                    if not outputs_added_to_all_outputs:
+                        # Add outputs to all_outputs_list and add to workflow output count
+                        coverage_summary["all_outputs_list"].extend(
+                            [output.name for output in task.outputs]
+                        )
                     workflow_output_count += len(task.outputs)
                     # Initialize a list of task test dictionaries
                     task_tests_list = []
@@ -188,7 +213,8 @@ def coverage_handler(kwargs):
                                 print(f"\ntask.{task.name}: {task_coverage:.2f}%")
                             else:
                                 print(f"\ntask.{task.name}: {task_coverage:.2f}%")
-
+                # After iterating, set the flag
+                outputs_added_to_all_outputs = True
                 # Calculate workflow coverage; only calculate if there are outputs and tests for the workflow. If there are no outputs or tests but there is a workflow block and name, add the workflow to the untested_workflows list
                 # Need to make sure there is a valid workflow and that the workflow has a name; avoids trying to calculate coverage for struct workflows
                 if workflow_output_count > 0 and len(workflow_tested_outputs_list) > 0:
@@ -205,20 +231,21 @@ def coverage_handler(kwargs):
                 elif (
                     workflow_output_count == 0 or len(workflow_tested_outputs_list) == 0
                 ):
+                    print(workflow_output_count)
                     coverage_summary["untested_workflows_list"].append(workflow_name)
-
-            # Append the workflow to the skipped_workflows list if there are no tasks or workflow blocks
-            else:
-                coverage_summary["skipped_workflows_list"].append(workflow_name)
 
         # Calculate and print the total coverage
         if (
             len(coverage_summary["all_tested_outputs_list"]) > 0
-            and coverage_summary["total_output_count"] > 0
+            and len(coverage_summary["all_outputs_list"]) > 0
         ):
+            print(coverage_summary["all_tested_outputs_list"])
+            print(len(coverage_summary["all_tested_outputs_list"]))
+            print(coverage_summary["all_outputs_list"])
+            print(len(coverage_summary["all_outputs_list"]))
             total_coverage = (
                 len(coverage_summary["all_tested_outputs_list"])
-                / coverage_summary["total_output_count"]
+                / len(coverage_summary["all_outputs_list"])
             ) * 100
             print("\n" + f"\033[33mTotal coverage: {total_coverage:.2f}%\033[0m")
         else:
