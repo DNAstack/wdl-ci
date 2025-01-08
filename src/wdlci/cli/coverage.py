@@ -75,13 +75,16 @@ def coverage_handler(kwargs):
             # If the WDL document has imports
             ## TODO: this is only recursing a single level, e.g., family importing upstream will not lead to all outputs from upstream being reported, but tertiary will work as it only has a single level of imports
             if len(doc.imports) > 0:
-                # Populate list of workflow imports
                 for wdl_import in doc.imports:
-                    print(f"{wdl_import.namespace} is imported")
-                    ## Need to write a function to do all the calculations below recursively based on nested imports
-                    print(wdl_import.doc.imports)
-                    # print(f"workflow with imports: {wdl_import.pos.uri}")
-                    # print(f"imported workflows from above: {wdl_import.uri}")
+                    #         _process_imports(
+                    #             wdl_import,
+                    #             coverage_summary,
+                    #             config,
+                    #             workflow_outputs_list,
+                    #             workflow_tested_outputs_list,
+                    #             threshold,
+                    #         )
+
                     # This handles the case where the import has tasks or imported workflows that have no tasks and only import as well (e.g., family.wdl imports upstream.wdl which also just imports other tasks/workflows). It will exclude imported workflows that don't have a workflow attribute or tasks (e.g., structs)
                     if (
                         len(wdl_import.doc.tasks) > 0
@@ -110,134 +113,6 @@ def coverage_handler(kwargs):
                                 threshold,
                             )
 
-                            # # Initialize a list of task test dictionaries
-                            # task_tests_list = []
-
-                            # # Create a list of dictionaries for each set of task tests in our config file
-                            # task_tests_list = (
-                            #     config._file.workflows[import_workflow_name]
-                            #     .tasks[imported_task.name]
-                            #     .tests
-                            # )
-
-                            # # We are reducing the set of tested_outputs (output names) across input sets for the same task, ie if the same output is tested multiple times with different inputs, we'll count it as tested
-                            # # Create a list of all the outputs that are tested in the config file and found in the task output_tests dictionary
-                            # tested_outputs = list(
-                            #     set(
-                            #         [
-                            #             output_name
-                            #             for test in task_tests_list
-                            #             for output_name, output_test in test.output_tests.items()
-                            #             # Handle the case where test_tasks exists but is an empty list
-                            #             if len(output_test.get("test_tasks")) > 0
-                            #         ]
-                            #     )
-                            # )
-                            # # Update coverage_summary with tested outputs for each task
-                            # if len(tested_outputs) > 0:
-                            #     coverage_summary = _update_coverage_summary(
-                            #         coverage_summary,
-                            #         "tested_outputs_dict",
-                            #         workflow_name,
-                            #         imported_task.name,
-                            #         output_names=tested_outputs,
-                            #     )
-                            # # Create a list of all the outputs that are present in the task
-                            # all_task_outputs = [
-                            #     output.name for output in imported_task.outputs
-                            # ]
-
-                            # # Create a list of outputs that are present in the task but not in the config file
-                            # missing_outputs = [
-                            #     output_name
-                            #     for output_name in all_task_outputs
-                            #     if output_name not in tested_outputs
-                            # ]
-
-                            # # Add tested outputs to workflow_tested_outputs_list and all_tested_outputs_list
-                            # workflow_tested_outputs_list.extend(tested_outputs)
-                            # coverage_summary["all_tested_outputs_list"].extend(
-                            #     tested_outputs
-                            # )
-
-                            # # Add missing outputs to the coverage_summary[untested_outputs] dictionary if there are any missing outputs
-                            # if len(missing_outputs) > 0:
-                            #     coverage_summary = _update_coverage_summary(
-                            #         coverage_summary,
-                            #         "untested_outputs_dict",
-                            #         workflow_name,
-                            #         imported_task.name,
-                            #         output_names=missing_outputs,
-                            #     )
-
-                            # # Check for optional inputs and check if there is a test that covers running that task with the optional input and without it
-                            # optional_inputs = [
-                            #     input.name
-                            #     for input in imported_task.inputs
-                            #     if input.type.optional
-                            # ]
-                            # optional_inputs_not_dually_tested = []
-                            # for optional_input in optional_inputs:
-                            #     test_exists_with_optional_set = False
-                            #     test_exists_with_optional_not_set = False
-                            #     for task_test in task_tests_list:
-                            #         if optional_input in task_test.inputs:
-                            #             test_exists_with_optional_set = True
-                            #         else:
-                            #             test_exists_with_optional_not_set = True
-
-                            #     if not (
-                            #         test_exists_with_optional_set
-                            #         and test_exists_with_optional_not_set
-                            #     ):
-                            #         optional_inputs_not_dually_tested.extend(
-                            #             [
-                            #                 output.name
-                            #                 for output in imported_task.outputs
-                            #             ]
-                            #         )
-
-                            # coverage_summary = _update_coverage_summary(
-                            #     coverage_summary,
-                            #     "untested_outputs_with_optional_inputs_dict",
-                            #     workflow_name,
-                            #     imported_task.name,
-                            #     output_names=list(
-                            #         set(optional_inputs_not_dually_tested)
-                            #     ),
-                            # )
-                            # # If there are outputs but no tests, add the task to the untested_tasks list. If there are outputs and tests, calculate the task coverage
-                            # if len(imported_task.outputs) > 0:
-                            #     # Handle the case where the task is in the config but has no associated tests
-                            #     if len(task_tests_list) == 0:
-                            #         coverage_summary = _update_coverage_summary(
-                            #             coverage_summary,
-                            #             "untested_tasks_dict",
-                            #             workflow_name,
-                            #             imported_task.name,
-                            #         )
-                            #     else:
-                            #         # Calculate and print the task coverage
-                            #         task_coverage = (
-                            #             len(
-                            #                 coverage_summary["tested_outputs_dict"][
-                            #                     workflow_name
-                            #                 ][imported_task.name]
-                            #             )
-                            #             / len(imported_task.outputs)
-                            #         ) * 100
-                            #         if (
-                            #             threshold is not None
-                            #             and task_coverage < threshold
-                            #         ):
-                            #             tasks_below_threshold = True
-                            #             print(
-                            #                 f"\ntask.{imported_task.name}: {task_coverage:.2f}%"
-                            #             )
-                            #         else:
-                            #             print(
-                            #                 f"\ntask.{imported_task.name}: {task_coverage:.2f}%"
-                            #             )
             # Check if the WDL document has tasks
             if len(doc.tasks) > 0:
                 # Iterate over each task in the WDL document
@@ -271,119 +146,6 @@ def coverage_handler(kwargs):
                             workflow_tested_outputs_list,
                             threshold,
                         )
-                        # # Initialize a list of task test dictionaries
-                        # task_tests_list = []
-
-                        # # Create a list of dictionaries for each set of task tests in our config file
-                        # task_tests_list = (
-                        #     config._file.workflows[workflow_name].tasks[task.name].tests
-                        # )
-
-                        # # We are reducing the set of tested_outputs (output names) across input sets for the same task, ie if the same output is tested multiple times with different inputs, we'll count it as tested
-                        # # Create a list of all the outputs that are tested in the config file and found in the task output_tests dictionary
-                        # tested_outputs = list(
-                        #     set(
-                        #         [
-                        #             output_name
-                        #             for test in task_tests_list
-                        #             for output_name, output_test in test.output_tests.items()
-                        #             # Handle the case where test_tasks exists but is an empty list
-                        #             if len(output_test.get("test_tasks")) > 0
-                        #         ]
-                        #     )
-                        # )
-
-                        # # Update coverage_summary with tested outputs for each task
-                        # if len(tested_outputs) > 0:
-                        #     coverage_summary = _update_coverage_summary(
-                        #         coverage_summary,
-                        #         "tested_outputs_dict",
-                        #         workflow_name,
-                        #         task.name,
-                        #         output_names=tested_outputs,
-                        #     )
-
-                        # # Create a list of all the outputs that are present in the task
-                        # all_task_outputs = [output.name for output in task.outputs]
-
-                        # # Create a list of outputs that are present in the task but not in the config file
-                        # missing_outputs = [
-                        #     output_name
-                        #     for output_name in all_task_outputs
-                        #     if output_name not in tested_outputs
-                        # ]
-
-                        # # Add tested outputs to workflow_tested_outputs_list and all_tested_outputs_list
-                        # workflow_tested_outputs_list.extend(tested_outputs)
-                        # coverage_summary["all_tested_outputs_list"].extend(
-                        #     tested_outputs
-                        # )
-
-                        # # Add missing outputs to the coverage_summary[untested_outputs] dictionary if there are any missing outputs
-                        # if len(missing_outputs) > 0:
-                        #     coverage_summary = _update_coverage_summary(
-                        #         coverage_summary,
-                        #         "untested_outputs_dict",
-                        #         workflow_name,
-                        #         task.name,
-                        #         output_names=missing_outputs,
-                        #     )
-
-                        # # Check for optional inputs and check if there is a test that covers running that task with the optional input and without it
-                        # optional_inputs = [
-                        #     input.name for input in task.inputs if input.type.optional
-                        # ]
-                        # optional_inputs_not_dually_tested = []
-                        # for optional_input in optional_inputs:
-                        #     test_exists_with_optional_set = False
-                        #     test_exists_with_optional_not_set = False
-                        #     for task_test in task_tests_list:
-                        #         if optional_input in task_test.inputs:
-                        #             test_exists_with_optional_set = True
-                        #         else:
-                        #             test_exists_with_optional_not_set = True
-
-                        #     if not (
-                        #         test_exists_with_optional_set
-                        #         and test_exists_with_optional_not_set
-                        #     ):
-                        #         optional_inputs_not_dually_tested.extend(
-                        #             [output.name for output in task.outputs]
-                        #         )
-
-                        # coverage_summary = _update_coverage_summary(
-                        #     coverage_summary,
-                        #     "untested_outputs_with_optional_inputs_dict",
-                        #     workflow_name,
-                        #     task.name,
-                        #     output_names=list(set(optional_inputs_not_dually_tested)),
-                        # )
-
-                        # # If there are outputs but no tests, add the task to the untested_tasks list. If there are outputs and tests, calculate the task coverage
-                        # if len(task.outputs) > 0:
-                        #     # Handle the case where the task is in the config but has no associated tests
-                        #     if len(task_tests_list) == 0:
-                        #         coverage_summary = _update_coverage_summary(
-                        #             coverage_summary,
-                        #             "untested_tasks_dict",
-                        #             workflow_name,
-                        #             task.name,
-                        #         )
-                        #     else:
-                        #         # Calculate and print the task coverage
-                        #         task_coverage = (
-                        #             len(
-                        #                 coverage_summary["tested_outputs_dict"][
-                        #                     workflow_name
-                        #                 ][task.name]
-                        #             )
-                        #             / len(task.outputs)
-                        #         ) * 100
-                        #         if threshold is not None and task_coverage < threshold:
-                        #             tasks_below_threshold = True
-                        #             print(f"\ntask.{task.name}: {task_coverage:.2f}%")
-                        #         else:
-                        #             print(f"\ntask.{task.name}: {task_coverage:.2f}%")
 
             # Calculate workflow coverage; only calculate if there are outputs and tests for the workflow. If there are no outputs or tests but there is a workflow block and name, add the workflow to the untested_workflows list
             # Need to make sure there is a valid workflow and that the workflow has a name; avoids trying to calculate coverage for struct workflows
@@ -515,6 +277,9 @@ def coverage_handler(kwargs):
 
 
 # Helper functions
+## TODO: Add docstrings and improve naming of functions that update coverage summary or combine
+
+
 def _sum_outputs(coverage_summary, key):
     """
     Returns:
@@ -656,4 +421,51 @@ def _update_coverage(
                 print(f"\ntask.{task.name}: {task_coverage:.2f}%")
             else:
                 print(f"\ntask.{task.name}: {task_coverage:.2f}%")
+    return coverage_summary
+
+
+def _process_imports(
+    wdl_import,
+    coverage_summary,
+    config,
+    workflow_outputs_list,
+    workflow_tested_outputs_list,
+    threshold,
+):
+    print(f"{wdl_import.namespace} is imported")
+
+    # Handle nested imports
+    if len(wdl_import.doc.imports) > 0:
+        for nested_import in wdl_import.doc.imports:
+            _process_imports(
+                nested_import,
+                coverage_summary,
+                config,
+                workflow_outputs_list,
+                workflow_tested_outputs_list,
+                threshold,
+            )
+
+    # This handles the case where the import has tasks or imported workflows that have no tasks and only import as well (e.g., family.wdl imports upstream.wdl which also just imports other tasks/workflows). It will exclude imported workflows that don't have a workflow attribute or tasks (e.g., structs)
+    if len(wdl_import.doc.tasks) > 0 or wdl_import.doc.workflow is not None:
+        # Iterate over each import's set of tasks and extend outputs
+        for imported_task in wdl_import.doc.tasks:
+            # Use the imports URI to populate the task_tests_list properly
+            ## TODO: definitely not ideal handling as it assumes there is a parent workflows directory -- find a better approach
+            import_workflow_name = "workflows/" + wdl_import.uri.strip("../*")
+            workflow_outputs_list.extend(
+                [output.name for output in imported_task.outputs]
+            )
+            coverage_summary["all_outputs_list"].extend(
+                [output.name for output in imported_task.outputs]
+            )
+
+            coverage_summary = _update_coverage(
+                coverage_summary,
+                config,
+                import_workflow_name,
+                imported_task,
+                workflow_tested_outputs_list,
+                threshold,
+            )
     return coverage_summary
