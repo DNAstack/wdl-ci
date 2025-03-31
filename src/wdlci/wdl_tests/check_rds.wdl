@@ -23,7 +23,7 @@ task check_rds {
 		validate_rds() {
 			test_file=$1
 
-			Rscript -e "tryCatch({obj <- readRDS('$test_file', refhook = NULL)}, error = function(e) { message('Error: ', e$message); quit(status = 1) })"
+			Rscript -e "tryCatch({obj <- readRDS('$test_file', refhook = NULL)}, error = function(e) { quit(status = 1) })"
 		}
 
 		# Confirm that validated output is RDS format
