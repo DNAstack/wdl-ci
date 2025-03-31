@@ -23,7 +23,7 @@ task check_rds {
 		validate_rds() {
 			test_file=$1
 
-			Rscript -e "obj <- try(readRDS('$test_file'), silent=TRUE); if (inherits(obj, 'try-error')) { quit(status = 1) }"
+			Rscript -e "tryCatch({obj <- readRDS('$test_file', refhook = NULL)}, error = function(e) { message('Error: ', e$message); quit(status = 1) })"
 		}
 
 		# Confirm that validated output is RDS format
@@ -45,7 +45,7 @@ task check_rds {
 	}
 
 	runtime {
-		docker: "dnastack/dnastack-wdl-ci-tools:0.0.1"
+		docker: "dnastack/dnastack-wdl-ci-tools:0.1.0"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"
