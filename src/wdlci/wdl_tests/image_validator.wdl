@@ -1,9 +1,9 @@
 version 1.0
 
 # Check integrity of image file
-# Input type: PNG, JNG or MNG image files
+# Delegates: bzlib cairo djvu fftw fontconfig freetype jbig jng jpeg lcms lqr ltdl lzma openexr pangocairo png rsvg tiff wmf x xml zlib
 
-task png_validator {
+task image_validator {
 	input {
 		File current_run_output
 		File validated_output
@@ -20,11 +20,11 @@ task png_validator {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if ! pngcheck ~{validated_output}; then
+		if ! identify ~{validated_output}; then
 			err "Validated image file: [~{basename(validated_output)}] is invalid"
 			exit 1
 		else
-			if ! pngcheck ~{current_run_output}; then
+			if ! identify ~{current_run_output}; then
 				err "Current run image file: [~{basename(current_run_output)}] is invalid"
 				exit 1
 			else
@@ -37,7 +37,7 @@ task png_validator {
 	}
 
 	runtime {
-		docker: "dnastack/dnastack-wdl-ci-tools:0.1.0"
+		docker: "dnastack/dnastack-wdl-ci-tools:0.0.1"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"

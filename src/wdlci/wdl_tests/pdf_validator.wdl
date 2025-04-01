@@ -1,9 +1,9 @@
 version 1.0
 
-# VCFtools validator on input files
-# Input type: VCF
+# Validate PDF file
+# Input type: PDF file
 
-task vcftools_validator {
+task pdf_validator {
 	input {
 		File current_run_output
 		File validated_output
@@ -20,15 +20,15 @@ task vcftools_validator {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if ! vcf-validator ~{validated_output}; then
-			err "Validated VCF: [~{basename(validated_output)}] is invalid"
+		if ! qpdf --check ~{validated_output}; then
+			err "Validated PDF: [~{basename(validated_output)}] is invalid"
 			exit 1
 		else
-			if ! vcf-validator ~{current_run_output}; then
-				err "Current run VCF: [~{basename(current_run_output)}] is invalid"
+			if ! qpdf --check ~{current_run_output}; then
+				err "Current run PDF: [~{basename(current_run_output)}] is invalid"
 				exit 1
 			else
-				echo "Current run VCF: [~{basename(current_run_output)}] passed VCFtools validator"
+				echo "Current run PDF: [~{basename(current_run_output)}] passed QPDF validator"
 			fi
 		fi
 	>>>

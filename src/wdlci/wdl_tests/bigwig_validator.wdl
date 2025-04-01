@@ -45,7 +45,7 @@ task bigwig_validator {
 	}
 
 	runtime {
-		docker: "dnastack/dnastack-wdl-ci-tools:0.0.1"
+		docker: "dnastack/dnastack-wdl-ci-tools:0.1.0"
 		cpu: 1
 		memory: "3.75 GB"
 		disk: disk_size + " GB"
