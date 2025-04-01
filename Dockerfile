@@ -5,7 +5,9 @@ RUN apt-get -qq update \
 		git \
 		wget \
 		xz-utils \
-		gcc
+		gcc \
+		libffi-dev \
+		build-essential
 
 # Shellcheck
 ENV SHELLCHECK_VERSION=v0.10.0
