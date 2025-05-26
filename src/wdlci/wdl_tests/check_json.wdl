@@ -20,7 +20,7 @@ task check_json {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if gzip -t ~{current_run_output}; then
+		if gzip -tq ~{current_run_output}; then
 			gzip -d -f ~{current_run_output} ~{validated_output}
 		fi
 
