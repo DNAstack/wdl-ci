@@ -20,7 +20,7 @@ task check_comma_separated {
 			echo -e "[ERROR] $message" >&2
 		}
 
-		if gzip -t ~{current_run_output}; then
+		if gzip -t ~{current_run_output} 2> /dev/null; then
 			gzip -d -f ~{current_run_output} ~{validated_output}
 		fi
 
