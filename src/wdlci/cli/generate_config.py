@@ -2,6 +2,7 @@ from wdlci.config import Config
 import WDL
 from wdlci.config.config_file import WorkflowConfig, WorkflowTaskConfig
 from wdlci.constants import CONFIG_JSON
+from wdlci.utils.initialize_worklows_and_tasks import find_wdl_files
 import os.path
 
 
@@ -19,14 +20,7 @@ def generate_config_handler(kwargs, update_task_digests=False):
     config = Config.instance()
 
     # Initialize workflows and tasks
-    cwd = os.getcwd()
-    wdl_files = []
-    for root_path, subfolders, filenames in os.walk(cwd):
-        for filename in filenames:
-            if filename.endswith(".wdl"):
-                wdl_files.append(
-                    os.path.relpath(os.path.join(root_path, filename), cwd)
-                )
+    wdl_files = find_wdl_files()
 
     for workflow_path in wdl_files:
         if workflow_path not in config.file.workflows:

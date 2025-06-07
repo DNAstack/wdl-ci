@@ -130,3 +130,6 @@ dmypy.json
 
 .wdltest.changes.json
 .wdltest.submission.json
+
+# MAC
+*.DS_STORE

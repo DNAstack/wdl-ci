@@ -67,6 +67,9 @@ def submit_handler(kwargs):
 
         # register workflow(s)
         tasks_to_test = dict()
+        workflow_outputs = []
+        missing_outputs_list = []
+
         for workflow_key in changeset.get_workflow_keys():
             for task_key in changeset.get_tasks(workflow_key):
                 doc = WDL.load(workflow_key)
@@ -77,8 +80,21 @@ def submit_handler(kwargs):
                     # Register and create workflows for all tasks with tests
                     for test_index, test_input_set in enumerate(task.tests):
                         doc_main_task = doc_tasks[task_key]
+                        # Create list of workflow output names
+                        for output in doc_main_task.outputs:
+                            workflow_outputs.append(output.name)
 
                         output_tests = test_input_set.output_tests
+
+                        missing_outputs_list = [
+                            key for key in output_tests if key not in workflow_outputs
+                        ]
+
+                        if len(missing_outputs_list) > 0:
+                            raise WdlTestCliExitException(
+                                f"Expected output(s): [{', '.join(missing_outputs_list)}] not found in task: {doc_main_task.name}; has this output been removed from the workflow?\nIf so, you will need to remove this output from the wdl-ci.config.json before proceeding.",
+                                1,
+                            )
 
                         # Skip input sets with no test tasks defined for any output
                         all_test_tasks = [
