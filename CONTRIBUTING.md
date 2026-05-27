@@ -29,6 +29,8 @@ docker run --rm -v "$PWD/tests/fixtures:/usr/test" wdl-ci:ci lint --suppress-lin
 
 If the image builds and all four commands exit 0, the tool still installs and runs.
 
+The `generate-config` step writes `tests/fixtures/wdl-ci.config.json` into the mounted directory, owned by root because the container runs as root. Remove it afterward with `sudo rm -f tests/fixtures/wdl-ci.config.json` so it does not linger in your working tree.
+
 ## How CI works
 
 The `.github/workflows/pr-checks.yml` workflow runs on every PR to `main` and on pushes to `main`. It has two jobs:
