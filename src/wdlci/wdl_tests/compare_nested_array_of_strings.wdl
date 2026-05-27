@@ -3,7 +3,7 @@ version 1.0
 # Check if two nested arrays of strings are identical by writing a TSV file of the data structure
 # Input type: Array[Array[String]]
 
-task compare_array_array_strings {
+task compare_nested_array_of_strings {
     input {
         Array[Array[String]] current_run_output
         Array[Array[String]] validated_output
