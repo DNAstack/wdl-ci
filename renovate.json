@@ -16,6 +16,11 @@
   "commitMessagePrefix": "[CU-86b4umhm1]",
   "packageRules": [
     {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["dnastack/wdl-ci"],
+      "enabled": false
+    },
+    {
       "matchUpdateTypes": ["major"],
       "automerge": false,
       "labels": ["Major"]
