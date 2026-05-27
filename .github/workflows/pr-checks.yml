@@ -1,0 +1,40 @@
+name: PR checks
+run-name: PR checks
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+      - name: set up python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: install tools
+        run: python -m pip install black pytest
+      - name: check formatting
+        run: black --check src scripts tests
+      - name: check version consistency
+        run: python scripts/bump_version.py --check
+      - name: run unit tests
+        run: python -m pytest tests/unit -v
+  docker-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+      - name: build image
+        run: docker build -t wdl-ci:ci .
+      - name: cli starts
+        run: |
+          docker run --rm wdl-ci:ci --version
+          docker run --rm wdl-ci:ci --help
+      - name: smoke generate-config and lint on fixture
+        run: |
+          docker run --rm -v "${{ github.workspace }}/tests/fixtures:/usr/test" wdl-ci:ci generate-config
+          docker run --rm -v "${{ github.workspace }}/tests/fixtures:/usr/test" wdl-ci:ci lint --suppress-lint-errors
