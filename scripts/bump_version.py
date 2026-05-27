@@ -71,7 +71,6 @@ if __name__ == "__main__":
         "-v",
         "--version",
         type=str,
-        required=False,
         help="New version to set, e.g. 2.2.0 (no 'v' prefix)",
     )
     group.add_argument(

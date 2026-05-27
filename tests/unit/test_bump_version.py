@@ -36,7 +36,7 @@ def test_bump_leaves_third_party_pinned_actions_untouched(tmp_path, monkeypatch)
     _write_project(tmp_path, "2.1.0")
     monkeypatch.chdir(tmp_path)
 
-    bump_version.bump("2.2.0")
+    assert bump_version.bump("2.2.0") == 0
 
     assert "actions/checkout@abc123 # v4" in (tmp_path / "action.yml").read_text()
 
@@ -54,3 +54,14 @@ def test_check_returns_nonzero_when_versions_differ(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
     assert bump_version.check() == 1
+
+
+def test_bump_returns_nonzero_when_no_version_reference_found(tmp_path, monkeypatch):
+    _write_project(tmp_path, "2.1.0")
+    # Replace action.yml with content that has no docker://dnastack/wdl-ci:v reference
+    (tmp_path / "action.yml").write_text(
+        "runs:\n  steps:\n    - uses: actions/checkout@abc123 # v4\n"
+    )
+    monkeypatch.chdir(tmp_path)
+
+    assert bump_version.bump("2.2.0") == 1
