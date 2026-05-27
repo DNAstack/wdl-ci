@@ -20,7 +20,7 @@ jobs:
           LATEST_TAG="latest"
           ALL_TAGS="${IMAGE}:${VERSION_TAG},${IMAGE}:${LONG_VERSION_TAG},${IMAGE}:${LATEST_TAG}"
 
-          echo ::set-output name=all_tags::${ALL_TAGS}
+          echo "all_tags=${ALL_TAGS}" >> "$GITHUB_OUTPUT"
       - name: set up QEMU
         uses: docker/setup-qemu-action@master
         with:
