@@ -1,18 +1,18 @@
 [project]
 name = "wdl-testing-cli"
 description = "DNAstack WDL testing CLI"
-version = "2.1.0"
+version = "2.2.0"
 authors = [
     { name = "DNAstack", email = "devs@dnastack.com" }
 ]
 dependencies = [
-    "click==8.1.7",
-    "dnastack-client-library==3.1.59",
-    "jsonpickle==4.0.0",
-    "miniwdl==1.12.1",
-    "requests==2.32.3",
-    "psutil==6.1.0",
-    "pyjwt[crypto]==2.10.1"
+    "click==8.1.8",
+    "dnastack-client-library==3.1.232",
+    "jsonpickle==4.1.1",
+    "miniwdl==1.14.2",
+    "requests==2.34.2",
+    "psutil==7.2.2",
+    "pyjwt[crypto]==2.12.1"
 ]
 
 [build-system]

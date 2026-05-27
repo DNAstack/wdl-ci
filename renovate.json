@@ -1,0 +1,62 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    ":automergeRequireAllStatusChecks",
+    "mergeConfidence:all-badges",
+    "security:minimumReleaseAgeNpm",
+    ":dependencyDashboard"
+  ],
+  "minimumReleaseAge": "7 days",
+  "osvVulnerabilityAlerts": true,
+  "ignoreTests": false,
+  "automergeStrategy": "merge-commit",
+  "platformAutomerge": false,
+  "configMigration": true,
+  "commitMessagePrefix": "[CU-86b4umhm1]",
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["dnastack/wdl-ci"],
+      "enabled": false
+    },
+    {
+      "matchPackageNames": ["click"],
+      "allowedVersions": "<8.2",
+      "description": "dnastack-client-library pins click<8.2; revisit when that range widens"
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["Major"]
+    },
+    {
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "minimumReleaseAge": "14 days"
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "minimumReleaseAge": "14 days"
+    },
+    {
+      "matchCategories": ["java"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "minimumReleaseAge": "14 days"
+    },
+    {
+      "matchPackageNames": ["dnastack-development-tools"],
+      "automerge": true,
+      "minimumReleaseAge": "1 hour",
+      "labels": ["internal-infrastructure"]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["renovate-security"],
+    "enabled": true
+  }
+}

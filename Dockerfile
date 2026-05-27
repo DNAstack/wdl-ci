@@ -1,4 +1,4 @@
-FROM python:3.11.0-slim-buster
+FROM python:3.14-slim-bookworm@sha256:a9bee15510a364124aa24692899d269835683b883de42f7ebec8c293cf679ccb
 
 RUN apt-get -qq update \
 	&& apt-get -qq install \

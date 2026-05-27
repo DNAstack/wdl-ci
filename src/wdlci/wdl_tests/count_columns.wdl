@@ -23,7 +23,7 @@ task count_columns {
 		current=~{current_run_output}
 		validated=~{validated_output}
 
-		if gzip -t ~{current_run_output}; then
+		if gzip -t ~{current_run_output} 2> /dev/null; then
 			gzip -d -f ~{current_run_output} ~{validated_output}
 			current=$(dirname ~{current_run_output})/$(basename ~{current_run_output} .gz)
 			validated=$(dirname ~{validated_output})/$(basename ~{validated_output} .gz)
