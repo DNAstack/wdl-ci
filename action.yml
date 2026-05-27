@@ -72,7 +72,7 @@ runs:
       # This allows fixing broken tests without rerunning successful runs
     - name: update-config
       if: always()
-      uses: EndBug/add-and-commit@v9
+      uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5 # v9
       with:
         add: ${{ inputs.config-file }}
         message: "update wdl-ci config file after successful tests"
