@@ -21,6 +21,11 @@
       "enabled": false
     },
     {
+      "matchPackageNames": ["click"],
+      "allowedVersions": "<8.2",
+      "description": "dnastack-client-library pins click<8.2; revisit when that range widens"
+    },
+    {
       "matchUpdateTypes": ["major"],
       "automerge": false,
       "labels": ["Major"]
