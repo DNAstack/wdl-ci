@@ -12,7 +12,7 @@ dependencies = [
     "miniwdl==1.14.2",
     "requests==2.34.2",
     "psutil==7.2.2",
-    "pyjwt[crypto]==2.12.1"
+    "pyjwt[crypto]==2.13.0"
 ]
 
 [build-system]
