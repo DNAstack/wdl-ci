@@ -339,6 +339,7 @@ Test params can be used to avoid repeating paths and values for test inputs and 
 - For parameters whose value is an object, object members can be accessed using `.`s: `"reference_index": ${reference.fasta.data_index}`
 - Global params will replace values for all engines
 - Engine params will replace values only when submitting to a particular engine; useful if for example input sets exist across multiple environments and are prefixed with different paths
+- For parameters with the same key, `engine_params` take precedence over `global_params`
 - Objects and arrays can be used for parameters; if you are using a complex parameter as an input or output value, this parameter must be the only content of the value, e.g. `"my_input": "${complex_param}"`, not `"my_input": "gs://my_bucket/${complex_param}"`
 - The values of complex parameters can themselves use parameters, and will be substituted appropriately
 
@@ -458,6 +459,31 @@ Generates the configuration file that is required by other commands. See [here](
 If a configuration file already exists, this will add workflows or tasks that do not already exist in the file. By default, only new workflows and/or tasks will be added to the config file; deleted workflows or tasks will not be removed. The `--remove` flag may be used to force removal of workflows and tasks that are no longer present at the specified paths.
 
 `wdl-ci generate-config [--remove]`
+
+## Calculate coverage
+
+Calculates percent coverage for each task and workflow. Task coverage is computed as the sum of task outputs with at least one test divided by the number of task outputs, while workflow coverage is computed as the sum of task outputs across all tasks with at least one test divided by the number of task outputs across all tasks within a given workflow. Total coverage is also computed, as the total number of outputs with tests defined divided by the number of total outputs across all workflows. If there are any tasks or outputs with no tests, a warning is provided to the user, listing the relevant outputs and associated tasks.
+
+As long as an output is covered by one task, it is considered to be 100% covered, while if 3/4 outputs for a task have at least one test, that task has 75% test coverage.
+
+Example output:
+
+```
+workflowNameA coverage: 84%
+  taskA coverage: 75%
+  taskB coverage: 63%
+  taskC coverage: 100%
+  taskD coverage: 100%
+workflowNameB coverage: 100%
+  taskA coverage: 100%
+  taskB coverage: 100%
+...
+Total coverage across outputs and tasks among all workflows: 89%
+```
+
+`wdl-ci coverage` can be run with additional options to filter results and set thresholds. The `--workflow-name` option allows the user to specify a workflow name to filter the results, showing only the coverage for that specific workflow. The `--target-coverage` option takes a float percent value and allows the user to set a threshold percentage; only tasks and workflows with coverage below this threshold will be displayed. If no tasks/workflows match the specified filter, a message will be printed to inform the user. Additionally, if all optional outputs are tested, a confirmation message will be displayed.
+
+`wdl-ci coverage --workflow-name <workflow_name> --target-coverage <threshold>`
 
 ## Lint workflows
 
