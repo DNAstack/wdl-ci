@@ -7,7 +7,7 @@ authors = [
 ]
 dependencies = [
     "click==8.1.8",
-    "dnastack-client-library==3.1.232",
+    "dnastack-client-library==3.1.239",
     "jsonpickle==4.1.1",
     "miniwdl==1.14.2",
     "requests==2.34.2",
